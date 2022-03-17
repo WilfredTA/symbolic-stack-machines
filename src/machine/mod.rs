@@ -8,7 +8,7 @@ use crate::{
     stack::*,
 };
 use error::MachineError;
-use z3::ast::Int;
+use z3::ast::{Bool, Int};
 use z3::{Config, Context, Model, SatResult, Solver};
 
 pub type MachineResult<T> = Result<T, MachineError>;
@@ -35,8 +35,8 @@ where
 
 impl<'a, Mem, MachineStack, I> BaseMachine<'a, Mem, MachineStack, I>
 where
-    Mem: RWMem,
-    MachineStack: Stack,
+    Mem: RWMem + std::fmt::Debug,
+    MachineStack: Stack + std::fmt::Debug,
     I: VMInstruction<'a, Mem = Mem, ValStack = MachineStack>,
 {
     pub fn new(stack: MachineStack, mem_init: Mem::InitArgs) -> Self {
@@ -50,48 +50,194 @@ where
         }
     }
 
-    pub fn run_sym(self, pgm: &Program<'a, I>) -> (SatResult, Option<Model<'a>>)
+    pub fn run_sym(
+        self,
+        pgm: &Program<'a, I>,
+    ) -> (
+        Vec<(
+            (usize, MachineStack, Mem, Vec<z3::ast::Bool<'a>>),
+            Option<Model<'a>>,
+        )>,
+        Vec<(
+            (usize, MachineStack, Mem, Vec<z3::ast::Bool<'a>>),
+            Option<Model<'a>>,
+        )>,
+    )
     where
         Mem: Clone,
         MachineStack: Clone,
     {
+        type Branch<'a, S, M> = (usize, S, M, Vec<Bool<'a>>);
         let mut stack = self.stack.clone();
         let mut mem = self.mem.clone();
         let mut context = self.context.unwrap();
-        for inst in pgm {
-            let rec = inst.exec(&stack, &self.mem).unwrap();
-            stack = {
-                if let Some(stack_diff) = rec.stack_diff {
-                    stack_diff.apply(stack).unwrap()
+        //let mut branches = vec![];
+        // let mut leaves = vec![];
+        let mut pc = 0_usize;
+        let execute = |pc: &mut usize,
+                       pgm: &Program<'a, I>,
+                       mut stack: MachineStack,
+                       mut mem: Mem|
+         -> (
+            Option<Branch<MachineStack, Mem>>,
+            Option<Branch<MachineStack, Mem>>,
+        ) {
+            for inst in &pgm[pc.clone()..] {
+                let rec = inst.exec(&stack, &mem).unwrap();
+                println!("EXEC RECORD CONSTRAINTS: {:?}", rec.path_constraints);
+                if rec.halt || pc.clone() == pgm.len() {
+                    return (None, None);
                 } else {
-                    stack
-                }
-            };
+                    println!("STACK BEFORE APPLY: {:?}", stack);
+                    stack = {
+                        if let Some(stack_diff) = rec.stack_diff {
+                            stack_diff.apply(stack).unwrap()
+                        } else {
+                            stack
+                        }
+                    };
+                    println!("STACK AFTER APPLY: {:?}", stack);
 
-            mem = {
-                if let Some(mem_diff) = rec.mem_diff {
-                    mem_diff.apply(mem).unwrap()
-                } else {
-                    mem
-                }
-            };
+                    mem = {
+                        if let Some(mem_diff) = rec.mem_diff {
+                            mem_diff.apply(mem).unwrap()
+                        } else {
+                            mem
+                        }
+                    };
 
-            if rec.path_constraints.len() > 0 {
-                let curr_path_constraints = rec.path_constraints.first().cloned().unwrap();
-                context.constraints.extend(curr_path_constraints);
+                    if rec.path_constraints.len() == 1 {
+                        let curr_path_constraints = rec.path_constraints.first().cloned().unwrap();
+                        return (
+                            Some((
+                                pc.clone() + 1,
+                                stack.clone(),
+                                mem.clone(),
+                                curr_path_constraints,
+                            )),
+                            None,
+                        );
+                    }
+
+                    if rec.path_constraints.len() == 2 {
+                        let branch_one_rules = rec.path_constraints.first().cloned().unwrap();
+                        let branch_two_rules = rec.path_constraints.get(1).cloned().unwrap();
+
+                        return (
+                            Some((pc.clone() + 1, stack.clone(), mem.clone(), branch_one_rules)),
+                            Some((
+                                rec.pc_change.unwrap(),
+                                stack.clone(),
+                                mem.clone(),
+                                branch_two_rules,
+                            )),
+                        );
+                    }
+                    return (
+                        Some((pc.clone() + 1, stack.clone(), mem.clone(), vec![])),
+                        None,
+                    );
+                    *pc += 1;
+                }
+            }
+            return (None, None);
+        };
+
+        let mut trace_tree: Vec<Branch<MachineStack, Mem>> = vec![];
+        trace_tree.push((0, stack.clone(), mem.clone(), vec![]));
+        let mut leaves: Vec<Branch<MachineStack, Mem>> = vec![];
+        loop {
+            let start_branch = trace_tree.pop();
+            if let Some(start_branch) = start_branch {
+                let (mut pc, stack, mem, mut constraints) = start_branch;
+                let branches = execute(&mut pc, pgm, stack.clone(), mem.clone());
+                println!("BRANCHES AFTER ONE EXEC: {:?}", branches);
+                match branches {
+                    (None, None) => {
+                        // A branch reached the end of program or halted; move to next traversal and
+                        // store this possible end state
+                        leaves.push((pc, stack, mem, constraints));
+                    }
+                    (None, Some(_)) => {
+                        panic!("This should never happen");
+                    }
+                    (Some(branch), None) => {
+                        // Only one possible path but constraints were added
+                        constraints.extend(branch.3);
+                        trace_tree.push((branch.0, branch.1, branch.2, constraints));
+                    }
+                    (Some(b1), Some(b2)) => {
+                        // Branch condition has been introduced; traverse down b1 then b2
+                        let mut b2_constraints = constraints.clone();
+                        b2_constraints.extend(b2.3);
+                        constraints.extend(b1.3);
+
+                        trace_tree.push((b2.0, b2.1, b2.2, b2_constraints));
+                        trace_tree.push((b1.0, b1.1, b1.2, constraints));
+                    }
+                }
+            } else {
+                break;
             }
         }
 
-        let solver = Solver::new(&context.ctx);
-        for constraint in &context.constraints {
-            solver.assert(constraint);
+        println!("Final LEAVES: {:?}", leaves);
+        // for inst in pgm {
+        //     let rec = inst.exec(&stack, &self.mem).unwrap();
+        //     if rec.halt || pc == pgm.len() - 1{
+        //         leaves.push((pc, stack.clone(), mem.clone()));
+        //     } else {
+        //         stack = {
+        //             if let Some(stack_diff) = rec.stack_diff {
+        //                 stack_diff.apply(stack).unwrap()
+        //             } else {
+        //                 stack
+        //             }
+        //         };
+
+        //         mem = {
+        //             if let Some(mem_diff) = rec.mem_diff {
+        //                 mem_diff.apply(mem).unwrap()
+        //             } else {
+        //                 mem
+        //             }
+        //         };
+
+        //         if rec.path_constraints.len() >= 1 {
+        //             let curr_path_constraints = rec.path_constraints.first().cloned().unwrap();
+        //             context.constraints.extend(curr_path_constraints);
+        //         }
+
+        //         if rec.path_constraints.len() == 2 {
+        //             let pc_change = rec.pc_change.unwrap();
+        //                 let path_conditions = rec.path_constraints.get(1).cloned().unwrap();
+        //                 branches.push((pc_change, stack.clone(), mem.clone(), path_conditions));
+
+        //         }
+        //         pc += 1;
+        //     }
+
+        // }
+
+        let mut reachable = vec![];
+        let mut unreachable = vec![];
+
+        for leaf in leaves {
+            let solver = Solver::new(&context.ctx);
+            let constraints = &leaf.3;
+            for constraint in constraints {
+                solver.assert(&constraint);
+            }
+            let sat = solver.check();
+            if let SatResult::Sat = sat {
+                reachable.push((leaf, solver.get_model()));
+            } else {
+                unreachable.push((leaf, None));
+            }
         }
-
-        let is_sat = solver.check();
-        let model = solver.get_model();
-        println!("SAT: {:?}\nModel: {:?}", is_sat, model);
-
-        (is_sat, model)
+        println!("Unreachable leaves: {:?}", unreachable);
+        println!("Reachable leaves: {:?}", reachable);
+        return (reachable, unreachable);
     }
     pub fn run(self, pgm: &Program<'a, I>) -> Option<MachineStack::StackVal>
     where

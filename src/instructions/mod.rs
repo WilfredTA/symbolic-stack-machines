@@ -20,6 +20,7 @@ where
     // Each inner vec represents a new path in the program
     pub path_constraints: Vec<Vec<Bool<'a>>>,
     pub pc_change: Option<usize>,
+    pub halt: bool,
 }
 
 pub trait VMInstruction<'a> {

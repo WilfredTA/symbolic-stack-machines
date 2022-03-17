@@ -7,7 +7,7 @@ use instructions::*;
 use machine::*;
 use memory::symbolic::BaseSymbolicMem;
 use stack::*;
-use z3::ast::{Ast, Int};
+use z3::ast::{Ast, Bool, Int};
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum Instruction<T> {
@@ -37,6 +37,7 @@ impl<'a> VMInstruction<'a> for Instruction<Int<'a>> {
             mem_diff: None,
             path_constraints: vec![],
             pc_change: None,
+            halt: false,
         };
         match self {
             Instruction::Add => {
@@ -76,8 +77,22 @@ impl<'a> VMInstruction<'a> for Instruction<Int<'a>> {
             Instruction::MLOAD => todo!(),
             Instruction::MSTORE => todo!(),
             Instruction::ISZERO => todo!(),
-            Instruction::JUMPI => todo!(),
-            Instruction::STOP => todo!(),
+            Instruction::JUMPI => {
+                let dest = stack.peek(0).unwrap();
+                let ctx = dest.ctx;
+                let cond = stack.peek(1).unwrap();
+                if let Some(dest) = dest.as_u64() {
+                    let zero = Int::from_u64(ctx, 0);
+                    change_log.path_constraints.push(vec![cond._eq(&zero)]);
+                    change_log
+                        .path_constraints
+                        .push(vec![Bool::not(&cond._eq(&zero))]);
+                    change_log.pc_change = Some(dest as usize);
+                }
+            }
+            Instruction::STOP => {
+                change_log.halt = true;
+            }
         };
         Ok(change_log)
     }
@@ -137,7 +152,8 @@ mod test {
 
     #[test]
     fn test_basic_sym_mem() {
-        let cfg = Config::default();
+        let mut cfg = Config::default();
+        cfg.set_model_generation(true);
         let ctx = Context::new(&cfg);
 
         let stack: BaseStack<Int> = BaseStack::init();
@@ -151,8 +167,87 @@ mod test {
             assert(z3_int(4, &ctx)),
         ];
 
+        let _res = machine.run_sym(&pgm);
+    }
+
+    #[test]
+    fn test_jumpi() {
+        let mut cfg = Config::default();
+        cfg.set_model_generation(true);
+        let ctx = Context::new(&cfg);
+
+        let stack: BaseStack<Int> = BaseStack::init();
+        let machine = BaseMachine::new_with_ctx(stack, Rc::new(&ctx));
+        let pgm = vec![
+            push(z3_int(1, &ctx)),
+            push(z3_int(2, &ctx)),
+            push(z3_int(3, &ctx)),
+            add(),
+            sub(),
+            push(z3_int(5, &ctx)),
+            sub(),
+            push(z3_int(11, &ctx)),
+            jumpi(),
+            push(z3_int(100, &ctx)),
+            stop(),
+            push(z3_int(200, &ctx)),
+        ];
+
         let res = machine.run_sym(&pgm);
-        println!("{:?}", res);
-        assert_eq!(res.0, SatResult::Sat)
+        let (reachable, unreachable) = res;
+        let first_path_reachable_stack: &BaseStack<Int> = &reachable.first().unwrap().0 .1;
+        let first_path_unreachable_stack: &BaseStack<Int> = &unreachable.first().unwrap().0 .1;
+
+        assert_eq!(
+            first_path_reachable_stack
+                .peek(0)
+                .unwrap()
+                .as_u64()
+                .unwrap(),
+            200
+        );
+        assert_eq!(
+            first_path_unreachable_stack
+                .peek(0)
+                .unwrap()
+                .as_u64()
+                .unwrap(),
+            100
+        );
+    }
+
+    #[test]
+    fn test_multi_jumpi() {
+        let mut cfg = Config::default();
+        cfg.set_model_generation(true);
+        let ctx = Context::new(&cfg);
+
+        let stack: BaseStack<Int> = BaseStack::init();
+        let machine = BaseMachine::new_with_ctx(stack, Rc::new(&ctx));
+        let pgm = vec![
+            push(z3_int(1, &ctx)),
+            push(z3_int(2, &ctx)),
+            push(z3_int(3, &ctx)),
+            add(),
+            sub(),
+            push(z3_int(3, &ctx)),
+            sub(),
+            push(z3_int(13, &ctx)),
+            jumpi(),
+            push(z3_int(100, &ctx)),
+            stop(),
+            stop(),
+            stop(),
+            push(z3_int(200, &ctx)),
+            push(z3_int(201, &ctx)),
+            sub(),
+            push(z3_int(19, &ctx)),
+            jumpi(),
+            stop(),
+            push(z3_int(300, &ctx)),
+            stop(),
+        ];
+
+        let _res = machine.run_sym(&pgm);
     }
 }

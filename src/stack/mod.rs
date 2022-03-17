@@ -59,7 +59,7 @@ where
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct BaseStack<T>(Vec<T>);
 
 impl<T> BaseStack<T> {
