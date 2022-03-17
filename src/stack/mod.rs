@@ -46,7 +46,7 @@ where
                 match cur_stack {
                     Ok(s) => {
                         match record {
-                            StackOpRecord::Pop(v) => {
+                            StackOpRecord::Pop(_v) => {
                                 // Assert that pop() == v?
                                 s.pop()
                             }

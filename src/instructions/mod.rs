@@ -1,13 +1,9 @@
 pub mod error;
 pub mod val;
-use z3::ast::Ast;
-use z3::ast::Bool;
-use z3::ast::Int;
-
-use crate::memory::symbolic::BaseSymbolicMem;
 use crate::memory::*;
 use crate::stack::*;
 use error::InstructionError;
+use z3::ast::Bool;
 
 pub type InstructionResult<T> = Result<T, InstructionError>;
 pub struct ExecRecord<'a, S, M>

@@ -8,8 +8,8 @@ use crate::{
     stack::*,
 };
 use error::MachineError;
-use z3::ast::{Bool, Int};
-use z3::{Config, Context, Model, SatResult, Solver};
+use z3::ast::Bool;
+use z3::{Context, Model, SatResult, Solver};
 
 pub type MachineResult<T> = Result<T, MachineError>;
 
@@ -68,12 +68,9 @@ where
         MachineStack: Clone,
     {
         type Branch<'a, S, M> = (usize, S, M, Vec<Bool<'a>>);
-        let mut stack = self.stack.clone();
-        let mut mem = self.mem.clone();
-        let mut context = self.context.unwrap();
-        //let mut branches = vec![];
-        // let mut leaves = vec![];
-        let mut pc = 0_usize;
+        let stack = self.stack.clone();
+        let mem = self.mem.clone();
+        let context = self.context.unwrap();
         let execute = |pc: &mut usize,
                        pgm: &Program<'a, I>,
                        mut stack: MachineStack,
@@ -137,7 +134,6 @@ where
                         Some((pc.clone() + 1, stack.clone(), mem.clone(), vec![])),
                         None,
                     );
-                    *pc += 1;
                 }
             }
             return (None, None);
@@ -181,43 +177,7 @@ where
             }
         }
 
-        println!("Final LEAVES: {:?}", leaves);
-        // for inst in pgm {
-        //     let rec = inst.exec(&stack, &self.mem).unwrap();
-        //     if rec.halt || pc == pgm.len() - 1{
-        //         leaves.push((pc, stack.clone(), mem.clone()));
-        //     } else {
-        //         stack = {
-        //             if let Some(stack_diff) = rec.stack_diff {
-        //                 stack_diff.apply(stack).unwrap()
-        //             } else {
-        //                 stack
-        //             }
-        //         };
-
-        //         mem = {
-        //             if let Some(mem_diff) = rec.mem_diff {
-        //                 mem_diff.apply(mem).unwrap()
-        //             } else {
-        //                 mem
-        //             }
-        //         };
-
-        //         if rec.path_constraints.len() >= 1 {
-        //             let curr_path_constraints = rec.path_constraints.first().cloned().unwrap();
-        //             context.constraints.extend(curr_path_constraints);
-        //         }
-
-        //         if rec.path_constraints.len() == 2 {
-        //             let pc_change = rec.pc_change.unwrap();
-        //                 let path_conditions = rec.path_constraints.get(1).cloned().unwrap();
-        //                 branches.push((pc_change, stack.clone(), mem.clone(), path_conditions));
-
-        //         }
-        //         pc += 1;
-        //     }
-
-        // }
+        // println!("Final LEAVES: {:?}", leaves);
 
         let mut reachable = vec![];
         let mut unreachable = vec![];

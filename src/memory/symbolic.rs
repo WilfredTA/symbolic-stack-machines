@@ -1,6 +1,6 @@
 use crate::memory::{MemoryResult, RWMem, ReadOnlyMem, WriteableMem};
 use std::rc::Rc;
-use z3::ast::{Array, Ast, Int};
+use z3::ast::{Array, Int};
 use z3::Context;
 #[derive(Clone, Debug)]
 pub struct BaseSymbolicMem<'a> {

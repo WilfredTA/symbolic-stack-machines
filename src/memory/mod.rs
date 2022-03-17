@@ -1,14 +1,9 @@
 pub mod error;
 pub mod symbolic;
 
-use std::rc::Rc;
-
-use crate::instructions::val::{HybridVal, Val};
+use crate::instructions::val::Val;
 use error::MemoryError;
-use z3::{
-    ast::{Array, Int},
-    Context,
-};
+
 pub type MemoryResult<T> = Result<T, MemoryError>;
 pub trait ReadOnlyMem: Sized {
     type MemVal;
@@ -64,5 +59,5 @@ where
 }
 
 pub struct BaseMemory<T> {
-    inner: Vec<Val<T>>,
+    _inner: Vec<Val<T>>,
 }
