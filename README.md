@@ -10,6 +10,11 @@ operations.
 
 Each operation should output a state diff (`ExecRecord`), which describes the updates to the stack, memory, any new path constraints (in the case of symbolic execution), and machine's program counter. The machine can apply the update with `ExecRecord::apply`.
 
+# Reachability
+
+The Machine constructs the updates performed on its state by instructions. Operations can add path constraints via the ExecRecord structure. The Machine incrementally constructs a set of constraints for each possible path of execution. Once these paths are constructed, the machine checks whether such paths are reachable. See `src/machine/mod.rs`, specifically, the `BaseMachine::run_sym` method for the implementation.
+
+Currently, there is no intermediate path pruning performed.
 
 # Supported Memory & Stack Models
 Currently, two forms of symbolic memory are built-in: Memory based on the theory of arrays, and finite concrete memory that can store possibly symbolic values.
@@ -26,5 +31,4 @@ WIP features:
 - Stack based on theory of arrays
 - Support for memory model based on uninterpreted functions
 - Support for bitvector values, stack and memory
-- Handle conditionals
 - Try to stop calling `unwrap()` on every single result type kek 
