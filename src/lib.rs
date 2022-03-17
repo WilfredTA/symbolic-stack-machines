@@ -5,7 +5,8 @@ pub mod stack;
 
 use instructions::*;
 use machine::*;
-use memory::symbolic::BaseSymbolicMem;
+use memory::{memory_models::*, symbolic::*, symbolic_bv::*};
+
 use stack::*;
 use z3::ast::{Ast, Bool, Int};
 
@@ -25,7 +26,7 @@ pub enum Instruction<T> {
 impl<'a> VMInstruction<'a> for Instruction<Int<'a>> {
     type ValStack = BaseStack<Int<'a>>;
 
-    type Mem = BaseSymbolicMem<'a>;
+    type Mem = MemIntToInt<'a>;
 
     fn exec(
         &self,

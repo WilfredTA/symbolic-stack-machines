@@ -1,8 +1,12 @@
 pub mod error;
 pub mod symbolic;
+pub mod symbolic_bv;
+pub mod memory_models;
+use std::marker::PhantomData;
 
 use crate::instructions::val::Val;
 use error::MemoryError;
+use z3::{ast::Array, FuncDecl};
 
 pub type MemoryResult<T> = Result<T, MemoryError>;
 pub trait ReadOnlyMem: Sized {
@@ -56,8 +60,4 @@ where
         );
         final_mem
     }
-}
-
-pub struct BaseMemory<T> {
-    _inner: Vec<Val<T>>,
 }

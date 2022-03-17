@@ -4,7 +4,7 @@ use std::rc::Rc;
 
 use crate::instructions::*;
 use crate::{
-    memory::{symbolic::BaseSymbolicMem, RWMem},
+    memory::{memory_models::MemIntToInt, RWMem},
     stack::*,
 };
 use error::MachineError;
@@ -230,14 +230,16 @@ where
     }
 }
 
-impl<'a, MachineStack, I> BaseMachine<'a, BaseSymbolicMem<'a>, MachineStack, I>
+
+// Implement machine initialization for a specific memory model
+impl<'a, MachineStack, I> BaseMachine<'a, MemIntToInt<'a>, MachineStack, I>
 where
     MachineStack: Stack,
-    I: VMInstruction<'a, Mem = BaseSymbolicMem<'a>, ValStack = MachineStack>,
+    I: VMInstruction<'a, Mem = MemIntToInt<'a>, ValStack = MachineStack>,
 {
     // For symbolic memory
     pub fn new_with_ctx(stack: MachineStack, mem_init_args: Rc<&'a Context>) -> Self {
-        let mem = BaseSymbolicMem::init(mem_init_args.clone());
+        let mem = MemIntToInt::init(mem_init_args.clone());
         let ctx = SymbolicContext {
             constraints: vec![],
             ctx: mem_init_args.clone(),
