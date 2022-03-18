@@ -26,24 +26,23 @@ The only symbolic values that have built-in support right now are integers.
 # Usage
 See `lib.rs` for a toy instruction set and its symbolic execution.
 
-# Up Next
-WIP features:
-- Stack based on theory of arrays
-- Support for memory model based on uninterpreted functions
-- Support for bitvector values, stack and memory
-- Try to stop calling `unwrap()` on every single result type kek 
-
-
 # Open Questions
 - How to handle endianness of various machines w.r.t bit vectors?
 - Best approach for modular plug-and-play style machine creation (storage, mem, stack, etc)?
 - How to handle special, niche environments? E.g., EVM has GAS opcode which requires a notion of gas within the machine.
 - Copy on write when storing machine states?
-- Agnostic syntax in the api offered by the library -> pass to compiler which has targets such as z3_rust bindings, smtlib2, (proof obligations)
-    - we don't want to pass around z3-specific values in so many domain specific constructs. e.g., z3 context needed for every instantiation of a symbolic value....
+-
 
 - Niche exec environments:
     - Optional undefined context;
     - Pass this as an implicit argument to VMInstruction::Exec
     - Opcode author is responsible for writing the interaction
     - ExecRecord is extensible by this generic context as well
+
+
+
+# Notes 
+1. Type constraints on Machine to ensure that the values stored on stack are convertible to the val type stored in memory as well as the val type used to index the memory
+2. Remove direct z3 dependency and generate an IR + transformation from IR -> target (e.g., smtlib2, rust-z3 bindings)
+3. For niche exec environment, provide custom context definition and access on the machine
+4. Add a generic context switch method; useful for describing behavior of one program calling another (such as smart contract calls)
