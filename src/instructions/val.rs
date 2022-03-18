@@ -1,9 +1,9 @@
+use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
+use hex::{decode, encode};
 use std::borrow::Borrow;
 use std::ops::{Add, Sub};
+use z3::ast::{Ast, Int, BV};
 use z3::Context;
-use z3::ast::{Int, BV, Ast};
-use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
-use hex::{encode, decode};
 #[derive(Debug, Clone)]
 pub struct Val<T>(pub T);
 
@@ -105,16 +105,13 @@ pub struct SymbolicBytes<'a> {
 }
 
 impl<'a> SymbolicBytes<'a> {
-   pub fn new(size: usize, name: impl Into<String>, ctx: &'a Context) -> Self {
-    let bv = BV::new_const(ctx, name.into(), size as u32);
-    Self {
-        inner: bv,
-        size
+    pub fn new(size: usize, name: impl Into<String>, ctx: &'a Context) -> Self {
+        let bv = BV::new_const(ctx, name.into(), size as u32);
+        Self { inner: bv, size }
     }
-   }
 
-   pub fn add_u64(&mut self, val: u64) {
-       let val = BV::from_u64(self.inner.get_ctx(), val, self.size as u32);
-       self.inner = self.inner.bvadd(&val);
-   }
+    pub fn add_u64(&mut self, val: u64) {
+        let val = BV::from_u64(self.inner.get_ctx(), val, self.size as u32);
+        self.inner = self.inner.bvadd(&val);
+    }
 }

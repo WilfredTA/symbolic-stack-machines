@@ -3,10 +3,10 @@ use error::StackError;
 pub type StackResult<T> = Result<T, StackError>;
 pub trait Stack: Sized {
     type StackVal;
-    fn push(&self, v: Self::StackVal) -> StackResult<Self>;
+    fn push<V: Into<Self::StackVal>>(&self, v: V) -> StackResult<Self>;
     fn pop(&self) -> StackResult<Self>;
 
-    fn peek(&self, idx: usize) -> Option<Self::StackVal>;
+    fn peek<V: From<Self::StackVal>>(&self, idx: usize) -> Option<V>;
 }
 
 #[derive(Clone)]
@@ -73,9 +73,12 @@ where
     T: Clone,
 {
     type StackVal = T;
-    fn push(&self, val: T) -> StackResult<Self> {
+    fn push<V>(&self, val: V) -> StackResult<Self>
+    where
+        V: Into<Self::StackVal>,
+    {
         let mut new_self = self.clone();
-        new_self.0.push(val);
+        new_self.0.push(val.into());
         Ok(new_self)
     }
 
@@ -85,9 +88,12 @@ where
         Ok(new_self)
     }
 
-    fn peek(&self, idx: usize) -> Option<T> {
+    fn peek<V>(&self, idx: usize) -> Option<V>
+    where
+        V: From<Self::StackVal>,
+    {
         let last_idx = self.0.len() - 1;
         let get_idx = last_idx - idx;
-        self.0.get(get_idx).cloned()
+        self.0.get(get_idx).cloned().map(|val| val.into())
     }
 }

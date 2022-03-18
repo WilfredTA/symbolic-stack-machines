@@ -32,3 +32,18 @@ WIP features:
 - Support for memory model based on uninterpreted functions
 - Support for bitvector values, stack and memory
 - Try to stop calling `unwrap()` on every single result type kek 
+
+
+# Open Questions
+- How to handle endianness of various machines w.r.t bit vectors?
+- Best approach for modular plug-and-play style machine creation (storage, mem, stack, etc)?
+- How to handle special, niche environments? E.g., EVM has GAS opcode which requires a notion of gas within the machine.
+- Copy on write when storing machine states?
+- Agnostic syntax in the api offered by the library -> pass to compiler which has targets such as z3_rust bindings, smtlib2, (proof obligations)
+    - we don't want to pass around z3-specific values in so many domain specific constructs. e.g., z3 context needed for every instantiation of a symbolic value....
+
+- Niche exec environments:
+    - Optional undefined context;
+    - Pass this as an implicit argument to VMInstruction::Exec
+    - Opcode author is responsible for writing the interaction
+    - ExecRecord is extensible by this generic context as well

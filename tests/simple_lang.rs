@@ -1,13 +1,9 @@
-use symbolic_stack_machines::{
-    instructions::*,
-    machine::*,
-    memory::memory_models::*,
-    stack::*
-};
+use symbolic_stack_machines::memory::{MemOpRecord, MemRecord, ReadOnlyMem};
+use symbolic_stack_machines::{instructions::*, machine::*, memory::memory_models::*, stack::*};
 
-use z3::ast::{Ast, Int, Bool};
-use z3::{Config, Context};
 use std::rc::Rc;
+use z3::ast::{Ast, Bool, Int};
+use z3::{Config, Context};
 mod common;
 
 use common::{z3_int, z3_int_var};
@@ -73,17 +69,59 @@ impl<'a> VMInstruction<'a> for Instruction<Int<'a>> {
                 });
             }
             Instruction::Assert(v) => {
-                let stack_top = stack.peek(0).unwrap();
+                let stack_top = stack.peek::<Int<'a>>(0).unwrap();
                 let constraint = stack_top._eq(v);
                 change_log.path_constraints.push(vec![constraint]);
             }
-            Instruction::MLOAD => todo!(),
-            Instruction::MSTORE => todo!(),
-            Instruction::ISZERO => todo!(),
+            Instruction::MLOAD => {
+                let mem_offset = stack.peek::<Int<'a>>(0).unwrap();
+                let val = {
+                    match memory.read(mem_offset.clone()) {
+                        Ok(val) => val.unwrap(),
+                        Err(e) => {
+                            panic!("Error reading from memory: {:?}", e);
+                        }
+                    }
+                };
+                change_log.stack_diff = Some(StackRecord {
+                    changed: vec![StackOpRecord::Pop(mem_offset), StackOpRecord::Push(val)],
+                });
+            }
+            Instruction::MSTORE => {
+                let mem_offset = stack.peek::<Int<'a>>(0).unwrap();
+                let val = stack.peek::<Int<'a>>(1).unwrap();
+                let prev_val = {
+                    match memory.read(mem_offset.clone()) {
+                        Ok(val) => val.unwrap(),
+                        Err(e) => Int::from_u64(val.get_ctx(), 0),
+                    }
+                };
+                change_log.stack_diff = Some(StackRecord {
+                    changed: vec![
+                        StackOpRecord::Pop(mem_offset.clone()),
+                        StackOpRecord::Pop(val.clone()),
+                    ],
+                });
+                change_log.mem_diff = Some(MemRecord {
+                    diff: vec![MemOpRecord::Write((mem_offset, prev_val, val))],
+                });
+            }
+            Instruction::ISZERO => {
+                let top = stack.peek::<Int<'a>>(0).unwrap();
+                let zero = Int::from_u64(top.get_ctx(), 0);
+                let one = Int::from_u64(top.get_ctx(), 1);
+                let is_zero = Bool::ite(&top._eq(&zero), &one, &zero);
+                change_log.stack_diff = Some(StackRecord {
+                    changed: vec![
+                        StackOpRecord::Pop(top.clone()),
+                        StackOpRecord::Push(is_zero.clone()),
+                    ],
+                });
+            }
             Instruction::JUMPI => {
-                let dest = stack.peek(0).unwrap();
+                let dest = stack.peek::<Int<'a>>(0).unwrap();
                 let ctx = dest.ctx;
-                let cond = stack.peek(1).unwrap();
+                let cond = stack.peek::<Int<'a>>(1).unwrap();
                 if let Some(dest) = dest.as_u64() {
                     let zero = Int::from_u64(ctx, 0);
                     change_log.path_constraints.push(vec![cond._eq(&zero)]);
@@ -134,8 +172,6 @@ pub fn stop<T>() -> Instruction<T> {
     Instruction::STOP
 }
 
-
-
 #[test]
 fn test_basic_sym_mem() {
     let mut cfg = Config::default();
@@ -170,9 +206,10 @@ fn test_jumpi() {
         push(z3_int(3, &ctx)),
         add(),
         sub(),
-        push(z3_int(5, &ctx)),
+        push(z3_int(4, &ctx)),
         sub(),
-        push(z3_int(11, &ctx)),
+        is_zero(),
+        push(z3_int(12, &ctx)),
         jumpi(),
         push(z3_int(100, &ctx)),
         stop(),
@@ -186,7 +223,7 @@ fn test_jumpi() {
 
     assert_eq!(
         first_path_reachable_stack
-            .peek(0)
+            .peek::<Int>(0)
             .unwrap()
             .as_u64()
             .unwrap(),
@@ -194,7 +231,7 @@ fn test_jumpi() {
     );
     assert_eq!(
         first_path_unreachable_stack
-            .peek(0)
+            .peek::<Int>(0)
             .unwrap()
             .as_u64()
             .unwrap(),
@@ -236,4 +273,3 @@ fn test_multi_jumpi() {
 
     let _res = machine.run_sym(&pgm);
 }
-

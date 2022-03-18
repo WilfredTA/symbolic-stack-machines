@@ -1,7 +1,7 @@
 pub mod error;
+pub mod memory_models;
 pub mod symbolic;
 pub mod symbolic_bv;
-pub mod memory_models;
 use std::marker::PhantomData;
 
 use crate::instructions::val::Val;
@@ -32,7 +32,7 @@ pub enum MemOpRecord<I, V> {
     Write(MemorySlotChange<I, V>),
 }
 pub struct MemRecord<M: WriteableMem> {
-    diff: Vec<MemOpRecord<M::Index, M::MemVal>>,
+    pub diff: Vec<MemOpRecord<M::Index, M::MemVal>>,
 }
 
 impl<M> MemRecord<M>

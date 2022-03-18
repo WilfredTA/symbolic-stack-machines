@@ -1,10 +1,10 @@
-use crate::instructions::val::{Val, HybridVal, SymbolicBytes};
-use z3::ast::{Ast, Array, BV, Int};
-use z3::{FuncDecl, Context};
+use crate::instructions::val::{HybridVal, SymbolicBytes, Val};
 use std::marker::PhantomData;
 use std::rc::Rc;
+use z3::ast::{Array, Ast, Int, BV};
+use z3::{Context, FuncDecl};
 
-use super::{ReadOnlyMem, WriteableMem, RWMem};
+use super::{RWMem, ReadOnlyMem, WriteableMem};
 #[derive(Debug, Clone)]
 pub struct BaseMemoryConcreteIndex<T> {
     pub _inner: Vec<Val<T>>,
@@ -16,7 +16,6 @@ pub struct BaseMemorySymbolicArray<'a, I, T> {
     pub _inner: Array<'a>,
     pub(crate) idx_set: PhantomData<I>,
     pub(crate) val_set: PhantomData<Val<T>>,
-    
 }
 #[derive(Debug)]
 pub struct BaseMemorySymbolicUF<'a, I, T> {
@@ -38,10 +37,9 @@ pub type MemIntToInt<'a> = BaseMemorySymbolicArray<'a, Int<'a>, Int<'a>>;
 pub type MemBitVecToAny<'a, T> = BaseMemorySymbolicArray<'a, BV<'a>, T>;
 pub type MemBitVecToInt<'a> = MemBitVecToAny<'a, Int<'a>>;
 
-
-
-impl<'a, I> ReadOnlyMem for BaseMemorySymbolicArray<'a, I, BV<'a>> 
-where I: z3::ast::Ast<'a>
+impl<'a, I> ReadOnlyMem for BaseMemorySymbolicArray<'a, I, BV<'a>>
+where
+    I: z3::ast::Ast<'a>,
 {
     type MemVal = BV<'a>;
 
@@ -52,8 +50,9 @@ where I: z3::ast::Ast<'a>
     }
 }
 
-impl<'a, I> WriteableMem for BaseMemorySymbolicArray<'a, I, BV<'a>> 
-where I: z3::ast::Ast<'a>
+impl<'a, I> WriteableMem for BaseMemorySymbolicArray<'a, I, BV<'a>>
+where
+    I: z3::ast::Ast<'a>,
 {
     type MemVal = BV<'a>;
 
@@ -68,8 +67,9 @@ where I: z3::ast::Ast<'a>
     }
 }
 
-impl<'a, I> RWMem for BaseMemorySymbolicArray<'a,I, BV<'a>> 
-where I: z3::ast::Ast<'a> + Clone
+impl<'a, I> RWMem for BaseMemorySymbolicArray<'a, I, BV<'a>>
+where
+    I: z3::ast::Ast<'a> + Clone,
 {
     type InitArgs = (Rc<&'a Context>, I, usize);
 
@@ -88,12 +88,7 @@ where I: z3::ast::Ast<'a> + Clone
     }
 }
 
-
-
-
-impl<'a> ReadOnlyMem for MemIntToInt<'a> 
-
-{
+impl<'a> ReadOnlyMem for MemIntToInt<'a> {
     type MemVal = Int<'a>;
 
     type Index = Int<'a>;
@@ -103,9 +98,7 @@ impl<'a> ReadOnlyMem for MemIntToInt<'a>
     }
 }
 
-impl<'a> WriteableMem for MemIntToInt<'a> 
-
-{
+impl<'a> WriteableMem for MemIntToInt<'a> {
     type MemVal = Int<'a>;
 
     type Index = Int<'a>;
@@ -123,7 +116,6 @@ impl<'a> RWMem for MemIntToInt<'a> {
     type InitArgs = Rc<&'a Context>;
 
     fn init(args: Self::InitArgs) -> Self {
-       
         Self {
             _inner: Array::new_const(
                 args.as_ref(),

@@ -3,12 +3,13 @@ use std::borrow::Borrow;
 use std::rc::Rc;
 
 use crate::instructions::*;
+use crate::memory::{ReadOnlyMem, WriteableMem};
 use crate::{
     memory::{memory_models::MemIntToInt, RWMem},
     stack::*,
 };
 use error::MachineError;
-use z3::ast::Bool;
+use z3::ast::{Bool, Int};
 use z3::{Context, Model, SatResult, Solver};
 
 pub type MachineResult<T> = Result<T, MachineError>;
@@ -20,11 +21,12 @@ pub struct SymbolicContext<'a> {
     pub ctx: Rc<&'a Context>,
 }
 
-pub struct BaseMachine<'a, Mem, MachineStack, I>
+pub struct BaseMachine<'a, Mem, MachineStack, I, MemIdx, MemVal, StackVal>
 where
-    Mem: RWMem,
-    MachineStack: Stack,
+    Mem: RWMem + ReadOnlyMem<Index = MemIdx, MemVal = MemVal>,
+    MachineStack: Stack<StackVal = StackVal>,
     I: VMInstruction<'a, Mem = Mem, ValStack = MachineStack>,
+    StackVal: Into<MemIdx> + Into<MemVal>,
 {
     mem: Mem,
     stack: MachineStack,
@@ -33,11 +35,13 @@ where
     context: Option<SymbolicContext<'a>>,
 }
 
-impl<'a, Mem, MachineStack, I> BaseMachine<'a, Mem, MachineStack, I>
+impl<'a, Mem, MachineStack, I, MemIdx, MemVal, StackVal>
+    BaseMachine<'a, Mem, MachineStack, I, MemIdx, MemVal, StackVal>
 where
-    Mem: RWMem + std::fmt::Debug,
-    MachineStack: Stack + std::fmt::Debug,
+    Mem: RWMem + ReadOnlyMem<Index = MemIdx, MemVal = MemVal> + std::fmt::Debug + Clone,
+    MachineStack: Stack<StackVal = StackVal> + std::fmt::Debug + Clone,
     I: VMInstruction<'a, Mem = Mem, ValStack = MachineStack>,
+    StackVal: Into<MemIdx> + Into<MemVal>,
 {
     pub fn new(stack: MachineStack, mem_init: Mem::InitArgs) -> Self {
         let mem = Mem::init(mem_init);
@@ -62,11 +66,7 @@ where
             (usize, MachineStack, Mem, Vec<z3::ast::Bool<'a>>),
             Option<Model<'a>>,
         )>,
-    )
-    where
-        Mem: Clone,
-        MachineStack: Clone,
-    {
+    ) {
         type Branch<'a, S, M> = (usize, S, M, Vec<Bool<'a>>);
         let stack = self.stack.clone();
         let mem = self.mem.clone();
@@ -230,11 +230,11 @@ where
     }
 }
 
-
 // Implement machine initialization for a specific memory model
-impl<'a, MachineStack, I> BaseMachine<'a, MemIntToInt<'a>, MachineStack, I>
+impl<'a, MachineStack, I>
+    BaseMachine<'a, MemIntToInt<'a>, MachineStack, I, Int<'a>, Int<'a>, Int<'a>>
 where
-    MachineStack: Stack,
+    MachineStack: Stack<StackVal = Int<'a>>,
     I: VMInstruction<'a, Mem = MemIntToInt<'a>, ValStack = MachineStack>,
 {
     // For symbolic memory
