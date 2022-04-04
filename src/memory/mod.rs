@@ -1,37 +1,32 @@
 pub mod error;
-pub mod memory_models;
-pub mod symbolic;
-pub mod symbolic_bv;
-use std::marker::PhantomData;
+pub mod symbolic_concrete_index;
+pub mod symbolic_symbolic_index;
 
-use crate::instructions::val::Val;
 use error::MemoryError;
-use z3::{ast::Array, FuncDecl};
 
 pub type MemoryResult<T> = Result<T, MemoryError>;
-pub trait ReadOnlyMem: Sized {
-    type MemVal;
+
+pub trait Mem: Sized {
     type Index;
+    type MemVal;
+}
+
+pub trait ReadOnlyMem: Mem {
     fn read(&self, idx: Self::Index) -> MemoryResult<Option<Self::MemVal>>;
 }
 
-pub trait WriteableMem: Sized {
-    type MemVal;
-    type Index;
-
+pub trait WriteableMem: Mem {
     fn write(&self, idx: Self::Index, val: Self::MemVal) -> MemoryResult<Self>;
 }
 
 pub trait RWMem: ReadOnlyMem + WriteableMem {
-    type InitArgs: Clone;
-    fn init(args: Self::InitArgs) -> Self;
 }
 
-pub type MemorySlotChange<Idx, MemVal> = (Idx, MemVal, MemVal);
+pub type MemorySlotChange<Idx, MemVal> = (Idx, MemVal);
 pub enum MemOpRecord<I, V> {
     Write(MemorySlotChange<I, V>),
 }
-pub struct MemRecord<M: WriteableMem> {
+pub struct MemRecord<M: Mem> {
     pub diff: Vec<MemOpRecord<M::Index, M::MemVal>>,
 }
 
@@ -47,8 +42,7 @@ where
                     Ok(m) => {
                         if let MemOpRecord::Write(r) = r {
                             let idx = r.0;
-                            let _old_val = r.1;
-                            let new_val = r.2;
+                            let new_val = r.1;
                             m.write(idx, new_val)
                         } else {
                             Ok(m)

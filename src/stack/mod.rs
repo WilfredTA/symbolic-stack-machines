@@ -1,12 +1,13 @@
 pub mod error;
 use error::StackError;
 pub type StackResult<T> = Result<T, StackError>;
+
 pub trait Stack: Sized {
     type StackVal;
-    fn push<V: Into<Self::StackVal>>(&self, v: V) -> StackResult<Self>;
-    fn pop(&self) -> StackResult<Self>;
 
-    fn peek<V: From<Self::StackVal>>(&self, idx: usize) -> Option<V>;
+    fn push(&self, v: Self::StackVal) -> StackResult<Self>;
+    fn pop(&self) -> StackResult<Self>;
+    fn peek(&self, idx: usize) -> Option<Self::StackVal>;
 }
 
 #[derive(Clone)]
@@ -63,7 +64,7 @@ where
 pub struct BaseStack<T>(Vec<T>);
 
 impl<T> BaseStack<T> {
-    pub fn init() -> Self {
+    pub fn new() -> Self {
         Self(vec![])
     }
 }
@@ -73,12 +74,10 @@ where
     T: Clone,
 {
     type StackVal = T;
-    fn push<V>(&self, val: V) -> StackResult<Self>
-    where
-        V: Into<Self::StackVal>,
-    {
+
+    fn push(&self, val: T) -> StackResult<Self> {
         let mut new_self = self.clone();
-        new_self.0.push(val.into());
+        new_self.0.push(val);
         Ok(new_self)
     }
 
@@ -88,12 +87,11 @@ where
         Ok(new_self)
     }
 
-    fn peek<V>(&self, idx: usize) -> Option<V>
-    where
-        V: From<Self::StackVal>,
-    {
+    fn peek(&self, idx: usize) -> Option<T> {
         let last_idx = self.0.len() - 1;
         let get_idx = last_idx - idx;
-        self.0.get(get_idx).cloned().map(|val| val.into())
+        self.0.get(get_idx).cloned()
     }
 }
+
+pub type IntStack = BaseStack<i64>;

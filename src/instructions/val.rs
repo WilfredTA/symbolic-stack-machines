@@ -1,9 +1,8 @@
-use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
-use hex::{decode, encode};
 use std::borrow::Borrow;
 use std::ops::{Add, Sub};
 use z3::ast::{Ast, Int, BV};
 use z3::Context;
+
 #[derive(Debug, Clone)]
 pub struct Val<T>(pub T);
 

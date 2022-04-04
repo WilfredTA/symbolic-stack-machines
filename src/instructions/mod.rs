@@ -1,30 +1,44 @@
 pub mod error;
 pub mod val;
+pub mod arith;
+pub mod misc;
+pub mod bitwise;
+pub mod sym;
+
 use crate::memory::*;
 use crate::stack::*;
 use error::InstructionError;
-use z3::ast::Bool;
 
 pub type InstructionResult<T> = Result<T, InstructionError>;
-pub struct ExecRecord<'a, S, M>
+pub struct ExecRecord<S, M, PathConstraint>
 where
-    M: WriteableMem,
     S: Stack,
+    M: Mem
 {
     pub stack_diff: Option<StackRecord<S>>,
     pub mem_diff: Option<MemRecord<M>>,
     // Each inner vec represents a new path in the program
-    pub path_constraints: Vec<Vec<Bool<'a>>>,
+    pub path_constraints: Vec<Vec<PathConstraint>>,
     pub pc_change: Option<usize>,
     pub halt: bool,
 }
 
-pub trait VMInstruction<'a> {
-    type ValStack: Stack;
-    type Mem: RWMem;
+impl <S: Stack, M: Mem, PathConstraint> Default for ExecRecord<S, M, PathConstraint> {
+    fn default() -> Self {
+        ExecRecord {
+            stack_diff: None,
+            mem_diff: None,
+            path_constraints: vec![],
+            pc_change: None,
+            halt: false,
+        }
+    }
+}
+
+pub trait VMInstruction<S: Stack, M: Mem, PathConstraint>: Sized {
     fn exec(
         &self,
-        stack: &Self::ValStack,
-        memory: &Self::Mem,
-    ) -> InstructionResult<ExecRecord<'a, Self::ValStack, Self::Mem>>;
+        stack: &S,
+        memory: &M,
+    ) -> InstructionResult<ExecRecord<S, M, PathConstraint>>;
 }

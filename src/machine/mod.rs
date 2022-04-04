@@ -1,50 +1,42 @@
 pub mod error;
-use std::borrow::Borrow;
-use std::rc::Rc;
-
 use crate::instructions::*;
-use crate::memory::{ReadOnlyMem, WriteableMem};
-use crate::{
-    memory::{memory_models::MemIntToInt, RWMem},
-    stack::*,
-};
+use crate::memory::ReadOnlyMem;
+use crate::{memory::RWMem, stack::*};
 use error::MachineError;
-use z3::ast::{Bool, Int};
-use z3::{Context, Model, SatResult, Solver};
+use z3::ast::Bool;
+use z3::{Model, SatResult, Solver, Context};
 
 pub type MachineResult<T> = Result<T, MachineError>;
 
-pub type Program<'a, I> = Vec<I>;
+pub type Program<I: Sized> = Vec<I>;
 
-pub struct SymbolicContext<'a> {
-    pub constraints: Vec<z3::ast::Bool<'a>>,
-    pub ctx: Rc<&'a Context>,
+pub struct SymbolicContext<PathConstraint> {
+    pub constraints: Vec<PathConstraint>,
 }
 
-pub struct BaseMachine<'a, Mem, MachineStack, I, MemIdx, MemVal, StackVal>
+pub struct BaseMachine<Mem, MachineStack, I, MemIdx, MemVal, StackVal, PathConstraint>
 where
     Mem: RWMem + ReadOnlyMem<Index = MemIdx, MemVal = MemVal>,
     MachineStack: Stack<StackVal = StackVal>,
-    I: VMInstruction<'a, Mem = Mem, ValStack = MachineStack>,
+    I: VMInstruction<MachineStack, Mem, PathConstraint>,
     StackVal: Into<MemIdx> + Into<MemVal>,
 {
     mem: Mem,
     stack: MachineStack,
-    pgm: Program<'a, I>,
+    pgm: Program<I>,
     pc: usize,
-    context: Option<SymbolicContext<'a>>,
+    context: Option<SymbolicContext<PathConstraint>>,
 }
 
-impl<'a, Mem, MachineStack, I, MemIdx, MemVal, StackVal>
-    BaseMachine<'a, Mem, MachineStack, I, MemIdx, MemVal, StackVal>
+impl<Mem, MachineStack, I, MemIdx, MemVal, StackVal, PathConstraint>
+    BaseMachine<Mem, MachineStack, I, MemIdx, MemVal, StackVal, PathConstraint>
 where
     Mem: RWMem + ReadOnlyMem<Index = MemIdx, MemVal = MemVal> + std::fmt::Debug + Clone,
     MachineStack: Stack<StackVal = StackVal> + std::fmt::Debug + Clone,
-    I: VMInstruction<'a, Mem = Mem, ValStack = MachineStack>,
+    I: VMInstruction<MachineStack, Mem, PathConstraint>,
     StackVal: Into<MemIdx> + Into<MemVal>,
 {
-    pub fn new(stack: MachineStack, mem_init: Mem::InitArgs) -> Self {
-        let mem = Mem::init(mem_init);
+    pub fn new(stack: MachineStack, mem: Mem) -> Self {
         Self {
             mem,
             stack,
@@ -54,9 +46,25 @@ where
         }
     }
 
-    pub fn run_sym(
+    pub fn new_with_ctx(stack: MachineStack, mem: Mem) -> Self {
+        let context = SymbolicContext {
+            constraints: vec![],
+        }
+        .into();
+
+        Self {
+            mem,
+            stack,
+            pgm: vec![],
+            pc: 0,
+            context,
+        }
+    }
+
+    pub fn run_sym<'a>(
         self,
-        pgm: &Program<'a, I>,
+        pgm: &Program<I>,
+        ctx: &'a Context
     ) -> (
         Vec<(
             (usize, MachineStack, Mem, Vec<z3::ast::Bool<'a>>),
@@ -70,72 +78,71 @@ where
         type Branch<'a, S, M> = (usize, S, M, Vec<Bool<'a>>);
         let stack = self.stack.clone();
         let mem = self.mem.clone();
-        let context = self.context.unwrap();
         let execute = |pc: &mut usize,
-                       pgm: &Program<'a, I>,
+                       pgm: &Program<I>,
                        mut stack: MachineStack,
                        mut mem: Mem|
          -> (
             Option<Branch<MachineStack, Mem>>,
             Option<Branch<MachineStack, Mem>>,
         ) {
-            for inst in &pgm[pc.clone()..] {
-                let rec = inst.exec(&stack, &mem).unwrap();
-                println!("EXEC RECORD CONSTRAINTS: {:?}", rec.path_constraints);
-                if rec.halt || pc.clone() == pgm.len() {
-                    return (None, None);
-                } else {
-                    println!("STACK BEFORE APPLY: {:?}", stack);
-                    stack = {
-                        if let Some(stack_diff) = rec.stack_diff {
-                            stack_diff.apply(stack).unwrap()
-                        } else {
-                            stack
-                        }
-                    };
-                    println!("STACK AFTER APPLY: {:?}", stack);
+            // for inst in &pgm[pc.clone()..] {
+            //     let rec = inst.exec(&stack, &mem).unwrap();
+            //     println!("EXEC RECORD CONSTRAINTS: {:?}", rec.path_constraints);
+            //     if rec.halt || pc.clone() == pgm.len() {
+            //         return (None, None);
+            //     } else {
+            //         println!("STACK BEFORE APPLY: {:?}", stack);
+            //         stack = {
+            //             if let Some(stack_diff) = rec.stack_diff {
+            //                 stack_diff.apply(stack).unwrap()
+            //             } else {
+            //                 stack
+            //             }
+            //         };
+            //         println!("STACK AFTER APPLY: {:?}", stack);
 
-                    mem = {
-                        if let Some(mem_diff) = rec.mem_diff {
-                            mem_diff.apply(mem).unwrap()
-                        } else {
-                            mem
-                        }
-                    };
+            //         mem = {
+            //             if let Some(mem_diff) = rec.mem_diff {
+            //                 mem_diff.apply(mem).unwrap()
+            //             } else {
+            //                 mem
+            //             }
+            //         };
 
-                    if rec.path_constraints.len() == 1 {
-                        let curr_path_constraints = rec.path_constraints.first().cloned().unwrap();
-                        return (
-                            Some((
-                                pc.clone() + 1,
-                                stack.clone(),
-                                mem.clone(),
-                                curr_path_constraints,
-                            )),
-                            None,
-                        );
-                    }
+            //         if rec.path_constraints.len() == 1 {
+            //             let curr_path_constraints = rec.path_constraints.first().cloned().unwrap();
+            //             return (
+            //                 Some((
+            //                     pc.clone() + 1,
+            //                     stack.clone(),
+            //                     mem.clone(),
+            //                     curr_path_constraints,
+            //                 )),
+            //                 None,
+            //             );
+            //         }
 
-                    if rec.path_constraints.len() == 2 {
-                        let branch_one_rules = rec.path_constraints.first().cloned().unwrap();
-                        let branch_two_rules = rec.path_constraints.get(1).cloned().unwrap();
+            //         if rec.path_constraints.len() == 2 {
+            //             let branch_one_rules = rec.path_constraints.first().cloned().unwrap();
+            //             let branch_two_rules = rec.path_constraints.get(1).cloned().unwrap();
 
-                        return (
-                            Some((pc.clone() + 1, stack.clone(), mem.clone(), branch_one_rules)),
-                            Some((
-                                rec.pc_change.unwrap(),
-                                stack.clone(),
-                                mem.clone(),
-                                branch_two_rules,
-                            )),
-                        );
-                    }
-                    return (
-                        Some((pc.clone() + 1, stack.clone(), mem.clone(), vec![])),
-                        None,
-                    );
-                }
-            }
+            //             return (
+            //                 Some((pc.clone() + 1, stack.clone(), mem.clone(), branch_one_rules)),
+            //                 Some((
+            //                     rec.pc_change.unwrap(),
+            //                     stack.clone(),
+            //                     mem.clone(),
+            //                     branch_two_rules,
+            //                 )),
+            //             );
+            //         }
+            //         return (
+            //             Some((pc.clone() + 1, stack.clone(), mem.clone(), vec![])),
+            //             None,
+            //         );
+            //     }
+            // }
             return (None, None);
         };
 
@@ -183,7 +190,7 @@ where
         let mut unreachable = vec![];
 
         for leaf in leaves {
-            let solver = Solver::new(&context.ctx);
+            let solver = Solver::new(ctx);
             let constraints = &leaf.3;
             for constraint in constraints {
                 solver.assert(&constraint);
@@ -199,7 +206,7 @@ where
         println!("Reachable leaves: {:?}", reachable);
         return (reachable, unreachable);
     }
-    pub fn run(self, pgm: &Program<'a, I>) -> Option<MachineStack::StackVal>
+    pub fn run(self, pgm: &Program<I>) -> Option<MachineStack::StackVal>
     where
         Mem: Clone,
         MachineStack: Clone,
@@ -227,30 +234,5 @@ where
         }
 
         stack.peek(0)
-    }
-}
-
-// Implement machine initialization for a specific memory model
-impl<'a, MachineStack, I>
-    BaseMachine<'a, MemIntToInt<'a>, MachineStack, I, Int<'a>, Int<'a>, Int<'a>>
-where
-    MachineStack: Stack<StackVal = Int<'a>>,
-    I: VMInstruction<'a, Mem = MemIntToInt<'a>, ValStack = MachineStack>,
-{
-    // For symbolic memory
-    pub fn new_with_ctx(stack: MachineStack, mem_init_args: Rc<&'a Context>) -> Self {
-        let mem = MemIntToInt::init(mem_init_args.clone());
-        let ctx = SymbolicContext {
-            constraints: vec![],
-            ctx: mem_init_args.clone(),
-        };
-
-        Self {
-            mem,
-            stack,
-            pgm: vec![],
-            pc: 0,
-            context: Some(ctx),
-        }
     }
 }
