@@ -12,7 +12,7 @@ pub struct PUSH<T>(pub T);
 
 impl<T, S, M, PC> VMInstruction<S, M, PC> for PUSH<T>
 where
-    T: Copy + Debug,
+    T: Copy,
     S: Stack<StackVal = T>,
     M: Mem,
 {
@@ -34,14 +34,17 @@ where
 #[derive(Debug)]
 pub struct STOP;
 
-impl<T: Copy, ValStack: Stack<StackVal = T>, M: Mem, PathConstraint>
-    VMInstruction<ValStack, M, PathConstraint> for STOP
+impl<S, M, PC>
+    VMInstruction<S, M, PC> for STOP
+where
+    S: Stack,
+    M: Mem,
 {
     fn exec(
         &self,
-        _stack: &ValStack,
+        _stack: &S,
         _memory: &M,
-    ) -> super::InstructionResult<super::ExecRecord<ValStack, M, PathConstraint>> {
+    ) -> super::InstructionResult<super::ExecRecord<S, M, PC>> {
         let mut change_log = ExecRecord::default();
 
         change_log.halt = true;
@@ -58,7 +61,6 @@ where
     T: Default + Eq + TryInto<usize>,
     S: Stack<StackVal = T>,
     M: Mem,
-    // TODO(will): Not clear why we need this trait
     <T as TryInto<usize>>::Error: std::fmt::Debug,
 {
     fn exec(
@@ -80,12 +82,11 @@ where
     }
 }
 
-#[derive(Debug)]
 pub struct MLOAD;
 
 impl<T, S, M, PC> VMInstruction<S, M, PC> for MLOAD
 where
-    T: Copy + TryInto<M::Index> + Debug,
+    T: Copy + TryInto<M::Index>,
     M: ReadOnlyMem<MemVal = T>,
     S: Stack<StackVal = T>,
     <T as TryInto<<M as Mem>::Index>>::Error: std::fmt::Debug,
@@ -104,7 +105,6 @@ where
     }
 }
 
-#[derive(Debug)]
 pub struct MSTORE;
 
 impl<T, S, M, PC> VMInstruction<S, M, PC> for MSTORE

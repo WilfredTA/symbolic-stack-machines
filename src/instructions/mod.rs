@@ -1,20 +1,21 @@
-pub mod error;
-pub mod val;
 pub mod arith;
-pub mod misc;
 pub mod bitwise;
+pub mod error;
+pub mod misc;
 pub mod sym;
+pub mod val;
+pub mod helpers;
 
 use crate::memory::*;
 use crate::stack::*;
 use error::InstructionError;
-use std::fmt::Debug;
+
 
 pub type InstructionResult<T> = Result<T, InstructionError>;
 pub struct ExecRecord<S, M, PathConstraint>
 where
     S: Stack,
-    M: Mem
+    M: Mem,
 {
     pub stack_diff: Option<StackRecord<S>>,
     pub mem_diff: Option<MemRecord<M>>,
@@ -24,7 +25,7 @@ where
     pub halt: bool,
 }
 
-impl <S: Stack, M: Mem, PathConstraint> Default for ExecRecord<S, M, PathConstraint> {
+impl<S: Stack, M: Mem, PathConstraint> Default for ExecRecord<S, M, PathConstraint> {
     fn default() -> Self {
         ExecRecord {
             stack_diff: None,
@@ -36,10 +37,6 @@ impl <S: Stack, M: Mem, PathConstraint> Default for ExecRecord<S, M, PathConstra
     }
 }
 
-pub trait VMInstruction<S: Stack, M: Mem, PathConstraint>: Debug {
-    fn exec(
-        &self,
-        stack: &S,
-        memory: &M,
-    ) -> InstructionResult<ExecRecord<S, M, PathConstraint>>;
+pub trait VMInstruction<S: Stack, M: Mem, PC> {
+    fn exec(&self, stack: &S, memory: &M) -> InstructionResult<ExecRecord<S, M, PC>>;
 }

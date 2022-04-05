@@ -14,16 +14,18 @@ pub trait Binary: Default {
     }
 }
 
-impl<T: Eq + Binary, ValStack: Stack<StackVal = T>, M, PathConstraint> VMInstruction<ValStack, M, PathConstraint>
+impl<T, S, M, PC> VMInstruction<S, M, PC>
     for ISZERO
 where
+    T: Eq + Binary,
+    S: Stack<StackVal = T>,
     M: Mem
 {
     fn exec(
         &self,
-        stack: &ValStack,
+        stack: &S,
         _memory: &M,
-    ) -> super::InstructionResult<super::ExecRecord<ValStack, M, PathConstraint>> {
+    ) -> super::InstructionResult<super::ExecRecord<S, M, PC>> {
         let mut change_log = ExecRecord::default();
 
         let op = stack.peek(0).unwrap();

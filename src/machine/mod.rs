@@ -16,7 +16,6 @@ pub struct SymbolicContext<PathConstraint> {
     pub constraints: Vec<PathConstraint>,
 }
 
-#[derive(Debug)]
 pub struct BaseMachine<S, M, PathConstraint>
 where
     S: Stack,

@@ -2,15 +2,17 @@ use std::{ops::{Add, Sub}, num::TryFromIntError};
 
 use crate::{instructions::bitwise::Binary, memory::symbolic_concrete_index::MemVal};
 
+pub type Wraps = i128;
+
 // TODO(will) -- is deriving both Clone and Copy a code smell?
 
 #[derive(Clone, Debug, Copy, PartialEq, Eq)]
-pub struct ConcreteInt(i128);
+pub struct ConcreteInt(Wraps);
 
 impl MemVal for ConcreteInt {}
 
-impl From<i128> for ConcreteInt {
-    fn from(x: i128) -> Self {
+impl From<Wraps> for ConcreteInt {
+    fn from(x: Wraps) -> Self {
         ConcreteInt(x)
     }
 }
