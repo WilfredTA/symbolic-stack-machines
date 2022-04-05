@@ -5,16 +5,16 @@ use symbolic_stack_machines::{
         VMInstruction,
     },
     machine::{ConcreteIntMachine, Program},
-    memory::symbolic_concrete_index::MemIntToInt,
-    stack::IntStack,
+    memory::symbolic_concrete_index::MemConcreteIntToConcreteInt,
+    stack::ConcreteIntStack,
 };
 
 fn test_helper(
-    pgm: Program<Box<dyn VMInstruction<IntStack, MemIntToInt, ()>>>,
+    pgm: Program<Box<dyn VMInstruction<ConcreteIntStack, MemConcreteIntToConcreteInt, ()>>>,
     expected: concrete_int::Wraps,
 ) {
-    let stack = IntStack::new();
-    let mem = MemIntToInt::new();
+    let stack = ConcreteIntStack::new();
+    let mem = MemConcreteIntToConcreteInt::new();
     let machine = ConcreteIntMachine::new(stack, mem);
 
     assert_eq!(machine.run(&pgm), Option::Some(expected.into()))

@@ -1,4 +1,4 @@
-use crate::concrete_int::ConcreteInt;
+use crate::{concrete_int::ConcreteInt, symbolic_int::SymbolicInt};
 
 use super::{Mem, MemoryResult, RWMem, ReadOnlyMem, WriteableMem};
 use std::fmt::Debug;
@@ -52,4 +52,5 @@ impl<MV: MemVal> SymbolicMemConcreteIndex<MV> {
 
 impl<MV: MemVal> RWMem for SymbolicMemConcreteIndex<MV> {}
 
-pub type MemIntToInt = SymbolicMemConcreteIndex<ConcreteInt>;
+pub type MemConcreteIntToConcreteInt = SymbolicMemConcreteIndex<ConcreteInt>;
+pub type MemConcreteIntToSymbolicInt = SymbolicMemConcreteIndex<SymbolicInt>;

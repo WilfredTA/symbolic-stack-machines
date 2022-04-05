@@ -1,7 +1,7 @@
 pub mod error;
 use error::StackError;
 
-use crate::concrete_int::ConcreteInt;
+use crate::{concrete_int::ConcreteInt, symbolic_int::SymbolicInt};
 pub type StackResult<T> = Result<T, StackError>;
 
 pub trait Stack: Sized {
@@ -96,4 +96,5 @@ where
     }
 }
 
-pub type IntStack = BaseStack<ConcreteInt>;
+pub type ConcreteIntStack = BaseStack<ConcreteInt>;
+pub type SymbolicIntStack = BaseStack<SymbolicInt>;

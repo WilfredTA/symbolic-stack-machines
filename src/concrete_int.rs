@@ -6,7 +6,7 @@ pub type Wraps = i128;
 
 // TODO(will) -- is deriving both Clone and Copy a code smell?
 
-#[derive(Clone, Debug, Copy, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ConcreteInt(Wraps);
 
 impl MemVal for ConcreteInt {}

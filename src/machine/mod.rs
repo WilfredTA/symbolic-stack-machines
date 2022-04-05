@@ -1,6 +1,6 @@
 pub mod error;
 use crate::instructions::*;
-use crate::memory::symbolic_concrete_index::MemIntToInt;
+use crate::memory::symbolic_concrete_index::{MemConcreteIntToConcreteInt, MemConcreteIntToSymbolicInt};
 use crate::memory::{Mem, ReadOnlyMem, WriteableMem};
 use crate::{memory::RWMem, stack::*};
 use error::MachineError;
@@ -226,4 +226,7 @@ where
 }
 
 pub type ConcreteIntMachine =
-    BaseMachine<IntStack, MemIntToInt, ()>;
+    BaseMachine<ConcreteIntStack, MemConcreteIntToConcreteInt, ()>;
+
+pub type SymbolicIntMachine =
+    BaseMachine<SymbolicIntStack, MemConcreteIntToSymbolicInt, ()>;

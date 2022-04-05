@@ -10,7 +10,7 @@ pub struct ADD;
 
 impl<T, S, M, PC> VMInstruction<S, M, PC> for ADD
 where
-    T: std::ops::Add + std::ops::Add<Output = T> + Copy,
+    T: std::ops::Add + std::ops::Add<Output = T> + Clone,
     S: Stack<StackVal = T>,
     M: Mem,
 {
@@ -23,7 +23,7 @@ where
 
         let op_1 = stack.peek(0).unwrap();
         let op_2 = stack.peek(1).unwrap();
-        let res = op_1 + op_2;
+        let res = op_1.clone() + op_2.clone();
 
         change_log.stack_diff = Some(StackRecord {
             changed: vec![
@@ -43,7 +43,7 @@ pub struct SUB;
 impl<T, S, M, PC>
     VMInstruction<S, M, PC> for SUB
 where
-    T: std::ops::Sub + std::ops::Sub<Output = T> + Copy,
+    T: std::ops::Sub + std::ops::Sub<Output = T> + Clone,
     S: Stack<StackVal = T>,
     M: Mem,
 {
@@ -56,7 +56,7 @@ where
 
         let op_1 = stack.peek(0).unwrap();
         let op_2 = stack.peek(1).unwrap();
-        let res = op_1 - op_2;
+        let res = op_1.clone() - op_2.clone();
 
         change_log.stack_diff = Some(StackRecord {
             changed: vec![

@@ -6,7 +6,7 @@ pub fn PUSH<Arg, T, S, M, PC>(x: Arg) -> Box<dyn VMInstruction<S, M, PC>>
 where
     Arg: Into<T>,
     // TODO this shouldn't be static
-    T: Copy + 'static,
+    T: Clone + 'static,
     S: Stack<StackVal = T>,
     M: Mem,
 {
@@ -23,7 +23,7 @@ where
 
 pub fn MSTORE<T, S, M, PC>() -> Box<dyn VMInstruction<S, M, PC>>
 where
-    T: Copy + TryInto<M::Index>,
+    T: Clone + TryInto<M::Index>,
     M: WriteableMem<MemVal = T>,
     S: Stack<StackVal = T>,
     <T as TryInto<<M as Mem>::Index>>::Error: std::fmt::Debug,
@@ -33,7 +33,7 @@ where
 
 pub fn MLOAD<T, S, M, PC>() -> Box<dyn VMInstruction<S, M, PC>>
 where
-    T: Copy + TryInto<M::Index>,
+    T: Clone + TryInto<M::Index>,
     M: ReadOnlyMem<MemVal = T>,
     S: Stack<StackVal = T>,
     <T as TryInto<<M as Mem>::Index>>::Error: std::fmt::Debug,
@@ -43,7 +43,7 @@ where
 
 pub fn ADD<T, S, M, PC>() -> Box<dyn VMInstruction<S, M, PC>> 
 where
-    T: std::ops::Add + std::ops::Add<Output = T> + Copy,
+    T: std::ops::Add + std::ops::Add<Output = T> + Clone,
     S: Stack<StackVal = T>,
     M: Mem,
 {
@@ -52,7 +52,7 @@ where
 
 pub fn SUB<T, S, M, PC>() -> Box<dyn VMInstruction<S, M, PC>> 
 where
-    T: std::ops::Sub + std::ops::Sub<Output = T> + Copy,
+    T: std::ops::Sub + std::ops::Sub<Output = T> + Clone,
     S: Stack<StackVal = T>,
     M: Mem,
 {
