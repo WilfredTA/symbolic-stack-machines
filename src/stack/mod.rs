@@ -94,4 +94,4 @@ where
     }
 }
 
-pub type IntStack = BaseStack<i64>;
+pub type IntStack = BaseStack<i128>;

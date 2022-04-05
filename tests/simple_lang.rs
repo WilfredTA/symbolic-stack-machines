@@ -1,185 +1,185 @@
-use symbolic_stack_machines::instructions::arith::{ADD, SUB};
-use symbolic_stack_machines::memory::symbolic_concrete_index::MemIntToInt;
-use symbolic_stack_machines::memory::ReadOnlyMem;
-use symbolic_stack_machines::{instructions::*, stack::*};
+// use symbolic_stack_machines::instructions::arith::{ADD, SUB};
+// use symbolic_stack_machines::memory::symbolic_concrete_index::MemIntToInt;
+// use symbolic_stack_machines::memory::ReadOnlyMem;
+// use symbolic_stack_machines::{instructions::*, stack::*};
 
-#[derive(Clone, PartialEq, Eq, Debug)]
-pub enum Instruction<T> {
-    // DONE
-    Add,
-    // DONE
-    Sub,
-    // DONE
-    Push(T),
+// #[derive(Clone, PartialEq, Eq, Debug)]
+// pub enum Instruction<T> {
+//     // DONE
+//     Add,
+//     // DONE
+//     Sub,
+//     // DONE
+//     Push(T),
 
-    // DONE
-    Assert(T),
+//     // DONE
+//     Assert(T),
 
-    // DONE
-    MLOAD,
+//     // DONE
+//     MLOAD,
 
-    // DONE
-    MSTORE,
+//     // DONE
+//     MSTORE,
 
-    // DONE
-    ISZERO,
+//     // DONE
+//     ISZERO,
 
-    // DONE
-    JUMPI,
+//     // DONE
+//     JUMPI,
 
-    // DONE
-    STOP,
-}
+//     // DONE
+//     STOP,
+// }
 
-impl VMInstruction<IntStack, MemIntToInt> for Instruction<i128> {
-    fn exec(
-        &self,
-        stack: &IntStack,
-        memory: &MemIntToInt,
-    ) -> InstructionResult<ExecRecord<IntStack, MemIntToInt>> {
-        let mut change_log: ExecRecord<IntStack, MemIntToInt> = ExecRecord {
-            stack_diff: None,
-            mem_diff: None,
-            // path_constraints: vec![],
-            pc_change: None,
-            halt: false,
-        };
-        match self {
-            Instruction::Add => {
-                let op_1 = stack.peek(0).unwrap();
-                let op_2 = stack.peek(1).unwrap();
-                let res = op_1 + op_2;
-                change_log.stack_diff = Some(StackRecord {
-                    changed: vec![
-                        StackOpRecord::Pop(op_1),
-                        StackOpRecord::Pop(op_2),
-                        StackOpRecord::Push(res),
-                    ],
-                });
-            }
-            Instruction::Sub => {
-                let op_1 = stack.peek(0).unwrap();
-                let op_2 = stack.peek(1).unwrap();
-                let res = op_1 - op_2;
-                change_log.stack_diff = Some(StackRecord {
-                    changed: vec![
-                        StackOpRecord::Pop(op_1),
-                        StackOpRecord::Pop(op_2),
-                        StackOpRecord::Push(res),
-                    ],
-                });
-            }
-            Instruction::Push(v) => {
-                change_log.stack_diff = Some(StackRecord {
-                    changed: vec![StackOpRecord::Push(v.clone())],
-                });
-            }
-            Instruction::Assert(v) => {
-                todo!()
-                // let stack_top = stack.peek(0).unwrap();
-                // let constraint = stack_top._eq(v);
-                // change_log.path_constraints.push(vec![constraint]);
-            }
-            Instruction::MLOAD => {
-                let mem_offset = stack.peek(0).unwrap();
-                let mem_offset_usize = usize::try_from(mem_offset).unwrap();
-                let val = {
-                    match memory.read(mem_offset_usize) {
-                        Ok(val) => val.unwrap(),
-                        Err(e) => {
-                            panic!("Error reading from memory: {:?}", e);
-                        }
-                    }
-                };
-                change_log.stack_diff = Some(StackRecord {
-                    changed: vec![StackOpRecord::Pop(mem_offset), StackOpRecord::Push(val)],
-                });
-            }
-            Instruction::MSTORE => {
-                // let mem_offset = stack.peek(0).unwrap();
-                // let val = stack.peek(1).unwrap();
-                // let prev_val = {
-                //     match memory.read(mem_offset.clone()) {
-                //         Ok(val) => val.unwrap(),
-                //         Err(e) => Int::from_u64(val.get_ctx(), 0),
-                //     }
-                // };
-                // change_log.stack_diff = Some(StackRecord {
-                //     changed: vec![
-                //         StackOpRecord::Pop(mem_offset.clone()),
-                //         StackOpRecord::Pop(val.clone()),
-                //     ],
-                // });
-                // change_log.mem_diff = Some(MemRecord {
-                //     diff: vec![MemOpRecord::Write((mem_offset, prev_val, val))],
-                // });
-            }
-            Instruction::ISZERO => {
-                todo!()
-                // let top = stack.peek(0).unwrap();
-                // let zero = Int::from_u64(top.get_ctx(), 0);
-                // let one = Int::from_u64(top.get_ctx(), 1);
-                // let is_zero = Bool::ite(&top._eq(&zero), &one, &zero);
-                // change_log.stack_diff = Some(StackRecord {
-                //     changed: vec![
-                //         StackOpRecord::Pop(top.clone()),
-                //         StackOpRecord::Push(is_zero.clone()),
-                //     ],
-                // });
-            }
-            Instruction::JUMPI => {
-                // let dest = stack.peek(0).unwrap();
-                // let ctx = dest.ctx;
-                // let cond = stack.peek(1).unwrap();
-                // if let Some(dest) = dest.as_u64() {
-                //     let zero = Int::from_u64(ctx, 0);
-                //     change_log.path_constraints.push(vec![cond._eq(&zero)]);
-                //     change_log
-                //         .path_constraints
-                //         .push(vec![Bool::not(&cond._eq(&zero))]);
-                //     change_log.pc_change = Some(dest as usize);
-                // }
-            }
-            Instruction::STOP => {
-                change_log.halt = true;
-            }
-        };
-        Ok(change_log)
-    }
-}
-pub fn push<T>(val: T) -> Instruction<T> {
-    Instruction::Push(val)
-}
+// impl VMInstruction<IntStack, MemIntToInt> for Instruction<i128> {
+//     fn exec(
+//         &self,
+//         stack: &IntStack,
+//         memory: &MemIntToInt,
+//     ) -> InstructionResult<ExecRecord<IntStack, MemIntToInt>> {
+//         let mut change_log: ExecRecord<IntStack, MemIntToInt> = ExecRecord {
+//             stack_diff: None,
+//             mem_diff: None,
+//             // path_constraints: vec![],
+//             pc_change: None,
+//             halt: false,
+//         };
+//         match self {
+//             Instruction::Add => {
+//                 let op_1 = stack.peek(0).unwrap();
+//                 let op_2 = stack.peek(1).unwrap();
+//                 let res = op_1 + op_2;
+//                 change_log.stack_diff = Some(StackRecord {
+//                     changed: vec![
+//                         StackOpRecord::Pop(op_1),
+//                         StackOpRecord::Pop(op_2),
+//                         StackOpRecord::Push(res),
+//                     ],
+//                 });
+//             }
+//             Instruction::Sub => {
+//                 let op_1 = stack.peek(0).unwrap();
+//                 let op_2 = stack.peek(1).unwrap();
+//                 let res = op_1 - op_2;
+//                 change_log.stack_diff = Some(StackRecord {
+//                     changed: vec![
+//                         StackOpRecord::Pop(op_1),
+//                         StackOpRecord::Pop(op_2),
+//                         StackOpRecord::Push(res),
+//                     ],
+//                 });
+//             }
+//             Instruction::Push(v) => {
+//                 change_log.stack_diff = Some(StackRecord {
+//                     changed: vec![StackOpRecord::Push(v.clone())],
+//                 });
+//             }
+//             Instruction::Assert(v) => {
+//                 todo!()
+//                 // let stack_top = stack.peek(0).unwrap();
+//                 // let constraint = stack_top._eq(v);
+//                 // change_log.path_constraints.push(vec![constraint]);
+//             }
+//             Instruction::MLOAD => {
+//                 let mem_offset = stack.peek(0).unwrap();
+//                 let mem_offset_usize = usize::try_from(mem_offset).unwrap();
+//                 let val = {
+//                     match memory.read(mem_offset_usize) {
+//                         Ok(val) => val.unwrap(),
+//                         Err(e) => {
+//                             panic!("Error reading from memory: {:?}", e);
+//                         }
+//                     }
+//                 };
+//                 change_log.stack_diff = Some(StackRecord {
+//                     changed: vec![StackOpRecord::Pop(mem_offset), StackOpRecord::Push(val)],
+//                 });
+//             }
+//             Instruction::MSTORE => {
+//                 // let mem_offset = stack.peek(0).unwrap();
+//                 // let val = stack.peek(1).unwrap();
+//                 // let prev_val = {
+//                 //     match memory.read(mem_offset.clone()) {
+//                 //         Ok(val) => val.unwrap(),
+//                 //         Err(e) => Int::from_u64(val.get_ctx(), 0),
+//                 //     }
+//                 // };
+//                 // change_log.stack_diff = Some(StackRecord {
+//                 //     changed: vec![
+//                 //         StackOpRecord::Pop(mem_offset.clone()),
+//                 //         StackOpRecord::Pop(val.clone()),
+//                 //     ],
+//                 // });
+//                 // change_log.mem_diff = Some(MemRecord {
+//                 //     diff: vec![MemOpRecord::Write((mem_offset, prev_val, val))],
+//                 // });
+//             }
+//             Instruction::ISZERO => {
+//                 todo!()
+//                 // let top = stack.peek(0).unwrap();
+//                 // let zero = Int::from_u64(top.get_ctx(), 0);
+//                 // let one = Int::from_u64(top.get_ctx(), 1);
+//                 // let is_zero = Bool::ite(&top._eq(&zero), &one, &zero);
+//                 // change_log.stack_diff = Some(StackRecord {
+//                 //     changed: vec![
+//                 //         StackOpRecord::Pop(top.clone()),
+//                 //         StackOpRecord::Push(is_zero.clone()),
+//                 //     ],
+//                 // });
+//             }
+//             Instruction::JUMPI => {
+//                 // let dest = stack.peek(0).unwrap();
+//                 // let ctx = dest.ctx;
+//                 // let cond = stack.peek(1).unwrap();
+//                 // if let Some(dest) = dest.as_u64() {
+//                 //     let zero = Int::from_u64(ctx, 0);
+//                 //     change_log.path_constraints.push(vec![cond._eq(&zero)]);
+//                 //     change_log
+//                 //         .path_constraints
+//                 //         .push(vec![Bool::not(&cond._eq(&zero))]);
+//                 //     change_log.pc_change = Some(dest as usize);
+//                 // }
+//             }
+//             Instruction::STOP => {
+//                 change_log.halt = true;
+//             }
+//         };
+//         Ok(change_log)
+//     }
+// }
+// pub fn push<T>(val: T) -> Instruction<T> {
+//     Instruction::Push(val)
+// }
 
-pub fn assert<T>(val: T) -> Instruction<T> {
-    Instruction::Assert(val)
-}
+// pub fn assert<T>(val: T) -> Instruction<T> {
+//     Instruction::Assert(val)
+// }
 
-pub fn add<T>() -> Instruction<T> {
-    Instruction::Add
-}
+// pub fn add<T>() -> Instruction<T> {
+//     Instruction::Add
+// }
 
-pub fn sub<T>() -> Instruction<T> {
-    Instruction::Sub
-}
-pub fn mload<T>() -> Instruction<T> {
-    Instruction::MLOAD
-}
+// pub fn sub<T>() -> Instruction<T> {
+//     Instruction::Sub
+// }
+// pub fn mload<T>() -> Instruction<T> {
+//     Instruction::MLOAD
+// }
 
-pub fn mstore<T>() -> Instruction<T> {
-    Instruction::MSTORE
-}
+// pub fn mstore<T>() -> Instruction<T> {
+//     Instruction::MSTORE
+// }
 
-pub fn is_zero<T>() -> Instruction<T> {
-    Instruction::ISZERO
-}
-pub fn jumpi<T>() -> Instruction<T> {
-    Instruction::JUMPI
-}
+// pub fn is_zero<T>() -> Instruction<T> {
+//     Instruction::ISZERO
+// }
+// pub fn jumpi<T>() -> Instruction<T> {
+//     Instruction::JUMPI
+// }
 
-pub fn stop<T>() -> Instruction<T> {
-    Instruction::STOP
-}
+// pub fn stop<T>() -> Instruction<T> {
+//     Instruction::STOP
+// }
 
 // #[test]
 // fn test_basic_sym_mem() {

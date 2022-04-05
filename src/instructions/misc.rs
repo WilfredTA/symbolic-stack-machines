@@ -45,24 +45,28 @@ impl<T: Copy, ValStack: Stack<StackVal = T>, M: Mem, PathConstraint>
 
 pub struct JUMPI;
 
-impl<T, ValStack: Stack<StackVal = T>, M, PathConstraint> VMInstruction<ValStack, M, PathConstraint>
+impl<T, S, M, PC> VMInstruction<S, M, PC>
     for JUMPI
 where
-    usize: From<T>,
+    T: Default + Eq + TryInto<usize>,
+    S: Stack<StackVal = T>,
     M: Mem,
+    // TODO(will): Not clear why we need this trait
+    <T as TryInto<usize>>::Error: std::fmt::Debug
 {
     fn exec(
         &self,
-        stack: &ValStack,
+        stack: &S,
         _memory: &M,
-    ) -> super::InstructionResult<super::ExecRecord<ValStack, M, PathConstraint>> {
+    ) -> super::InstructionResult<super::ExecRecord<S, M, PC>> {
         let mut change_log = ExecRecord::default();
 
-        let dest = usize::from(stack.peek(0).unwrap());
-        let cond = usize::from(stack.peek(1).unwrap());
+        let dest = stack.peek(0).unwrap();
+        let cond = stack.peek(1).unwrap();
 
-        if cond != 0 {
-            change_log.pc_change = Some(dest);
+        if cond != T::default() {
+            let x = dest.try_into().unwrap();
+            change_log.pc_change = Some(x);
         }
 
         Ok(change_log)

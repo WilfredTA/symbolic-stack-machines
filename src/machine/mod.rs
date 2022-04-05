@@ -1,42 +1,38 @@
 pub mod error;
 use crate::instructions::*;
-use crate::memory::ReadOnlyMem;
+use crate::memory::symbolic_concrete_index::MemIntToInt;
+use crate::memory::{Mem, ReadOnlyMem, WriteableMem};
 use crate::{memory::RWMem, stack::*};
 use error::MachineError;
 use z3::ast::Bool;
-use z3::{Model, SatResult, Solver, Context};
+use z3::{Context, Model, SatResult, Solver};
 
 pub type MachineResult<T> = Result<T, MachineError>;
 
-pub type Program<I: Sized> = Vec<I>;
+pub type Program<I> = Vec<I>;
 
 pub struct SymbolicContext<PathConstraint> {
     pub constraints: Vec<PathConstraint>,
 }
 
-pub struct BaseMachine<Mem, MachineStack, I, MemIdx, MemVal, StackVal, PathConstraint>
+pub struct BaseMachine<S, M, PathConstraint>
 where
-    Mem: RWMem + ReadOnlyMem<Index = MemIdx, MemVal = MemVal>,
-    MachineStack: Stack<StackVal = StackVal>,
-    I: VMInstruction<MachineStack, Mem, PathConstraint>,
-    StackVal: Into<MemIdx> + Into<MemVal>,
+    S: Stack,
+    M: Mem,
 {
-    mem: Mem,
-    stack: MachineStack,
-    pgm: Program<I>,
+    stack: S,
+    mem: M,
+    pgm: Program<Box<dyn VMInstruction<S, M, ()>>>,
     pc: usize,
     context: Option<SymbolicContext<PathConstraint>>,
 }
 
-impl<Mem, MachineStack, I, MemIdx, MemVal, StackVal, PathConstraint>
-    BaseMachine<Mem, MachineStack, I, MemIdx, MemVal, StackVal, PathConstraint>
+impl<S, M, PathConstraint> BaseMachine<S, M, PathConstraint>
 where
-    Mem: RWMem + ReadOnlyMem<Index = MemIdx, MemVal = MemVal> + std::fmt::Debug + Clone,
-    MachineStack: Stack<StackVal = StackVal> + std::fmt::Debug + Clone,
-    I: VMInstruction<MachineStack, Mem, PathConstraint>,
-    StackVal: Into<MemIdx> + Into<MemVal>,
+    S: Stack + std::fmt::Debug + Clone,
+    M: Mem + WriteableMem + std::fmt::Debug + Clone,
 {
-    pub fn new(stack: MachineStack, mem: Mem) -> Self {
+    pub fn new(stack: S, mem: M) -> Self {
         Self {
             mem,
             stack,
@@ -46,7 +42,7 @@ where
         }
     }
 
-    pub fn new_with_ctx(stack: MachineStack, mem: Mem) -> Self {
+    pub fn new_with_ctx(stack: S, mem: M) -> Self {
         let context = SymbolicContext {
             constraints: vec![],
         }
@@ -63,29 +59,20 @@ where
 
     pub fn run_sym<'a>(
         self,
-        pgm: &Program<I>,
-        ctx: &'a Context
+        pgm: &Program<Box<dyn VMInstruction<S, M, ()>>>,
+        ctx: &'a Context,
     ) -> (
-        Vec<(
-            (usize, MachineStack, Mem, Vec<z3::ast::Bool<'a>>),
-            Option<Model<'a>>,
-        )>,
-        Vec<(
-            (usize, MachineStack, Mem, Vec<z3::ast::Bool<'a>>),
-            Option<Model<'a>>,
-        )>,
+        Vec<((usize, S, M, Vec<z3::ast::Bool<'a>>), Option<Model<'a>>)>,
+        Vec<((usize, S, M, Vec<z3::ast::Bool<'a>>), Option<Model<'a>>)>,
     ) {
         type Branch<'a, S, M> = (usize, S, M, Vec<Bool<'a>>);
         let stack = self.stack.clone();
         let mem = self.mem.clone();
         let execute = |pc: &mut usize,
-                       pgm: &Program<I>,
-                       mut stack: MachineStack,
-                       mut mem: Mem|
-         -> (
-            Option<Branch<MachineStack, Mem>>,
-            Option<Branch<MachineStack, Mem>>,
-        ) {
+                       pgm: &Program<Box<dyn VMInstruction<S, M, ()>>>,
+                       mut stack: S,
+                       mut mem: M|
+         -> (Option<Branch<S, M>>, Option<Branch<S, M>>) {
             // for inst in &pgm[pc.clone()..] {
             //     let rec = inst.exec(&stack, &mem).unwrap();
             //     println!("EXEC RECORD CONSTRAINTS: {:?}", rec.path_constraints);
@@ -146,9 +133,9 @@ where
             return (None, None);
         };
 
-        let mut trace_tree: Vec<Branch<MachineStack, Mem>> = vec![];
+        let mut trace_tree: Vec<Branch<S, M>> = vec![];
         trace_tree.push((0, stack.clone(), mem.clone(), vec![]));
-        let mut leaves: Vec<Branch<MachineStack, Mem>> = vec![];
+        let mut leaves: Vec<Branch<S, M>> = vec![];
         loop {
             let start_branch = trace_tree.pop();
             if let Some(start_branch) = start_branch {
@@ -206,10 +193,10 @@ where
         println!("Reachable leaves: {:?}", reachable);
         return (reachable, unreachable);
     }
-    pub fn run(self, pgm: &Program<I>) -> Option<MachineStack::StackVal>
+    pub fn run(self, pgm: &Program<Box<dyn VMInstruction<S, M, ()>>>) -> Option<S::StackVal>
     where
-        Mem: Clone,
-        MachineStack: Clone,
+        M: Clone,
+        S: Clone,
     {
         let mut stack = self.stack.clone();
         let mut mem = self.mem.clone();
@@ -236,3 +223,6 @@ where
         stack.peek(0)
     }
 }
+
+pub type ConcreteIntMachine =
+    BaseMachine<IntStack, MemIntToInt, ()>;

@@ -35,7 +35,7 @@ impl <S: Stack, M: Mem, PathConstraint> Default for ExecRecord<S, M, PathConstra
     }
 }
 
-pub trait VMInstruction<S: Stack, M: Mem, PathConstraint>: Sized {
+pub trait VMInstruction<S: Stack, M: Mem, PathConstraint> {
     fn exec(
         &self,
         stack: &S,

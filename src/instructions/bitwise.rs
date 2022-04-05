@@ -16,7 +16,6 @@ pub trait Binary: Default {
 impl<T: Eq + Binary, ValStack: Stack<StackVal = T>, M, PathConstraint> VMInstruction<ValStack, M, PathConstraint>
     for ISZERO
 where
-    usize: From<T>,
     M: Mem
 {
     fn exec(

@@ -2,6 +2,7 @@ use super::{Mem, MemoryResult, RWMem, ReadOnlyMem, WriteableMem};
 
 pub trait MemVal: Default + Clone {}
 
+#[derive(Clone, Debug)]
 pub struct SymbolicMemConcreteIndex<MV: MemVal> {
     inner: Vec<MV>,
 }
@@ -40,6 +41,6 @@ impl<MV: MemVal> SymbolicMemConcreteIndex<MV> {
 
 impl<MV: MemVal> RWMem for SymbolicMemConcreteIndex<MV> {}
 
-type Int = i64;
+type Int = i128;
 impl MemVal for Int {}
 pub type MemIntToInt = SymbolicMemConcreteIndex<Int>;
