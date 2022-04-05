@@ -1,3 +1,5 @@
+use crate::concrete_int::ConcreteInt;
+
 use super::{Mem, MemoryResult, RWMem, ReadOnlyMem, WriteableMem};
 use std::fmt::Debug;
 
@@ -50,6 +52,4 @@ impl<MV: MemVal> SymbolicMemConcreteIndex<MV> {
 
 impl<MV: MemVal> RWMem for SymbolicMemConcreteIndex<MV> {}
 
-type Int = i128;
-impl MemVal for Int {}
-pub type MemIntToInt = SymbolicMemConcreteIndex<Int>;
+pub type MemIntToInt = SymbolicMemConcreteIndex<ConcreteInt>;
