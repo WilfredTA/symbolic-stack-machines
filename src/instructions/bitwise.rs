@@ -30,7 +30,7 @@ where
 
         let op = stack.peek(0).unwrap();
 
-        let rv = if op == T::default() {
+        let rv = if op == T::zero() {
             T::one()
         } else {
             T::zero()
