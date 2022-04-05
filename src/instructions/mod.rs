@@ -8,6 +8,7 @@ pub mod sym;
 use crate::memory::*;
 use crate::stack::*;
 use error::InstructionError;
+use std::fmt::Debug;
 
 pub type InstructionResult<T> = Result<T, InstructionError>;
 pub struct ExecRecord<S, M, PathConstraint>
@@ -35,7 +36,7 @@ impl <S: Stack, M: Mem, PathConstraint> Default for ExecRecord<S, M, PathConstra
     }
 }
 
-pub trait VMInstruction<S: Stack, M: Mem, PathConstraint> {
+pub trait VMInstruction<S: Stack, M: Mem, PathConstraint>: Debug {
     fn exec(
         &self,
         stack: &S,

@@ -4,6 +4,7 @@ use crate::{
 
 use super::{ExecRecord, VMInstruction};
 
+#[derive(Debug)]
 pub struct ISZERO;
 
 pub trait Binary: Default {

@@ -1,6 +1,7 @@
 use super::{Mem, MemoryResult, RWMem, ReadOnlyMem, WriteableMem};
+use std::fmt::Debug;
 
-pub trait MemVal: Default + Clone {}
+pub trait MemVal: Default + Clone + Debug {}
 
 #[derive(Clone, Debug)]
 pub struct SymbolicMemConcreteIndex<MV: MemVal> {
@@ -28,7 +29,15 @@ impl<MV: MemVal> WriteableMem for SymbolicMemConcreteIndex<MV> {
         let mut x = Self {
             inner: self.inner.clone(),
         };
+
+        let min_len = idx + 1;
+
+        if x.inner.len() < min_len {
+            x.inner.resize(min_len, Self::MemVal::default());
+        }
+
         x.inner[idx] = val;
+
         Ok(x)
     }
 }

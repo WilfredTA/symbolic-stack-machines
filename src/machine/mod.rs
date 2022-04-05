@@ -11,10 +11,12 @@ pub type MachineResult<T> = Result<T, MachineError>;
 
 pub type Program<I> = Vec<I>;
 
+#[derive(Debug)]
 pub struct SymbolicContext<PathConstraint> {
     pub constraints: Vec<PathConstraint>,
 }
 
+#[derive(Debug)]
 pub struct BaseMachine<S, M, PathConstraint>
 where
     S: Stack,
@@ -202,7 +204,7 @@ where
         let mut mem = self.mem.clone();
 
         for inst in pgm {
-            let rec = inst.exec(&stack, &self.mem).unwrap();
+            let rec = inst.exec(&stack, &mem).unwrap();
             stack = {
                 if let Some(stack_diff) = rec.stack_diff {
                     stack_diff.apply(stack).unwrap()

@@ -1,20 +1,22 @@
-use crate::{stack::Stack, memory::Mem};
-use super::{VMInstruction, ExecRecord};
+use super::{ExecRecord, VMInstruction};
+use crate::{memory::Mem, stack::Stack};
+use std::fmt::Debug;
 
-pub struct ASSERT<T>(T);
+#[derive(Debug)]
+pub struct ASSERT<T: Debug>(T);
 
-impl<
-        T: Copy + Into<PathConstraint>,
-        ValStack: Stack<StackVal = T>,
-        M: Mem,
-        PathConstraint
-    > VMInstruction<ValStack, M, PathConstraint> for ASSERT<T>
+impl<T, S, M, PC>
+    VMInstruction<S, M, PC> for ASSERT<T>
+where
+    T: Copy + Into<PC> + Debug,
+    S: Stack<StackVal = T>,
+    M: Mem
 {
     fn exec(
         &self,
-        stack: &ValStack,
+        stack: &S,
         _memory: &M,
-    ) -> super::InstructionResult<super::ExecRecord<ValStack, M, PathConstraint>> {
+    ) -> super::InstructionResult<super::ExecRecord<S, M, PC>> {
         let mut change_log = ExecRecord::default();
 
         let constraint = stack.peek(0).unwrap().into();

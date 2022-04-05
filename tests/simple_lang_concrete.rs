@@ -1,10 +1,10 @@
 use symbolic_stack_machines::{
     instructions::{
         arith::{ADD, SUB},
-        misc::PUSH,
+        misc::{MLOAD, MSTORE, PUSH},
         VMInstruction,
     },
-    machine::{Program, ConcreteIntMachine},
+    machine::{ConcreteIntMachine, Program},
     memory::symbolic_concrete_index::MemIntToInt,
     stack::IntStack,
 };
@@ -15,7 +15,7 @@ fn test_basic() {
     let mem = MemIntToInt::new();
     let machine = ConcreteIntMachine::new(stack, mem);
 
-    let pgm: Program<Box<dyn VMInstruction<IntStack, MemIntToInt, ()>>> = vec![
+    let pgm: Program<Box<dyn VMInstruction<_, _, _>>> = vec![
         Box::new(PUSH(1)),
         Box::new(PUSH(2)),
         Box::new(PUSH(3)),
@@ -25,3 +25,26 @@ fn test_basic() {
 
     assert_eq!(machine.run(&pgm), Option::Some(4))
 }
+
+#[test]
+fn test_basic_mem() {
+    let stack = IntStack::new();
+    let mem = MemIntToInt::new();
+    let machine = ConcreteIntMachine::new(stack, mem);
+
+    let pgm: Program<Box<dyn VMInstruction<_, _, _>>> = vec![
+        Box::new(PUSH(1)),
+        Box::new(PUSH(0)),
+        Box::new(MSTORE),
+        Box::new(PUSH(0)),
+        Box::new(MLOAD),
+    ];
+
+    assert_eq!(machine.run(&pgm), Option::Some(1))
+}
+
+#[test]
+fn test_basic_jumpi() {}
+
+#[test]
+fn test_basic_multi_jumpi() {}

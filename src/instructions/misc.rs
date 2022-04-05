@@ -5,16 +5,22 @@ use crate::{
 
 use super::{ExecRecord, VMInstruction};
 
+use std::fmt::Debug;
+
+#[derive(Debug)]
 pub struct PUSH<T>(pub T);
 
-impl<T: Copy, ValStack: Stack<StackVal = T>, M: Mem, PathConstraint>
-    VMInstruction<ValStack, M, PathConstraint> for PUSH<T>
+impl<T, S, M, PC> VMInstruction<S, M, PC> for PUSH<T>
+where
+    T: Copy + Debug,
+    S: Stack<StackVal = T>,
+    M: Mem,
 {
     fn exec(
         &self,
-        _stack: &ValStack,
+        _stack: &S,
         _memory: &M,
-    ) -> super::InstructionResult<super::ExecRecord<ValStack, M, PathConstraint>> {
+    ) -> super::InstructionResult<super::ExecRecord<S, M, PC>> {
         let mut change_log = ExecRecord::default();
 
         change_log.stack_diff = Some(StackRecord {
@@ -25,6 +31,7 @@ impl<T: Copy, ValStack: Stack<StackVal = T>, M: Mem, PathConstraint>
     }
 }
 
+#[derive(Debug)]
 pub struct STOP;
 
 impl<T: Copy, ValStack: Stack<StackVal = T>, M: Mem, PathConstraint>
@@ -43,16 +50,16 @@ impl<T: Copy, ValStack: Stack<StackVal = T>, M: Mem, PathConstraint>
     }
 }
 
+#[derive(Debug)]
 pub struct JUMPI;
 
-impl<T, S, M, PC> VMInstruction<S, M, PC>
-    for JUMPI
+impl<T, S, M, PC> VMInstruction<S, M, PC> for JUMPI
 where
     T: Default + Eq + TryInto<usize>,
     S: Stack<StackVal = T>,
     M: Mem,
     // TODO(will): Not clear why we need this trait
-    <T as TryInto<usize>>::Error: std::fmt::Debug
+    <T as TryInto<usize>>::Error: std::fmt::Debug,
 {
     fn exec(
         &self,
@@ -73,35 +80,39 @@ where
     }
 }
 
+#[derive(Debug)]
 pub struct MLOAD;
 
 impl<T, S, M, PC> VMInstruction<S, M, PC> for MLOAD
 where
-    T: Copy,
-    M: ReadOnlyMem<Index = T, MemVal = T>,
+    T: Copy + TryInto<M::Index> + Debug,
+    M: ReadOnlyMem<MemVal = T>,
     S: Stack<StackVal = T>,
+    <T as TryInto<<M as Mem>::Index>>::Error: std::fmt::Debug,
 {
     fn exec(&self, stack: &S, memory: &M) -> super::InstructionResult<super::ExecRecord<S, M, PC>> {
         let mut change_log = ExecRecord::default();
 
         let mem_idx = stack.peek(0).unwrap();
-        let mem_val = memory.read(mem_idx).unwrap().unwrap();
+        let mem_val = memory.read(mem_idx.try_into().unwrap()).unwrap().unwrap();
 
         change_log.stack_diff = Some(StackRecord {
-            changed: vec![StackOpRecord::Pop(mem_idx), StackOpRecord::Push((mem_val))],
+            changed: vec![StackOpRecord::Pop(mem_idx), StackOpRecord::Push(mem_val)],
         });
 
         Ok(change_log)
     }
 }
 
+#[derive(Debug)]
 pub struct MSTORE;
 
 impl<T, S, M, PC> VMInstruction<S, M, PC> for MSTORE
 where
-    T: Copy,
-    M: WriteableMem<Index = T, MemVal = T>,
+    T: Copy + TryInto<M::Index>,
+    M: WriteableMem<MemVal = T>,
     S: Stack<StackVal = T>,
+    <T as TryInto<<M as Mem>::Index>>::Error: std::fmt::Debug,
 {
     fn exec(&self, stack: &S, _memory: &M) -> super::InstructionResult<ExecRecord<S, M, PC>> {
         let mut change_log = ExecRecord::default();
@@ -113,9 +124,9 @@ where
             changed: vec![StackOpRecord::Pop(mem_idx), StackOpRecord::Pop(mem_val)],
         });
 
-        change_log.mem_diff = Some(MemRecord { diff: vec![
-            MemOpRecord::Write((mem_idx, mem_val))
-        ] });
+        change_log.mem_diff = Some(MemRecord {
+            diff: vec![MemOpRecord::Write((mem_idx.try_into().unwrap(), mem_val))],
+        });
 
         Ok(change_log)
     }

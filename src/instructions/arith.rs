@@ -5,6 +5,7 @@ use crate::{
 
 use super::{ExecRecord, VMInstruction};
 
+#[derive(Debug)]
 pub struct ADD;
 
 impl<
@@ -37,6 +38,7 @@ impl<
     }
 }
 
+#[derive(Debug)]
 pub struct SUB;
 
 impl<
