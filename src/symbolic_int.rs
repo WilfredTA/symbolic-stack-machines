@@ -3,7 +3,9 @@ use std::{
     ops::{Add, Sub},
 };
 
-use crate::{instructions::bitwise::Binary, memory::symbolic_concrete_index::MemVal};
+use crate::{
+    instructions::bitwise::Binary, machine_eq::MachineEq, memory::symbolic_concrete_index::MemVal,
+};
 
 pub type Wraps = i128;
 
@@ -18,6 +20,38 @@ pub enum Inner {
     Sym,
     Add(Box<SymbolicInt>, Box<SymbolicInt>),
     Sub(Box<SymbolicInt>, Box<SymbolicInt>),
+    Eq(Box<SymbolicInt>, Box<SymbolicInt>),
+    Ite(Box<SymbolicInt>, Box<SymbolicInt>, Box<SymbolicInt>),
+}
+
+impl MachineEq for SymbolicInt {
+    fn machine_eq(&self, other: &Self) -> Self {
+        match (self, other) {
+            (SymbolicInt::C(l), SymbolicInt::C(r)) => SymbolicInt::C((l == r) as Wraps),
+            (SymbolicInt::C(l), SymbolicInt::S(r)) => {
+                Inner::Eq(C(l.clone()), r.clone().into()).into()
+            }
+            (SymbolicInt::S(l), SymbolicInt::C(r)) => {
+                Inner::Eq(l.clone().into(), C(r.clone())).into()
+            }
+            (SymbolicInt::S(l), SymbolicInt::S(r)) => {
+                Inner::Eq(l.clone().into(), r.clone().into()).into()
+            }
+        }
+    }
+
+    fn machine_ite(self, then: Self, xelse: Self) -> Self {
+        match self {
+            SymbolicInt::C(x) => {
+                if x != 0 {
+                    then
+                } else {
+                    xelse
+                }
+            }
+            SymbolicInt::S(x) => Inner::Ite(x.into(), then.into(), xelse.into()).into(),
+        }
+    }
 }
 
 impl Into<SymbolicInt> for Inner {

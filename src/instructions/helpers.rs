@@ -1,4 +1,4 @@
-use crate::{stack::Stack, memory::{Mem, WriteableMem, ReadOnlyMem}};
+use crate::{stack::Stack, memory::{Mem, WriteableMem, ReadOnlyMem}, machine_eq::MachineEq};
 
 use super::{VMInstruction, misc, arith, bitwise::{self, Binary}};
 
@@ -61,7 +61,7 @@ where
 
 pub fn ISZERO<T, S, M>() -> Box<dyn VMInstruction<S, M>> 
 where
-    T: Eq + Binary,
+    T: Binary + MachineEq,
     S: Stack<StackVal = T>,
     M: Mem
 {

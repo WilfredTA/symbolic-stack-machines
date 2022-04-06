@@ -1,5 +1,5 @@
 use symbolic_stack_machines::{
-    instructions::helpers::{ADD, PUSH, SUB},
+    instructions::helpers::{ADD, PUSH, SUB, ISZERO, JUMPI, STOP},
     machine::{run_machine, symbolic::SymbolicIntMachine, Program},
     memory::symbolic_concrete_index::MemConcreteIntToSymbolicInt,
     stack::SymbolicIntStack,
@@ -32,31 +32,30 @@ fn test_basic_symbolic_2() {
     )
 }
 
-// TODO lfg lfg
+#[test]
+fn test_jumpi() {
+    let stack = SymbolicIntStack::new();
+    let mem = MemConcreteIntToSymbolicInt::new();
 
-// #[test]
-// fn test_jumpi() {
-//     let stack = SymbolicIntStack::new();
-//     let mem = MemConcreteIntToSymbolicInt::new();
-//     let machine = SymbolicIntMachine::new(stack, mem);
+    let pgm = vec![
+        PUSH(1),
+        PUSH(2),
+        PUSH(SYM()),
+        ADD(),
+        SUB(),
+        PUSH(4),
+        SUB(),
+        ISZERO(),
+        PUSH(12),
+        JUMPI(),
+        PUSH(100),
+        STOP(),
+        PUSH(200),
+    ];
 
-//     let pgm = vec![
-//         PUSH(1),
-//         PUSH(2),
-//         PUSH(SYM()),
-//         ADD(),
-//         SUB(),
-//         PUSH(4),
-//         SUB(),
-//         ISZERO(),
-//         PUSH(12),
-//         JUMPI(),
-//         PUSH(100),
-//         STOP(),
-//         PUSH(200),
-//     ];
+    let machine = SymbolicIntMachine::new(stack, mem, &pgm);
 
-//     let rv = machine.run_sym(&pgm);
+    let rv = run_machine(machine);
 
-//     dbg!(rv);
-// }
+    dbg!(rv);
+}

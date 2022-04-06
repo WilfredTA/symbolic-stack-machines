@@ -1,13 +1,30 @@
-use std::{ops::{Add, Sub}, num::TryFromIntError};
+use std::{
+    num::TryFromIntError,
+    ops::{Add, Sub},
+};
 
-use crate::{instructions::bitwise::Binary, memory::symbolic_concrete_index::MemVal};
+use crate::{
+    instructions::bitwise::Binary, machine_eq::MachineEq, memory::symbolic_concrete_index::MemVal,
+};
 
 pub type Wraps = i128;
 
-// TODO(will) -- is deriving both Clone and Copy a code smell?
-
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ConcreteInt(Wraps);
+
+impl MachineEq for ConcreteInt {
+    fn machine_eq(&self, other: &Self) -> Self {
+        ((self.0 == other.0) as Wraps).into()
+    }
+
+    fn machine_ite(self, then: Self, xelse: Self) -> Self {
+        if self.0 != 0 {
+            then
+        } else {
+            xelse
+        }
+    }
+}
 
 impl MemVal for ConcreteInt {}
 

@@ -1,5 +1,5 @@
 use crate::{
-    stack::{Stack, StackOpRecord, StackRecord}, memory::Mem,
+    stack::{Stack, StackOpRecord, StackRecord}, memory::Mem, machine_eq::MachineEq,
 };
 
 use super::{ExecRecord, VMInstruction, InstructionResult};
@@ -17,7 +17,7 @@ pub trait Binary: Default {
 impl<T, S, M> VMInstruction<S, M>
     for ISZERO
 where
-    T: Eq + Binary,
+    T: Binary + MachineEq,
     S: Stack<StackVal = T>,
     M: Mem
 {
@@ -30,11 +30,7 @@ where
 
         let op = stack.peek(0).unwrap();
 
-        let rv = if op == T::zero() {
-            T::one()
-        } else {
-            T::zero()
-        };
+        let rv = op.machine_eq(&T::zero()).machine_ite(T::one(), T::zero());
 
         change_log.stack_diff = Some(StackRecord {
             changed: vec![StackOpRecord::Pop(op), StackOpRecord::Push(rv)],
