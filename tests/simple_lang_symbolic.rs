@@ -1,7 +1,7 @@
 use symbolic_stack_machines::{
     instructions::{
         sym,
-        sym_helpers::{ADD, ISZERO, JUMPI, PUSH, STOP, SUB}, SymbolicVMInstruction,
+        sym_helpers::{ADD, ISZERO, PUSH, STOP, SUB, JUMPI}, SymbolicVMInstruction,
     },
     machine::{run_machine, symbolic::SymbolicIntMachine, Program},
     memory::symbolic_concrete_index::MemConcreteIntToSymbolicInt,
@@ -43,7 +43,7 @@ fn test_jumpi() {
     let stack = SymbolicIntStack::new();
     let mem = MemConcreteIntToSymbolicInt::new();
 
-    // TODO HERE
+    // TODO HERE -- need sym::JUMPI to execute its symbolic interpretation!
     let pgm = vec![
         PUSH(1),
         PUSH(2),

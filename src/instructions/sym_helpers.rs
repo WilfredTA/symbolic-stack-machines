@@ -4,7 +4,7 @@ use crate::{
     stack::Stack,
 };
 
-use super::{bitwise::Binary, helpers, SymbolicVMInstruction};
+use super::{bitwise::Binary, helpers, SymbolicVMInstruction, sym};
 
 pub fn PUSH<Arg, T, S, M, SI>(x: Arg) -> SymbolicVMInstruction<S, M, SI>
 where
@@ -72,12 +72,12 @@ where
     helpers::ISZERO().into()
 }
 
-pub fn JUMPI<T, S, M, SI>() -> SymbolicVMInstruction<S, M, SI>
+pub fn JUMPI<T, S, M>() -> SymbolicVMInstruction<S, M, sym::JUMPI>
 where
     T: Default + Eq + TryInto<usize>,
     S: Stack<StackVal = T>,
     M: Mem,
     <T as TryInto<usize>>::Error: std::fmt::Debug,
 {
-    helpers::JUMPI().into()
+    SymbolicVMInstruction::S(sym::JUMPI)
 }
