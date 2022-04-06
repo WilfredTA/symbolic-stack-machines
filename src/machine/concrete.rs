@@ -1,27 +1,30 @@
 use crate::{
+    instructions::{ConcreteVMInstruction, VMInstruction},
     memory::{symbolic_concrete_index::MemConcreteIntToConcreteInt, Mem, WriteableMem},
     stack::{ConcreteIntStack, Stack},
 };
 
-use super::{Machine, ConcreteProgram};
+use super::{Machine, Program};
 
-pub struct BaseConcreteMachine<'a, S, M>
+pub struct BaseConcreteMachine<'a, S, M, I>
 where
     S: Stack,
     M: Mem,
+    I: VMInstruction<S, M>,
 {
     stack: S,
     mem: M,
-    pgm: &'a ConcreteProgram<S, M>,
+    pgm: &'a Program<I>,
     pc: usize,
 }
 
-impl<'a, S, M> BaseConcreteMachine<'a, S, M>
+impl<'a, S, M, I> BaseConcreteMachine<'a, S, M, I>
 where
     S: Stack,
     M: Mem,
+    I: VMInstruction<S, M>,
 {
-    pub fn new(stack: S, mem: M, pgm: &'a ConcreteProgram<S, M>) -> Self {
+    pub fn new(stack: S, mem: M, pgm: &'a Program<I>) -> Self {
         Self {
             mem,
             stack,
@@ -31,10 +34,11 @@ where
     }
 }
 
-impl<'a, S, M> Machine<S, M, Option<S::StackVal>> for BaseConcreteMachine<'a, S, M>
+impl<'a, S, M, I> Machine<S, M, Option<S::StackVal>> for BaseConcreteMachine<'a, S, M, I>
 where
     S: Stack + Clone,
     M: WriteableMem + Clone,
+    I: VMInstruction<S, M>,
 {
     fn can_exec(&self) -> bool {
         self.pc < self.pgm.len()
@@ -83,5 +87,9 @@ where
     }
 }
 
-pub type ConcreteIntMachine<'a> =
-    BaseConcreteMachine<'a, ConcreteIntStack, MemConcreteIntToConcreteInt>;
+pub type ConcreteIntMachine<'a> = BaseConcreteMachine<
+    'a,
+    ConcreteIntStack,
+    MemConcreteIntToConcreteInt,
+    ConcreteVMInstruction<ConcreteIntStack, MemConcreteIntToConcreteInt>,
+>;

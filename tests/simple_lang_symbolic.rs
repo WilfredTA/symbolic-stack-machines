@@ -1,25 +1,21 @@
 use symbolic_stack_machines::{
     instructions::{
         sym,
-        sym_helpers::{ADD, ISZERO, JUMPI, PUSH, STOP, SUB},
+        sym_helpers::{ADD, ISZERO, JUMPI, PUSH, STOP, SUB}, SymbolicVMInstruction,
     },
-    machine::{
-        convert_symbolic_program_to_concrete, run_machine, symbolic::SymbolicIntMachine,
-        ConcreteProgram, SymbolicProgram,
-    },
+    machine::{run_machine, symbolic::SymbolicIntMachine, Program},
     memory::symbolic_concrete_index::MemConcreteIntToSymbolicInt,
     stack::SymbolicIntStack,
     symbolic_int::{SymbolicInt, SYM},
 };
 
 fn test_helper(
-    pgm: SymbolicProgram<SymbolicIntStack, MemConcreteIntToSymbolicInt, sym::JUMPI>,
+    pgm: Program<SymbolicVMInstruction<SymbolicIntStack, MemConcreteIntToSymbolicInt, sym::JUMPI>>,
     expected: SymbolicInt,
 ) {
-    let c_pgm = convert_symbolic_program_to_concrete(pgm);
     let stack = SymbolicIntStack::new();
     let mem = MemConcreteIntToSymbolicInt::new();
-    let machine = SymbolicIntMachine::new(stack, mem, &pgm, &c_pgm);
+    let machine = SymbolicIntMachine::new(stack, mem, &pgm);
 
     assert_eq!(run_machine(machine), Option::Some(expected.into()))
 }
@@ -64,9 +60,7 @@ fn test_jumpi() {
         PUSH(200),
     ];
 
-    let c_pgm = convert_symbolic_program_to_concrete(pgm);
-
-    let machine = SymbolicIntMachine::new(stack, mem, &pgm, &c_pgm);
+    let machine = SymbolicIntMachine::new(stack, mem, &pgm);
 
     let rv = run_machine(machine);
 

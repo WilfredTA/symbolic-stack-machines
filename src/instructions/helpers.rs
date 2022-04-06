@@ -1,13 +1,13 @@
 use crate::{
     machine_eq::MachineEq,
     memory::{Mem, ReadOnlyMem, WriteableMem},
-    stack::Stack, machine::ConcreteVMInstruction,
+    stack::Stack,
 };
 
 use super::{
     arith,
     bitwise::{self, Binary},
-    misc,
+    misc, ConcreteVMInstruction,
 };
 
 pub fn PUSH<Arg, T, S, M>(x: Arg) -> ConcreteVMInstruction<S, M>

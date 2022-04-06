@@ -1,13 +1,16 @@
 use symbolic_stack_machines::{
     concrete_int,
-    instructions::helpers::{ADD, ISZERO, JUMPI, MLOAD, MSTORE, PUSH, STOP, SUB},
-    machine::{concrete::ConcreteIntMachine, run_machine, ConcreteProgram},
+    instructions::{
+        helpers::{ADD, ISZERO, JUMPI, MLOAD, MSTORE, PUSH, STOP, SUB},
+        ConcreteVMInstruction,
+    },
+    machine::{concrete::ConcreteIntMachine, run_machine, Program},
     memory::symbolic_concrete_index::MemConcreteIntToConcreteInt,
     stack::ConcreteIntStack,
 };
 
 fn test_helper(
-    pgm: ConcreteProgram<ConcreteIntStack, MemConcreteIntToConcreteInt>,
+    pgm: Program<ConcreteVMInstruction<ConcreteIntStack, MemConcreteIntToConcreteInt>>,
     expected: concrete_int::Wraps,
 ) {
     let stack = ConcreteIntStack::new();

@@ -1,11 +1,10 @@
 use crate::{
-    machine::SymbolicVMInstruction,
     machine_eq::MachineEq,
     memory::{Mem, ReadOnlyMem, WriteableMem},
     stack::Stack,
 };
 
-use super::{bitwise::Binary, helpers};
+use super::{bitwise::Binary, helpers, SymbolicVMInstruction};
 
 pub fn PUSH<Arg, T, S, M, SI>(x: Arg) -> SymbolicVMInstruction<S, M, SI>
 where
