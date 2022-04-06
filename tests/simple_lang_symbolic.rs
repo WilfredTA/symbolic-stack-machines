@@ -1,9 +1,10 @@
 use symbolic_stack_machines::{
     instructions::{
         sym,
-        sym_helpers::{ADD, ISZERO, PUSH, STOP, SUB, JUMPI}, SymbolicVMInstruction,
+        sym_helpers::{ADD, ISZERO, JUMPI, PUSH, STOP, SUB},
+        SymbolicVMInstruction,
     },
-    machine::{run_machine, symbolic::SymbolicIntMachine, Program},
+    machine::{run_sym_machine, symbolic::SymbolicIntMachine, Program},
     memory::symbolic_concrete_index::MemConcreteIntToSymbolicInt,
     stack::SymbolicIntStack,
     symbolic_int::{SymbolicInt, SYM},
@@ -17,7 +18,10 @@ fn test_helper(
     let mem = MemConcreteIntToSymbolicInt::new();
     let machine = SymbolicIntMachine::new(stack, mem, &pgm);
 
-    assert_eq!(run_machine(machine), Option::Some(expected.into()))
+    assert_eq!(
+        run_sym_machine(machine),
+        vec![Option::Some(expected.into())]
+    )
 }
 
 #[test]
@@ -62,7 +66,7 @@ fn test_jumpi() {
 
     let machine = SymbolicIntMachine::new(stack, mem, &pgm);
 
-    let rv = run_machine(machine);
+    let rv = run_sym_machine(machine);
 
     dbg!(rv);
 }

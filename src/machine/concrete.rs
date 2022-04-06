@@ -4,7 +4,7 @@ use crate::{
     stack::{ConcreteIntStack, Stack},
 };
 
-use super::{Machine, Program};
+use super::{ConcreteMachine, Program, BaseMachine};
 
 pub struct BaseConcreteMachine<'a, S, M, I>
 where
@@ -34,7 +34,7 @@ where
     }
 }
 
-impl<'a, S, M, I> Machine<S, M, Option<S::StackVal>> for BaseConcreteMachine<'a, S, M, I>
+impl<'a, S, M, I> BaseMachine<S, M, Option<S::StackVal>, I> for BaseConcreteMachine<'a, S, M, I>
 where
     S: Stack + Clone,
     M: WriteableMem + Clone,
@@ -44,10 +44,21 @@ where
         self.pc < self.pgm.len()
     }
 
+    fn peek_instruction(&self) -> Option<&I> {
+        self.pgm.get(self.pc)
+    }
+
     fn return_value(&self) -> Option<S::StackVal> {
         self.stack.peek(0)
     }
+}
 
+impl<'a, S, M, I> ConcreteMachine<S, M, Option<S::StackVal>, I> for BaseConcreteMachine<'a, S, M, I>
+where
+    S: Stack + Clone,
+    M: WriteableMem + Clone,
+    I: VMInstruction<S, M>,
+{
     fn exec(&self) -> Self {
         let inst = self.pgm.get(self.pc).unwrap();
         let rec = inst.exec(&self.stack, &self.mem).unwrap();
