@@ -124,3 +124,15 @@ where
         Ok(change_log)
     }
 }
+
+pub struct UNREACHABLE;
+
+impl<S, M> VMInstruction<S, M> for UNREACHABLE
+where
+    S: Stack,
+    M: Mem,
+{
+    fn exec(&self, _stack: &S, _memory: &M) -> InstructionResult<ExecRecord<S, M>> {
+        panic!("Executed UNREACHABLE instruction. This is a bug in the machine implementation.")
+    }
+}

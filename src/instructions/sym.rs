@@ -26,3 +26,5 @@ use std::fmt::Debug;
 //         Ok(change_log)
 //     }
 // }
+
+pub struct JUMPI;

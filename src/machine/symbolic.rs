@@ -1,16 +1,18 @@
+use crate::instructions::sym;
 use crate::memory::symbolic_concrete_index::MemConcreteIntToSymbolicInt;
 use crate::memory::WriteableMem;
 use crate::stack::SymbolicIntStack;
 use crate::{memory::Mem, stack::Stack};
 
 use super::concrete::BaseConcreteMachine;
-use super::{Machine, Program};
+use super::{Machine, ConcreteProgram, SymbolicProgram};
 
 pub struct BaseSymbolicMachine<'a, S, M>
 where
     S: Stack,
     M: Mem,
 {
+    pgm: &'a SymbolicProgram<S, M, sym::JUMPI>,
     concrete_machine: BaseConcreteMachine<'a, S, M>,
 }
 
@@ -19,9 +21,10 @@ where
     S: Stack,
     M: Mem,
 {
-    pub fn new(stack: S, mem: M, pgm: &'a Program<S, M>) -> Self {
+    pub fn new(stack: S, mem: M, pgm: &'a SymbolicProgram<S, M, sym::JUMPI>, c_pgm: &'a ConcreteProgram<S, M>) -> Self {
         Self {
-            concrete_machine: BaseConcreteMachine::new(stack, mem, pgm),
+            pgm,
+            concrete_machine: BaseConcreteMachine::new(stack, mem, c_pgm),
         }
     }
 }
@@ -38,7 +41,7 @@ where
     fn exec(&self) -> Self {
         let concrete_machine = self.concrete_machine.exec();
 
-        Self { concrete_machine }
+        Self { concrete_machine, pgm: self.pgm }
     }
 
     fn return_value(&self) -> Option<S::StackVal> {
@@ -47,4 +50,4 @@ where
 }
 
 pub type SymbolicIntMachine<'a> =
-    BaseConcreteMachine<'a, SymbolicIntStack, MemConcreteIntToSymbolicInt>;
+    BaseSymbolicMachine<'a, SymbolicIntStack, MemConcreteIntToSymbolicInt>;

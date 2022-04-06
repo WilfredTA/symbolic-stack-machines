@@ -5,6 +5,7 @@ pub mod misc;
 pub mod sym;
 pub mod val;
 pub mod helpers;
+pub mod sym_helpers;
 
 use crate::memory::*;
 use crate::stack::*;

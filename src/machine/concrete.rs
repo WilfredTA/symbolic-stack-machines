@@ -3,7 +3,7 @@ use crate::{
     stack::{ConcreteIntStack, Stack},
 };
 
-use super::{Machine, Program};
+use super::{Machine, ConcreteProgram};
 
 pub struct BaseConcreteMachine<'a, S, M>
 where
@@ -12,7 +12,7 @@ where
 {
     stack: S,
     mem: M,
-    pgm: &'a Program<S, M>,
+    pgm: &'a ConcreteProgram<S, M>,
     pc: usize,
 }
 
@@ -21,7 +21,7 @@ where
     S: Stack,
     M: Mem,
 {
-    pub fn new(stack: S, mem: M, pgm: &'a Program<S, M>) -> Self {
+    pub fn new(stack: S, mem: M, pgm: &'a ConcreteProgram<S, M>) -> Self {
         Self {
             mem,
             stack,
