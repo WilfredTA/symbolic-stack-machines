@@ -1,23 +1,20 @@
 use symbolic_stack_machines::{
     concrete_int,
-    instructions::{
-        helpers::{ADD, ISZERO, JUMPI, MLOAD, MSTORE, PUSH, STOP, SUB},
-        VMInstruction,
-    },
-    machine::{ConcreteIntMachine, Program},
+    instructions::helpers::{ADD, ISZERO, JUMPI, MLOAD, MSTORE, PUSH, STOP, SUB},
+    machine::{concrete::ConcreteIntMachine, run_machine, Program},
     memory::symbolic_concrete_index::MemConcreteIntToConcreteInt,
     stack::ConcreteIntStack,
 };
 
 fn test_helper(
-    pgm: Program<Box<dyn VMInstruction<ConcreteIntStack, MemConcreteIntToConcreteInt, ()>>>,
+    pgm: Program<ConcreteIntStack, MemConcreteIntToConcreteInt>,
     expected: concrete_int::Wraps,
 ) {
     let stack = ConcreteIntStack::new();
     let mem = MemConcreteIntToConcreteInt::new();
-    let machine = ConcreteIntMachine::new(stack, mem);
+    let machine = ConcreteIntMachine::new(stack, mem, &pgm);
 
-    assert_eq!(machine.run(&pgm), Option::Some(expected.into()))
+    assert_eq!(run_machine(machine), Option::Some(expected.into()))
 }
 
 #[test]
@@ -49,5 +46,27 @@ fn test_basic_jumpi() {
             PUSH(200),
         ],
         200,
+    );
+}
+
+#[test]
+fn test_basic_jumpi_2() {
+    test_helper(
+        vec![
+            PUSH(1),
+            PUSH(2),
+            PUSH(3),
+            ADD(),
+            SUB(),
+            PUSH(5),
+            SUB(),
+            ISZERO(),
+            PUSH(12),
+            JUMPI(),
+            PUSH(100),
+            STOP(),
+            PUSH(200),
+        ],
+        100,
     );
 }

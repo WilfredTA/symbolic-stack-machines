@@ -2,7 +2,7 @@ use crate::{stack::Stack, memory::{Mem, WriteableMem, ReadOnlyMem}};
 
 use super::{VMInstruction, misc, arith, bitwise::{self, Binary}};
 
-pub fn PUSH<Arg, T, S, M, PC>(x: Arg) -> Box<dyn VMInstruction<S, M, PC>>
+pub fn PUSH<Arg, T, S, M>(x: Arg) -> Box<dyn VMInstruction<S, M>>
 where
     Arg: Into<T>,
     // TODO this shouldn't be static
@@ -13,7 +13,7 @@ where
     Box::new(misc::PUSH(x.into()))
 }
 
-pub fn STOP<S, M, PC>() -> Box<dyn VMInstruction<S, M, PC>>
+pub fn STOP<S, M>() -> Box<dyn VMInstruction<S, M>>
 where
     S: Stack,
     M: Mem,
@@ -21,7 +21,7 @@ where
     Box::new(misc::STOP)
 }
 
-pub fn MSTORE<T, S, M, PC>() -> Box<dyn VMInstruction<S, M, PC>>
+pub fn MSTORE<T, S, M>() -> Box<dyn VMInstruction<S, M>>
 where
     T: Clone + TryInto<M::Index>,
     M: WriteableMem<MemVal = T>,
@@ -31,7 +31,7 @@ where
     Box::new(misc::MSTORE)
 }
 
-pub fn MLOAD<T, S, M, PC>() -> Box<dyn VMInstruction<S, M, PC>>
+pub fn MLOAD<T, S, M>() -> Box<dyn VMInstruction<S, M>>
 where
     T: Clone + TryInto<M::Index>,
     M: ReadOnlyMem<MemVal = T>,
@@ -41,7 +41,7 @@ where
     Box::new(misc::MLOAD)
 }
 
-pub fn ADD<T, S, M, PC>() -> Box<dyn VMInstruction<S, M, PC>> 
+pub fn ADD<T, S, M>() -> Box<dyn VMInstruction<S, M>> 
 where
     T: std::ops::Add + std::ops::Add<Output = T> + Clone,
     S: Stack<StackVal = T>,
@@ -50,7 +50,7 @@ where
     Box::new(arith::ADD)
 }
 
-pub fn SUB<T, S, M, PC>() -> Box<dyn VMInstruction<S, M, PC>> 
+pub fn SUB<T, S, M>() -> Box<dyn VMInstruction<S, M>> 
 where
     T: std::ops::Sub + std::ops::Sub<Output = T> + Clone,
     S: Stack<StackVal = T>,
@@ -59,7 +59,7 @@ where
     Box::new(arith::SUB)
 }
 
-pub fn ISZERO<T, S, M, PC>() -> Box<dyn VMInstruction<S, M, PC>> 
+pub fn ISZERO<T, S, M>() -> Box<dyn VMInstruction<S, M>> 
 where
     T: Eq + Binary,
     S: Stack<StackVal = T>,
@@ -68,7 +68,7 @@ where
     Box::new(bitwise::ISZERO)
 }
 
-pub fn JUMPI<T, S, M, PC>() -> Box<dyn VMInstruction<S, M, PC>> 
+pub fn JUMPI<T, S, M>() -> Box<dyn VMInstruction<S, M>> 
 where
     T: Default + Eq + TryInto<usize>,
     S: Stack<StackVal = T>,

@@ -5,9 +5,7 @@ use std::{
 
 use crate::{instructions::bitwise::Binary, memory::symbolic_concrete_index::MemVal};
 
-type Wraps = i128;
-
-// TODO COPY
+pub type Wraps = i128;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum SymbolicInt {

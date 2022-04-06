@@ -3,12 +3,12 @@ use crate::{
     stack::{Stack, StackOpRecord, StackRecord},
 };
 
-use super::{ExecRecord, VMInstruction};
+use super::{ExecRecord, VMInstruction, InstructionResult};
 
 #[derive(Debug)]
 pub struct ADD;
 
-impl<T, S, M, PC> VMInstruction<S, M, PC> for ADD
+impl<T, S, M> VMInstruction<S, M> for ADD
 where
     T: std::ops::Add + std::ops::Add<Output = T> + Clone,
     S: Stack<StackVal = T>,
@@ -18,7 +18,7 @@ where
         &self,
         stack: &S,
         _memory: &M,
-    ) -> super::InstructionResult<super::ExecRecord<S, M, PC>> {
+    ) -> InstructionResult<ExecRecord<S, M>> {
         let mut change_log = ExecRecord::default();
 
         let op_1 = stack.peek(0).unwrap();
@@ -40,8 +40,8 @@ where
 #[derive(Debug)]
 pub struct SUB;
 
-impl<T, S, M, PC>
-    VMInstruction<S, M, PC> for SUB
+impl<T, S, M>
+    VMInstruction<S, M> for SUB
 where
     T: std::ops::Sub + std::ops::Sub<Output = T> + Clone,
     S: Stack<StackVal = T>,
@@ -51,7 +51,7 @@ where
         &self,
         stack: &S,
         _memory: &M,
-    ) -> super::InstructionResult<super::ExecRecord<S, M, PC>> {
+    ) -> InstructionResult<ExecRecord<S, M>> {
         let mut change_log = ExecRecord::default();
 
         let op_1 = stack.peek(0).unwrap();

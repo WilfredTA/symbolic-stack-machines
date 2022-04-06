@@ -2,7 +2,7 @@ use crate::{
     stack::{Stack, StackOpRecord, StackRecord}, memory::Mem,
 };
 
-use super::{ExecRecord, VMInstruction};
+use super::{ExecRecord, VMInstruction, InstructionResult};
 
 #[derive(Debug)]
 pub struct ISZERO;
@@ -14,7 +14,7 @@ pub trait Binary: Default {
     }
 }
 
-impl<T, S, M, PC> VMInstruction<S, M, PC>
+impl<T, S, M> VMInstruction<S, M>
     for ISZERO
 where
     T: Eq + Binary,
@@ -25,7 +25,7 @@ where
         &self,
         stack: &S,
         _memory: &M,
-    ) -> super::InstructionResult<super::ExecRecord<S, M, PC>> {
+    ) -> InstructionResult<ExecRecord<S, M>> {
         let mut change_log = ExecRecord::default();
 
         let op = stack.peek(0).unwrap();
