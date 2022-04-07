@@ -1,6 +1,6 @@
 pub trait MachineEq {
-    fn machine_eq(&self, other: &Self) -> Self;
+    type Pred;
 
-    // self is predicate
-    fn machine_ite(self, then: Self, xelse: Self) -> Self;
+    fn machine_eq(&self, other: &Self) -> Self::Pred;
+    fn machine_ite(pred: Self::Pred, then: Self, xelse: Self) -> Self;
 }

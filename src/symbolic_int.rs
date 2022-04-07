@@ -1,12 +1,15 @@
 use std::{
     num::TryFromIntError,
-    ops::{Add, Sub},
+    ops::{Add, Sub, Not},
 };
+
+use z3::ast::Ast;
 
 use crate::{
     instructions::{bitwise::Binary, sym::Constrain},
     machine_eq::MachineEq,
     memory::symbolic_concrete_index::MemVal,
+    solvers::z3::Z3Constraint,
 };
 
 pub type Wraps = i128;
@@ -22,14 +25,56 @@ pub enum Inner {
     Sym,
     Add(Box<SymbolicInt>, Box<SymbolicInt>),
     Sub(Box<SymbolicInt>, Box<SymbolicInt>),
-    Eq(Box<SymbolicInt>, Box<SymbolicInt>),
-    Ite(Box<SymbolicInt>, Box<SymbolicInt>, Box<SymbolicInt>),
+    Ite(EqCheck, Box<SymbolicInt>, Box<SymbolicInt>),
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct EqCheck {
+    l: Box<SymbolicInt>,
+    r: Box<SymbolicInt>,
 }
 
 #[derive(Clone, Debug)]
 pub enum SymbolicIntConstraint {
     Eq(SymbolicInt, SymbolicInt),
     NotEq(SymbolicInt, SymbolicInt),
+}
+
+impl Z3Constraint for SymbolicIntConstraint {
+    fn z3_constraint<'ctx>(&self, ctx: &'ctx z3::Context) -> z3::ast::Bool<'ctx> {
+        match self {
+            SymbolicIntConstraint::Eq(l, r) => l.z3_int(ctx)._eq(&r.z3_int(ctx)),
+            SymbolicIntConstraint::NotEq(l, r) => l.z3_int(ctx)._eq(&r.z3_int(ctx)).not(),
+        }
+    }
+}
+
+impl SymbolicInt {
+    pub fn z3_int<'ctx>(&self, ctx: &'ctx z3::Context) -> z3::ast::Int<'ctx> {
+        match self {
+            SymbolicInt::C(i) => z3::ast::Int::from_i64(ctx, *i as i64),
+            SymbolicInt::S(i) => i.z3_int(ctx),
+        }
+    }
+}
+
+impl Inner {
+    pub fn z3_int<'ctx>(&self, ctx: &'ctx z3::Context) -> z3::ast::Int<'ctx> {
+        match self {
+            Inner::Sym => z3::ast::Int::fresh_const(ctx, ""),
+            Inner::Add(l, r) => l.z3_int(ctx).add(r.z3_int(ctx)),
+            Inner::Sub(l, r) => l.z3_int(ctx).sub(r.z3_int(ctx)),
+            Inner::Ite(pred, then, xelse) => {
+                pred.z3_bool(ctx).ite(&then.z3_int(ctx), &xelse.z3_int(ctx))
+            }
+        }
+    }
+}
+
+impl EqCheck {
+    pub fn z3_bool<'ctx>(&self, ctx: &'ctx z3::Context) -> z3::ast::Bool<'ctx> {
+        self.l.z3_int(ctx)._eq(&self.r.z3_int(ctx))
+    }
 }
 
 impl Constrain for SymbolicInt {
@@ -44,32 +89,42 @@ impl Constrain for SymbolicInt {
     }
 }
 
+pub enum MachineEqPred {
+    C(bool),
+    S(EqCheck),
+}
+
 impl MachineEq for SymbolicInt {
-    fn machine_eq(&self, other: &Self) -> Self {
+    type Pred = MachineEqPred;
+
+    fn machine_eq(&self, other: &Self) -> Self::Pred {
         match (self, other) {
-            (SymbolicInt::C(l), SymbolicInt::C(r)) => SymbolicInt::C((l == r) as Wraps),
-            (SymbolicInt::C(l), SymbolicInt::S(r)) => {
-                Inner::Eq(C(l.clone()), r.clone().into()).into()
-            }
-            (SymbolicInt::S(l), SymbolicInt::C(r)) => {
-                Inner::Eq(l.clone().into(), C(r.clone())).into()
-            }
-            (SymbolicInt::S(l), SymbolicInt::S(r)) => {
-                Inner::Eq(l.clone().into(), r.clone().into()).into()
-            }
+            (SymbolicInt::C(l), SymbolicInt::C(r)) => MachineEqPred::C(l == r),
+            (SymbolicInt::C(l), SymbolicInt::S(r)) => MachineEqPred::S(EqCheck {
+                l: C(l.clone()),
+                r: r.clone().into(),
+            }),
+            (SymbolicInt::S(l), SymbolicInt::C(r)) => MachineEqPred::S(EqCheck {
+                l: l.clone().into(),
+                r: C(r.clone()),
+            }),
+            (SymbolicInt::S(l), SymbolicInt::S(r)) => MachineEqPred::S(EqCheck {
+                l: l.clone().into(),
+                r: r.clone().into(),
+            }),
         }
     }
 
-    fn machine_ite(self, then: Self, xelse: Self) -> Self {
-        match self {
-            SymbolicInt::C(x) => {
-                if x != 0 {
+    fn machine_ite(p: Self::Pred, then: Self, xelse: Self) -> Self {
+        match p {
+            MachineEqPred::C(p) => {
+                if p {
                     then
                 } else {
                     xelse
                 }
             }
-            SymbolicInt::S(x) => Inner::Ite(x.into(), then.into(), xelse.into()).into(),
+            MachineEqPred::S(p) => Inner::Ite(p, then.into(), xelse.into()).into(),
         }
     }
 }

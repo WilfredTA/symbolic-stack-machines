@@ -13,12 +13,14 @@ pub type Wraps = i128;
 pub struct ConcreteInt(Wraps);
 
 impl MachineEq for ConcreteInt {
-    fn machine_eq(&self, other: &Self) -> Self {
-        ((self.0 == other.0) as Wraps).into()
+    type Pred = bool;
+
+    fn machine_eq(&self, other: &Self) -> Self::Pred {
+        self.0 == other.0
     }
 
-    fn machine_ite(self, then: Self, xelse: Self) -> Self {
-        if self.0 != 0 {
+    fn machine_ite(pred: Self::Pred, then: Self, xelse: Self) -> Self {
+        if pred {
             then
         } else {
             xelse

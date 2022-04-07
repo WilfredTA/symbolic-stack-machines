@@ -72,7 +72,7 @@ fn test_jumpi() {
             PUSH(200),
         ],
         // TODO we now need to pipe constraints into constraint solver to
-        // see which of these solutions is value
+        // see which of these solutions is valid
         vec![200.into(), 100.into()],
     )
 }

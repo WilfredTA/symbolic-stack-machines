@@ -1,6 +1,7 @@
 use crate::instructions::{sym, HybridVMInstruction, SymbolicVMInstruction};
 use crate::memory::symbolic_concrete_index::MemConcreteIntToSymbolicInt;
 use crate::memory::WriteableMem;
+use crate::solvers::z3::Z3Constraint;
 use crate::stack::SymbolicIntStack;
 use crate::symbolic_int::SymbolicIntConstraint;
 use crate::{memory::Mem, stack::Stack};
@@ -61,12 +62,12 @@ where
     }
 }
 
-impl<'a, S, M, C> SymbolicMachine<S, M, Option<S::StackVal>, HybridVMInstruction<S, M, C>>
+impl<'a, S, M, C> SymbolicMachine<S, M, Option<S::StackVal>, HybridVMInstruction<S, M, C>, C>
     for BaseSymbolicMachine<'a, S, M, C>
 where
     S: Stack + Clone,
     M: WriteableMem + Clone,
-    C: Clone + std::fmt::Debug,
+    C: Clone + std::fmt::Debug + Z3Constraint,
 {
     fn sym_exec(&self) -> Vec<Box<Self>> {
         match self.concrete_machine.peek_instruction().unwrap() {
@@ -102,6 +103,11 @@ where
                 })
                 .collect(),
         }
+    }
+
+    fn constraints(&self) -> Vec<C> {
+        // TODO shouldn't have to clone
+        self.constraints.clone()
     }
 }
 

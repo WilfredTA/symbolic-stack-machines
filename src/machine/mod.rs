@@ -4,6 +4,8 @@ pub mod symbolic;
 
 use error::MachineError;
 
+use crate::solvers::{self, z3::Z3Constraint};
+
 pub type MachineResult<T> = Result<T, MachineError>;
 
 pub type Program<T> = Vec<T>;
@@ -28,12 +30,21 @@ pub fn run_machine<S, M, RV, I, Ma: ConcreteMachine<S, M, RV, I>>(m: Ma) -> RV {
     mm.return_value()
 }
 
-pub trait SymbolicMachine<S, M, RV, I>: BaseMachine<S, M, RV, I> {
+pub trait SymbolicMachine<S, M, RV, I, C>: BaseMachine<S, M, RV, I>
+where
+    // TODO should be abstract on more than just Z3
+    C: Z3Constraint,
+{
     // TODO(will) - can we not box the return value?
     fn sym_exec(&self) -> Vec<Box<Self>>;
+    fn constraints(&self) -> Vec<C>;
 }
 
-pub fn run_sym_machine<S, M, RV, I, Ma: SymbolicMachine<S, M, RV, I>>(m: Ma) -> Vec<Ma> {
+pub fn run_sym_machine<S, M, RV, I, Ma, C>(m: Ma) -> Vec<Ma>
+where
+    Ma: SymbolicMachine<S, M, RV, I, C>,
+    C: Z3Constraint,
+{
     let mut rv = vec![];
 
     let mut queue = vec![m];
@@ -46,10 +57,13 @@ pub fn run_sym_machine<S, M, RV, I, Ma: SymbolicMachine<S, M, RV, I>>(m: Ma) -> 
         while !new_ms.is_empty() {
             let new_m = *new_ms.pop().unwrap();
 
-            if new_m.can_exec() {
-                queue.push(new_m);
-            } else {
-                rv.push(new_m);
+            // TODO -- should only check solver when the model changes
+            if solvers::z3::solve(new_m.constraints()) {
+                if new_m.can_exec() {
+                    queue.push(new_m);
+                } else {
+                    rv.push(new_m);
+                }
             }
         }
     }

@@ -30,7 +30,7 @@ where
 
         let op = stack.peek(0).unwrap();
 
-        let rv = op.machine_eq(&T::zero()).machine_ite(T::one(), T::zero());
+        let rv = T::machine_ite(op.machine_eq(&T::zero()), T::one(), T::zero());
 
         change_log.stack_diff = Some(StackRecord {
             changed: vec![StackOpRecord::Pop(op), StackOpRecord::Push(rv)],
