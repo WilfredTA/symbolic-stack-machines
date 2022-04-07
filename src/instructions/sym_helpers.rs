@@ -4,9 +4,9 @@ use crate::{
     stack::Stack,
 };
 
-use super::{bitwise::Binary, helpers, SymbolicVMInstruction, sym};
+use super::{bitwise::Binary, helpers, HybridVMInstruction, sym};
 
-pub fn PUSH<Arg, T, S, M, SI>(x: Arg) -> SymbolicVMInstruction<S, M, SI>
+pub fn PUSH<Arg, T, S, M>(x: Arg) -> HybridVMInstruction<S, M>
 where
     Arg: Into<T>,
     // TODO this shouldn't be static
@@ -17,7 +17,7 @@ where
     helpers::PUSH(x).into()
 }
 
-pub fn STOP<S, M, SI>() -> SymbolicVMInstruction<S, M, SI>
+pub fn STOP<S, M>() -> HybridVMInstruction<S, M>
 where
     S: Stack,
     M: Mem,
@@ -25,7 +25,7 @@ where
     helpers::STOP().into()
 }
 
-pub fn MSTORE<T, S, M, SI>() -> SymbolicVMInstruction<S, M, SI>
+pub fn MSTORE<T, S, M>() -> HybridVMInstruction<S, M>
 where
     T: Clone + TryInto<M::Index>,
     M: WriteableMem<MemVal = T>,
@@ -35,7 +35,7 @@ where
     helpers::MSTORE().into()
 }
 
-pub fn MLOAD<T, S, M, SI>() -> SymbolicVMInstruction<S, M, SI>
+pub fn MLOAD<T, S, M>() -> HybridVMInstruction<S, M>
 where
     T: Clone + TryInto<M::Index>,
     M: ReadOnlyMem<MemVal = T>,
@@ -45,7 +45,7 @@ where
     helpers::MLOAD().into()
 }
 
-pub fn ADD<T, S, M, SI>() -> SymbolicVMInstruction<S, M, SI>
+pub fn ADD<T, S, M>() -> HybridVMInstruction<S, M>
 where
     T: std::ops::Add + std::ops::Add<Output = T> + Clone,
     S: Stack<StackVal = T>,
@@ -54,7 +54,7 @@ where
     helpers::ADD().into()
 }
 
-pub fn SUB<T, S, M, SI>() -> SymbolicVMInstruction<S, M, SI>
+pub fn SUB<T, S, M>() -> HybridVMInstruction<S, M>
 where
     T: std::ops::Sub + std::ops::Sub<Output = T> + Clone,
     S: Stack<StackVal = T>,
@@ -63,7 +63,7 @@ where
     helpers::SUB().into()
 }
 
-pub fn ISZERO<T, S, M, SI>() -> SymbolicVMInstruction<S, M, SI>
+pub fn ISZERO<T, S, M>() -> HybridVMInstruction<S, M>
 where
     T: Binary + MachineEq,
     S: Stack<StackVal = T>,
@@ -72,12 +72,12 @@ where
     helpers::ISZERO().into()
 }
 
-pub fn JUMPI<T, S, M>() -> SymbolicVMInstruction<S, M, sym::JUMPI>
+pub fn JUMPI<T, S, M>() -> HybridVMInstruction<S, M>
 where
     T: Default + Eq + TryInto<usize>,
     S: Stack<StackVal = T>,
     M: Mem,
     <T as TryInto<usize>>::Error: std::fmt::Debug,
 {
-    SymbolicVMInstruction::S(sym::JUMPI)
+    HybridVMInstruction::S(Box::new(sym::JUMPI))
 }

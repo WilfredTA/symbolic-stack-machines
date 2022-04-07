@@ -2,7 +2,7 @@ use crate::{
     stack::{Stack, StackOpRecord, StackRecord}, memory::Mem, machine_eq::MachineEq,
 };
 
-use super::{ExecRecord, VMInstruction, InstructionResult};
+use super::{ExecRecord, ConcreteVMInstruction, InstructionResult};
 
 #[derive(Debug)]
 pub struct ISZERO;
@@ -14,7 +14,7 @@ pub trait Binary: Default {
     }
 }
 
-impl<T, S, M> VMInstruction<S, M>
+impl<T, S, M> ConcreteVMInstruction<S, M>
     for ISZERO
 where
     T: Binary + MachineEq,

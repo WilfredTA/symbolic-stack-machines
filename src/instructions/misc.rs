@@ -3,14 +3,14 @@ use crate::{
     stack::{Stack, StackOpRecord, StackRecord},
 };
 
-use super::{ExecRecord, InstructionResult, VMInstruction};
+use super::{ExecRecord, InstructionResult, ConcreteVMInstruction};
 
 use std::fmt::Debug;
 
 #[derive(Debug)]
 pub struct PUSH<T>(pub T);
 
-impl<T, S, M> VMInstruction<S, M> for PUSH<T>
+impl<T, S, M> ConcreteVMInstruction<S, M> for PUSH<T>
 where
     T: Clone,
     S: Stack<StackVal = T>,
@@ -30,7 +30,7 @@ where
 #[derive(Debug)]
 pub struct STOP;
 
-impl<S, M> VMInstruction<S, M> for STOP
+impl<S, M> ConcreteVMInstruction<S, M> for STOP
 where
     S: Stack,
     M: Mem,
@@ -47,7 +47,7 @@ where
 #[derive(Debug)]
 pub struct JUMPI;
 
-impl<T, S, M> VMInstruction<S, M> for JUMPI
+impl<T, S, M> ConcreteVMInstruction<S, M> for JUMPI
 where
     T: Default + Eq + TryInto<usize>,
     S: Stack<StackVal = T>,
@@ -71,7 +71,7 @@ where
 
 pub struct MLOAD;
 
-impl<T, S, M> VMInstruction<S, M> for MLOAD
+impl<T, S, M> ConcreteVMInstruction<S, M> for MLOAD
 where
     T: TryInto<M::Index> + Clone,
     M: ReadOnlyMem<MemVal = T>,
@@ -97,7 +97,7 @@ where
 
 pub struct MSTORE;
 
-impl<T, S, M> VMInstruction<S, M> for MSTORE
+impl<T, S, M> ConcreteVMInstruction<S, M> for MSTORE
 where
     T: TryInto<M::Index> + Clone,
     M: WriteableMem<MemVal = T>,
@@ -127,7 +127,7 @@ where
 
 pub struct UNREACHABLE;
 
-impl<S, M> VMInstruction<S, M> for UNREACHABLE
+impl<S, M> ConcreteVMInstruction<S, M> for UNREACHABLE
 where
     S: Stack,
     M: Mem,

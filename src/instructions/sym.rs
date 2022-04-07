@@ -27,4 +27,20 @@
 //     }
 // }
 
+use crate::{
+    memory::Mem, stack::Stack,
+};
+
+use super::SymbolicVMInstruction;
+
 pub struct JUMPI;
+
+impl<S, M> SymbolicVMInstruction<S, M> for JUMPI
+where
+    S: Stack,
+    M: Mem,
+{
+    fn sym_exec(&self, stack: &S, memory: &M, pc: usize) -> Vec<(S, M, usize)> {
+        todo!()
+    }
+}

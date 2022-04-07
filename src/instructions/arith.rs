@@ -3,12 +3,12 @@ use crate::{
     stack::{Stack, StackOpRecord, StackRecord},
 };
 
-use super::{ExecRecord, VMInstruction, InstructionResult};
+use super::{ExecRecord, ConcreteVMInstruction, InstructionResult};
 
 #[derive(Debug)]
 pub struct ADD;
 
-impl<T, S, M> VMInstruction<S, M> for ADD
+impl<T, S, M> ConcreteVMInstruction<S, M> for ADD
 where
     T: std::ops::Add + std::ops::Add<Output = T> + Clone,
     S: Stack<StackVal = T>,
@@ -41,7 +41,7 @@ where
 pub struct SUB;
 
 impl<T, S, M>
-    VMInstruction<S, M> for SUB
+    ConcreteVMInstruction<S, M> for SUB
 where
     T: std::ops::Sub + std::ops::Sub<Output = T> + Clone,
     S: Stack<StackVal = T>,

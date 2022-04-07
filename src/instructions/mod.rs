@@ -41,37 +41,43 @@ impl<S: Stack, M: Mem> Default for ExecRecord<S, M> {
     }
 }
 
-pub trait VMInstruction<S: Stack, M: Mem> {
+pub trait ConcreteVMInstruction<S: Stack, M: Mem> {
     fn exec(&self, stack: &S, memory: &M) -> InstructionResult<ExecRecord<S, M>>;
 }
 
-pub type ConcreteVMInstruction<S, M> = Box<dyn VMInstruction<S, M>>;
-
-pub enum SymbolicVMInstruction<S, M, SI> {
-    C(ConcreteVMInstruction<S, M>),
-    S(SI),
+pub trait SymbolicVMInstruction<S: Stack, M: Mem> {
+    fn sym_exec(&self, s: &S, m: &M, pc: usize) -> Vec<(S, M, usize)>;
 }
 
-impl<S, M, SI> VMInstruction<S, M> for SymbolicVMInstruction<S, M, SI>
+pub type DynConcreteVMInstruction<S, M> = Box<dyn ConcreteVMInstruction<S, M>>;
+
+pub type DynSymbolicVMInstruction<S, M> = Box<dyn SymbolicVMInstruction<S, M>>;
+
+pub enum HybridVMInstruction<S, M> {
+    C(DynConcreteVMInstruction<S, M>),
+    S(DynSymbolicVMInstruction<S, M>),
+}
+
+impl<S, M> ConcreteVMInstruction<S, M> for HybridVMInstruction<S, M>
 where
     S: Stack,
     M: Mem,
 {
     fn exec(&self, stack: &S, memory: &M) -> InstructionResult<ExecRecord<S, M>> {
         match self {
-            SymbolicVMInstruction::C(c) => c.exec(stack, memory),
-            SymbolicVMInstruction::S(s) => UNREACHABLE.exec(stack, memory),
+            HybridVMInstruction::C(c) => c.exec(stack, memory),
+            HybridVMInstruction::S(s) => UNREACHABLE.exec(stack, memory),
         }
     }
 }
 
-impl<S, M, SI> From<ConcreteVMInstruction<S, M>> for SymbolicVMInstruction<S, M, SI> {
-    fn from(c: ConcreteVMInstruction<S, M>) -> Self {
-        SymbolicVMInstruction::C(c)
+impl<S, M> From<DynConcreteVMInstruction<S, M>> for HybridVMInstruction<S, M> {
+    fn from(c: DynConcreteVMInstruction<S, M>) -> Self {
+        HybridVMInstruction::C(c)
     }
 }
 
-impl<S, M> VMInstruction<S, M> for ConcreteVMInstruction<S, M>
+impl<S, M> ConcreteVMInstruction<S, M> for DynConcreteVMInstruction<S, M>
 where
     S: Stack,
     M: Mem,

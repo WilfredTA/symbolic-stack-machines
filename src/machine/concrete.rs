@@ -1,5 +1,5 @@
 use crate::{
-    instructions::{ConcreteVMInstruction, VMInstruction},
+    instructions::{DynConcreteVMInstruction, ConcreteVMInstruction},
     memory::{symbolic_concrete_index::MemConcreteIntToConcreteInt, Mem, WriteableMem},
     stack::{ConcreteIntStack, Stack},
 };
@@ -10,26 +10,26 @@ pub struct BaseConcreteMachine<'a, S, M, I>
 where
     S: Stack,
     M: Mem,
-    I: VMInstruction<S, M>,
+    I: ConcreteVMInstruction<S, M>,
 {
-    stack: S,
-    mem: M,
-    pgm: &'a Program<I>,
-    pc: usize,
+    pub stack: S,
+    pub mem: M,
+    pub pgm: &'a Program<I>,
+    pub pc: usize,
 }
 
 impl<'a, S, M, I> BaseConcreteMachine<'a, S, M, I>
 where
     S: Stack,
     M: Mem,
-    I: VMInstruction<S, M>,
+    I: ConcreteVMInstruction<S, M>,
 {
-    pub fn new(stack: S, mem: M, pgm: &'a Program<I>) -> Self {
+    pub fn new(stack: S, mem: M, pgm: &'a Program<I>, pc: Option<usize>) -> Self {
         Self {
             mem,
             stack,
             pgm,
-            pc: 0,
+            pc: pc.unwrap_or(0),
         }
     }
 }
@@ -38,7 +38,7 @@ impl<'a, S, M, I> BaseMachine<S, M, Option<S::StackVal>, I> for BaseConcreteMach
 where
     S: Stack + Clone,
     M: WriteableMem + Clone,
-    I: VMInstruction<S, M>,
+    I: ConcreteVMInstruction<S, M>,
 {
     fn can_exec(&self) -> bool {
         self.pc < self.pgm.len()
@@ -57,7 +57,7 @@ impl<'a, S, M, I> ConcreteMachine<S, M, Option<S::StackVal>, I> for BaseConcrete
 where
     S: Stack + Clone,
     M: WriteableMem + Clone,
-    I: VMInstruction<S, M>,
+    I: ConcreteVMInstruction<S, M>,
 {
     fn exec(&self) -> Self {
         let inst = self.pgm.get(self.pc).unwrap();
@@ -102,5 +102,5 @@ pub type ConcreteIntMachine<'a> = BaseConcreteMachine<
     'a,
     ConcreteIntStack,
     MemConcreteIntToConcreteInt,
-    ConcreteVMInstruction<ConcreteIntStack, MemConcreteIntToConcreteInt>,
+    DynConcreteVMInstruction<ConcreteIntStack, MemConcreteIntToConcreteInt>,
 >;

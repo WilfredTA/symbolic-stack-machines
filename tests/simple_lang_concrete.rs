@@ -2,7 +2,7 @@ use symbolic_stack_machines::{
     concrete_int,
     instructions::{
         helpers::{ADD, ISZERO, JUMPI, MLOAD, MSTORE, PUSH, STOP, SUB},
-        ConcreteVMInstruction,
+        DynConcreteVMInstruction,
     },
     machine::{concrete::ConcreteIntMachine, run_machine, Program},
     memory::symbolic_concrete_index::MemConcreteIntToConcreteInt,
@@ -10,12 +10,12 @@ use symbolic_stack_machines::{
 };
 
 fn test_helper(
-    pgm: Program<ConcreteVMInstruction<ConcreteIntStack, MemConcreteIntToConcreteInt>>,
+    pgm: Program<DynConcreteVMInstruction<ConcreteIntStack, MemConcreteIntToConcreteInt>>,
     expected: concrete_int::Wraps,
 ) {
     let stack = ConcreteIntStack::new();
     let mem = MemConcreteIntToConcreteInt::new();
-    let machine = ConcreteIntMachine::new(stack, mem, &pgm);
+    let machine = ConcreteIntMachine::new(stack, mem, &pgm, None);
 
     assert_eq!(run_machine(machine), Option::Some(expected.into()))
 }
