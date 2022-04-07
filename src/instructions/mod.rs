@@ -41,27 +41,29 @@ impl<S: Stack, M: Mem> Default for ExecRecord<S, M> {
     }
 }
 
-pub trait ConcreteVMInstruction<S: Stack, M: Mem> {
+pub trait ConcreteVMInstruction<S: Stack, M: Mem>: std::fmt::Debug {
     fn exec(&self, stack: &S, memory: &M) -> InstructionResult<ExecRecord<S, M>>;
 }
 
-pub trait SymbolicVMInstruction<S: Stack, M: Mem> {
-    fn sym_exec(&self, s: &S, m: &M, pc: usize) -> Vec<(S, M, usize)>;
+pub trait SymbolicVMInstruction<S: Stack, M: Mem, C>: std::fmt::Debug {
+    fn sym_exec(&self, s: &S, m: &M, pc: usize) -> Vec<(S, M, usize, Vec<C>)>;
 }
 
 pub type DynConcreteVMInstruction<S, M> = Box<dyn ConcreteVMInstruction<S, M>>;
 
-pub type DynSymbolicVMInstruction<S, M> = Box<dyn SymbolicVMInstruction<S, M>>;
+pub type DynSymbolicVMInstruction<S, M, C> = Box<dyn SymbolicVMInstruction<S, M, C>>;
 
-pub enum HybridVMInstruction<S, M> {
+#[derive(Debug)]
+pub enum HybridVMInstruction<S, M, C> {
     C(DynConcreteVMInstruction<S, M>),
-    S(DynSymbolicVMInstruction<S, M>),
+    S(DynSymbolicVMInstruction<S, M, C>),
 }
 
-impl<S, M> ConcreteVMInstruction<S, M> for HybridVMInstruction<S, M>
+impl<S, M, C> ConcreteVMInstruction<S, M> for HybridVMInstruction<S, M, C>
 where
     S: Stack,
     M: Mem,
+    C: std::fmt::Debug
 {
     fn exec(&self, stack: &S, memory: &M) -> InstructionResult<ExecRecord<S, M>> {
         match self {
@@ -71,7 +73,7 @@ where
     }
 }
 
-impl<S, M> From<DynConcreteVMInstruction<S, M>> for HybridVMInstruction<S, M> {
+impl<S, M, C> From<DynConcreteVMInstruction<S, M>> for HybridVMInstruction<S, M, C> {
     fn from(c: DynConcreteVMInstruction<S, M>) -> Self {
         HybridVMInstruction::C(c)
     }

@@ -6,7 +6,7 @@ use error::MemoryError;
 
 pub type MemoryResult<T> = Result<T, MemoryError>;
 
-pub trait Mem: Sized {
+pub trait Mem: Sized + std::fmt::Debug {
     type Index;
     type MemVal;
 }

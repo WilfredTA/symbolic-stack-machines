@@ -4,7 +4,9 @@ use std::{
 };
 
 use crate::{
-    instructions::bitwise::Binary, machine_eq::MachineEq, memory::symbolic_concrete_index::MemVal,
+    instructions::{bitwise::Binary, sym::Constrain},
+    machine_eq::MachineEq,
+    memory::symbolic_concrete_index::MemVal,
 };
 
 pub type Wraps = i128;
@@ -22,6 +24,24 @@ pub enum Inner {
     Sub(Box<SymbolicInt>, Box<SymbolicInt>),
     Eq(Box<SymbolicInt>, Box<SymbolicInt>),
     Ite(Box<SymbolicInt>, Box<SymbolicInt>, Box<SymbolicInt>),
+}
+
+#[derive(Clone, Debug)]
+pub enum SymbolicIntConstraint {
+    Eq(SymbolicInt, SymbolicInt),
+    NotEq(SymbolicInt, SymbolicInt),
+}
+
+impl Constrain for SymbolicInt {
+    type Constraint = SymbolicIntConstraint;
+
+    fn assert_eq(self, other: SymbolicInt) -> SymbolicIntConstraint {
+        SymbolicIntConstraint::Eq(self, other)
+    }
+
+    fn assert_not_eq(self, other: SymbolicInt) -> SymbolicIntConstraint {
+        SymbolicIntConstraint::NotEq(self, other)
+    }
 }
 
 impl MachineEq for SymbolicInt {

@@ -4,7 +4,7 @@ use error::StackError;
 use crate::{concrete_int::ConcreteInt, symbolic_int::SymbolicInt};
 pub type StackResult<T> = Result<T, StackError>;
 
-pub trait Stack: Sized {
+pub trait Stack: Sized + std::fmt::Debug {
     type StackVal;
 
     fn push(&self, v: Self::StackVal) -> StackResult<Self>;
@@ -73,7 +73,7 @@ impl<T> BaseStack<T> {
 
 impl<T> Stack for BaseStack<T>
 where
-    T: Clone,
+    T: Clone + std::fmt::Debug,
 {
     type StackVal = T;
 

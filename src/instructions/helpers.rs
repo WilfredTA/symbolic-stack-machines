@@ -14,7 +14,7 @@ pub fn PUSH<Arg, T, S, M>(x: Arg) -> DynConcreteVMInstruction<S, M>
 where
     Arg: Into<T>,
     // TODO this shouldn't be static
-    T: Clone + 'static,
+    T: Clone + std::fmt::Debug + 'static,
     S: Stack<StackVal = T>,
     M: Mem,
 {
@@ -31,7 +31,7 @@ where
 
 pub fn MSTORE<T, S, M>() -> DynConcreteVMInstruction<S, M>
 where
-    T: Clone + TryInto<M::Index>,
+    T: Clone + std::fmt::Debug + TryInto<M::Index>,
     M: WriteableMem<MemVal = T>,
     S: Stack<StackVal = T>,
     <T as TryInto<<M as Mem>::Index>>::Error: std::fmt::Debug,
@@ -41,7 +41,7 @@ where
 
 pub fn MLOAD<T, S, M>() -> DynConcreteVMInstruction<S, M>
 where
-    T: Clone + TryInto<M::Index>,
+    T: Clone + std::fmt::Debug + TryInto<M::Index>,
     M: ReadOnlyMem<MemVal = T>,
     S: Stack<StackVal = T>,
     <T as TryInto<<M as Mem>::Index>>::Error: std::fmt::Debug,
@@ -51,7 +51,7 @@ where
 
 pub fn ADD<T, S, M>() -> DynConcreteVMInstruction<S, M>
 where
-    T: std::ops::Add + std::ops::Add<Output = T> + Clone,
+    T: std::ops::Add + std::ops::Add<Output = T> + Clone + std::fmt::Debug,
     S: Stack<StackVal = T>,
     M: Mem,
 {
@@ -60,7 +60,7 @@ where
 
 pub fn SUB<T, S, M>() -> DynConcreteVMInstruction<S, M>
 where
-    T: std::ops::Sub + std::ops::Sub<Output = T> + Clone,
+    T: std::ops::Sub + std::ops::Sub<Output = T> + Clone + std::fmt::Debug,
     S: Stack<StackVal = T>,
     M: Mem,
 {

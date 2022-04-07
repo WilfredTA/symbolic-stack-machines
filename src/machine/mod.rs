@@ -33,7 +33,7 @@ pub trait SymbolicMachine<S, M, RV, I>: BaseMachine<S, M, RV, I> {
     fn sym_exec(&self) -> Vec<Box<Self>>;
 }
 
-pub fn run_sym_machine<S, M, RV, I, Ma: SymbolicMachine<S, M, RV, I>>(m: Ma) -> Vec<RV> {
+pub fn run_sym_machine<S, M, RV, I, Ma: SymbolicMachine<S, M, RV, I>>(m: Ma) -> Vec<Ma> {
     let mut rv = vec![];
 
     let mut queue = vec![m];
@@ -49,7 +49,7 @@ pub fn run_sym_machine<S, M, RV, I, Ma: SymbolicMachine<S, M, RV, I>>(m: Ma) -> 
             if new_m.can_exec() {
                 queue.push(new_m);
             } else {
-                rv.push(new_m.return_value());
+                rv.push(new_m);
             }
         }
     }

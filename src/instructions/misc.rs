@@ -12,7 +12,7 @@ pub struct PUSH<T>(pub T);
 
 impl<T, S, M> ConcreteVMInstruction<S, M> for PUSH<T>
 where
-    T: Clone,
+    T: Clone + std::fmt::Debug,
     S: Stack<StackVal = T>,
     M: Mem,
 {
@@ -69,11 +69,12 @@ where
     }
 }
 
+#[derive(Debug)]
 pub struct MLOAD;
 
 impl<T, S, M> ConcreteVMInstruction<S, M> for MLOAD
 where
-    T: TryInto<M::Index> + Clone,
+    T: TryInto<M::Index> + Clone + std::fmt::Debug,
     M: ReadOnlyMem<MemVal = T>,
     S: Stack<StackVal = T>,
     <T as TryInto<<M as Mem>::Index>>::Error: std::fmt::Debug,
@@ -95,11 +96,12 @@ where
     }
 }
 
+#[derive(Debug)]
 pub struct MSTORE;
 
 impl<T, S, M> ConcreteVMInstruction<S, M> for MSTORE
 where
-    T: TryInto<M::Index> + Clone,
+    T: TryInto<M::Index> + Clone + Debug,
     M: WriteableMem<MemVal = T>,
     S: Stack<StackVal = T>,
     <T as TryInto<<M as Mem>::Index>>::Error: std::fmt::Debug,
@@ -125,6 +127,7 @@ where
     }
 }
 
+#[derive(Debug)]
 pub struct UNREACHABLE;
 
 impl<S, M> ConcreteVMInstruction<S, M> for UNREACHABLE

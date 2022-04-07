@@ -6,6 +6,7 @@ use crate::{
 
 use super::{ConcreteMachine, Program, BaseMachine};
 
+#[derive(Debug)]
 pub struct BaseConcreteMachine<'a, S, M, I>
 where
     S: Stack,

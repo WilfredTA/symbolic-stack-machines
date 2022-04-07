@@ -1,15 +1,16 @@
 use super::{MemoryResult, ReadOnlyMem, WriteableMem, RWMem, Mem};
 
-pub trait IndexVal: Clone {}
+pub trait IndexVal: Clone + std::fmt::Debug {}
 
 type Writes<IV> = Vec<(IV, MemVal<IV>)>;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct MemVal<IV: IndexVal> {
     pub writes: Writes<IV>,
     pub read: IV,
 }
 
+#[derive(Debug)]
 pub struct SymbolicMemSymbolicIndex<IV: IndexVal> {
     writes: Writes<IV>,
 }
