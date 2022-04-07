@@ -1,9 +1,9 @@
-use crate::instructions::{sym, HybridVMInstruction, SymbolicVMInstruction};
+use crate::instructions::HybridVMInstruction;
 use crate::memory::symbolic_concrete_index::MemConcreteIntToSymbolicInt;
 use crate::memory::WriteableMem;
 use crate::solvers::z3::Z3Constraint;
 use crate::stack::SymbolicIntStack;
-use crate::symbolic_int::SymbolicIntConstraint;
+use crate::symbolic_int::{self, SymbolicIntConstraint};
 use crate::{memory::Mem, stack::Stack};
 
 use super::concrete::BaseConcreteMachine;
@@ -14,7 +14,7 @@ pub struct BaseSymbolicMachine<'a, S, M, C>
 where
     S: Stack,
     M: Mem,
-    C: std::fmt::Debug
+    C: std::fmt::Debug,
 {
     constraints: Vec<C>,
 
@@ -26,7 +26,7 @@ impl<'a, S, M, C> BaseSymbolicMachine<'a, S, M, C>
 where
     S: Stack,
     M: Mem,
-    C: std::fmt::Debug
+    C: std::fmt::Debug,
 {
     pub fn new(
         stack: S,
@@ -47,7 +47,7 @@ impl<'a, S, M, C> BaseMachine<S, M, Option<S::StackVal>, HybridVMInstruction<S, 
 where
     S: Stack + Clone,
     M: WriteableMem + Clone,
-    C: std::fmt::Debug
+    C: std::fmt::Debug,
 {
     fn peek_instruction(&self) -> Option<&HybridVMInstruction<S, M, C>> {
         self.concrete_machine.peek_instruction()
@@ -68,18 +68,19 @@ where
     S: Stack + Clone,
     M: WriteableMem + Clone,
     C: Clone + std::fmt::Debug + Z3Constraint,
+    S::StackVal: Clone,
 {
     fn sym_exec(&self) -> Vec<Box<Self>> {
         match self.concrete_machine.peek_instruction().unwrap() {
             HybridVMInstruction::C(_) => {
                 let concrete_machine = self.concrete_machine.exec();
+
                 vec![Box::new(Self {
                     concrete_machine,
                     constraints: self.constraints.clone(),
                 })]
             }
 
-            // TODO(HERE) - now we need some way to dispatch on the particular symbolic instructions
             HybridVMInstruction::S(s) => s
                 .sym_exec(
                     &self.concrete_machine.stack,
@@ -87,7 +88,6 @@ where
                     self.concrete_machine.pc,
                 )
                 .into_iter()
-                // TODO add constraint to machine
                 .map(|(stack, mem, pc, mut constraints)| {
                     self.constraints
                         .iter()

@@ -4,7 +4,10 @@ pub mod symbolic;
 
 use error::MachineError;
 
-use crate::solvers::{self, z3::Z3Constraint};
+use crate::{
+    solvers::{self, z3::Z3Constraint},
+    symbolic_int::{self, SymbolicInt},
+};
 
 pub type MachineResult<T> = Result<T, MachineError>;
 
@@ -40,9 +43,18 @@ where
     fn constraints(&self) -> Vec<C>;
 }
 
-pub fn run_sym_machine<S, M, RV, I, Ma, C>(m: Ma) -> Vec<Ma>
+// TODO should be abstract over more than i64
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct SymbolicMachineOutput {
+    pub symbolic: Option<SymbolicInt>,
+    pub concrete: Option<i64>,
+    pub model: Vec<(String, i64)>,
+}
+
+pub fn run_sym_machine<S, M, I, Ma, C>(m: Ma) -> Vec<SymbolicMachineOutput>
 where
-    Ma: SymbolicMachine<S, M, RV, I, C>,
+    Ma: SymbolicMachine<S, M, Option<SymbolicInt>, I, C>,
     C: Z3Constraint,
 {
     let mut rv = vec![];
@@ -58,7 +70,7 @@ where
             let new_m = *new_ms.pop().unwrap();
 
             // TODO -- should only check solver when the model changes
-            if solvers::z3::solve(new_m.constraints()) {
+            if solvers::z3::solve(new_m.constraints(), None).is_some() {
                 if new_m.can_exec() {
                     queue.push(new_m);
                 } else {
@@ -68,5 +80,17 @@ where
         }
     }
 
-    rv
+    rv.into_iter()
+        .map(|x| {
+            let rv = x.return_value();
+
+            let (model, xrv) = solvers::z3::solve(x.constraints(), rv.clone()).unwrap();
+
+            SymbolicMachineOutput {
+                symbolic: rv,
+                concrete: xrv,
+                model,
+            }
+        })
+        .collect()
 }
