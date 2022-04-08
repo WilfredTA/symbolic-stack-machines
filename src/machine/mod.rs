@@ -18,7 +18,9 @@ where
 {
     mem: Mem,
     stack: MachineStack,
+    #[allow(dead_code)]
     pgm: Program<I>,
+    #[allow(dead_code)]
     pc: usize,
 }
 

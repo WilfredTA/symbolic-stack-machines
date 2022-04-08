@@ -32,10 +32,12 @@ pub struct EqCheck {
     r: Box<SymbolicInt>,
 }
 
+#[allow(non_snake_case)]
 pub fn SYM(s: &str) -> SymbolicInt {
     SymbolicInt::S(Inner::Sym(s.to_string()))
 }
 
+#[allow(non_snake_case)]
 pub fn C(x: Wraps) -> Box<SymbolicInt> {
     SymbolicInt::from(x).into()
 }

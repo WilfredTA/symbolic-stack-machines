@@ -1,10 +1,14 @@
+mod concrete_index;
 pub mod error;
 mod symbolic_index;
 
 use error::MemoryError;
+
 pub use symbolic_index::{
     IndexVal as SymbolicIndexIndexVal, MemIntToInt, MemVal as SymbolicIndexMemVal,
 };
+
+pub use concrete_index::MemVal as ConcreteIndexMemVal;
 
 pub trait Mem: Sized {
     type MemVal;
@@ -40,14 +44,11 @@ where
             |cur_mem: MemoryResult<M>, r| -> MemoryResult<M> {
                 match cur_mem {
                     Ok(m) => {
-                        if let MemOpRecord::Write(r) = r {
-                            let idx = r.0;
-                            let _old_val = r.1;
-                            let new_val = r.2;
-                            m.write(idx, new_val)
-                        } else {
-                            Ok(m)
-                        }
+                        let MemOpRecord::Write(r) = r;
+                        let idx = r.0;
+                        let _old_val = r.1;
+                        let new_val = r.2;
+                        m.write(idx, new_val)
                     }
                     Err(e) => Err(e),
                 }

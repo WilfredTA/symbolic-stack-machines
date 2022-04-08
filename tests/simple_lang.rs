@@ -2,10 +2,6 @@ use symbolic_stack_machines::memory::{MemIntToInt, MemOpRecord, MemRecord, ReadO
 use symbolic_stack_machines::vals::{MachineEq, SymbolicInt, SYM};
 use symbolic_stack_machines::{instructions::*, machine::*, stack::*};
 
-use std::rc::Rc;
-use z3::{Config, Context};
-mod common;
-
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum Instruction<T> {
     Add,
@@ -65,7 +61,7 @@ impl VMInstruction for Instruction<SymbolicInt> {
                     changed: vec![StackOpRecord::Push(v.clone())],
                 });
             }
-            Instruction::Assert(v) => {
+            Instruction::Assert(_v) => {
                 todo!()
             }
             Instruction::MLOAD => {
@@ -88,7 +84,7 @@ impl VMInstruction for Instruction<SymbolicInt> {
                 let prev_val = {
                     match memory.read(mem_offset.clone()) {
                         Ok(val) => val.unwrap(),
-                        Err(e) => SymbolicInt::default(),
+                        Err(_e) => SymbolicInt::default(),
                     }
                 };
                 change_log.stack_diff = Some(StackRecord {
