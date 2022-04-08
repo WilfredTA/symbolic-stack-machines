@@ -1,6 +1,6 @@
 pub mod error;
-pub mod symbolic_concrete_index;
-pub mod symbolic_symbolic_index;
+pub mod concrete_index;
+pub mod symbolic_index;
 
 use error::MemoryError;
 

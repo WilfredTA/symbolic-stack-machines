@@ -6,16 +6,16 @@ use std::fmt::Debug;
 pub trait MemVal: Default + Clone + Debug {}
 
 #[derive(Clone, Debug)]
-pub struct SymbolicMemConcreteIndex<MV: MemVal> {
+pub struct MemConcreteIndex<MV: MemVal> {
     inner: Vec<MV>,
 }
 
-impl<MV: MemVal> Mem for SymbolicMemConcreteIndex<MV> {
+impl<MV: MemVal> Mem for MemConcreteIndex<MV> {
     type MemVal = MV;
     type Index = usize;
 }
 
-impl<MV: MemVal> ReadOnlyMem for SymbolicMemConcreteIndex<MV> {
+impl<MV: MemVal> ReadOnlyMem for MemConcreteIndex<MV> {
     fn read(&self, idx: Self::Index) -> MemoryResult<Option<Self::MemVal>> {
         Ok(Some(
             self.inner
@@ -26,7 +26,7 @@ impl<MV: MemVal> ReadOnlyMem for SymbolicMemConcreteIndex<MV> {
     }
 }
 
-impl<MV: MemVal> WriteableMem for SymbolicMemConcreteIndex<MV> {
+impl<MV: MemVal> WriteableMem for MemConcreteIndex<MV> {
     fn write(&self, idx: Self::Index, val: Self::MemVal) -> MemoryResult<Self> {
         let mut x = Self {
             inner: self.inner.clone(),
@@ -44,13 +44,13 @@ impl<MV: MemVal> WriteableMem for SymbolicMemConcreteIndex<MV> {
     }
 }
 
-impl<MV: MemVal> SymbolicMemConcreteIndex<MV> {
+impl<MV: MemVal> MemConcreteIndex<MV> {
     pub fn new() -> Self {
         Self { inner: vec![] }
     }
 }
 
-impl<MV: MemVal> RWMem for SymbolicMemConcreteIndex<MV> {}
+impl<MV: MemVal> RWMem for MemConcreteIndex<MV> {}
 
-pub type MemConcreteIntToConcreteInt = SymbolicMemConcreteIndex<ConcreteInt>;
-pub type MemConcreteIntToSymbolicInt = SymbolicMemConcreteIndex<SymbolicInt>;
+pub type MemConcreteIntToConcreteInt = MemConcreteIndex<ConcreteInt>;
+pub type MemConcreteIntToSymbolicInt = MemConcreteIndex<SymbolicInt>;

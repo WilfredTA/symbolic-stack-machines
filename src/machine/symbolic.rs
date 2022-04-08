@@ -1,5 +1,5 @@
 use crate::instructions::HybridVMInstruction;
-use crate::memory::symbolic_concrete_index::MemConcreteIntToSymbolicInt;
+use crate::memory::concrete_index::MemConcreteIntToSymbolicInt;
 use crate::memory::WriteableMem;
 use crate::solvers::z3::Z3Constraint;
 use crate::stack::SymbolicIntStack;

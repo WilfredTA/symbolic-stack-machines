@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::{
-    instructions::bitwise::Binary, machine_eq::MachineEq, memory::symbolic_concrete_index::MemVal,
+    instructions::bitwise::Binary, machine_eq::MachineEq, memory::concrete_index::MemVal,
 };
 
 pub type Wraps = i128;

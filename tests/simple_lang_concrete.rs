@@ -5,7 +5,7 @@ use symbolic_stack_machines::{
         DynConcreteVMInstruction,
     },
     machine::{concrete::ConcreteIntMachine, run_machine, Program},
-    memory::symbolic_concrete_index::MemConcreteIntToConcreteInt,
+    memory::concrete_index::MemConcreteIntToConcreteInt,
     stack::ConcreteIntStack,
 };
 

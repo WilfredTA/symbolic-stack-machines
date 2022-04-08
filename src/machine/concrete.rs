@@ -1,6 +1,6 @@
 use crate::{
     instructions::{DynConcreteVMInstruction, ConcreteVMInstruction},
-    memory::{symbolic_concrete_index::MemConcreteIntToConcreteInt, Mem, WriteableMem},
+    memory::{concrete_index::MemConcreteIntToConcreteInt, Mem, WriteableMem},
     stack::{ConcreteIntStack, Stack},
 };
 

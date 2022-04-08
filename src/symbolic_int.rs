@@ -8,7 +8,7 @@ use z3::ast::Ast;
 use crate::{
     instructions::{bitwise::Binary, sym::Constrain},
     machine_eq::MachineEq,
-    memory::symbolic_concrete_index::MemVal,
+    memory::concrete_index::MemVal,
     solvers::z3::Z3Constraint,
 };
 

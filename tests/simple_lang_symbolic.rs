@@ -6,7 +6,7 @@ use symbolic_stack_machines::{
     machine::{
         run_sym_machine, symbolic::SymbolicIntMachine, BaseMachine, Program, SymbolicMachineOutput,
     },
-    memory::symbolic_concrete_index::MemConcreteIntToSymbolicInt,
+    memory::concrete_index::MemConcreteIntToSymbolicInt,
     stack::SymbolicIntStack,
     symbolic_int::{SymbolicInt, SymbolicIntConstraint, SYM},
 };

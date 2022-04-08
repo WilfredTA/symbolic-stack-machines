@@ -11,16 +11,16 @@ pub struct MemVal<IV: IndexVal> {
 }
 
 #[derive(Debug)]
-pub struct SymbolicMemSymbolicIndex<IV: IndexVal> {
+pub struct MemSymbolicIndex<IV: IndexVal> {
     writes: Writes<IV>,
 }
 
-impl<IV: IndexVal> Mem for SymbolicMemSymbolicIndex<IV> {
+impl<IV: IndexVal> Mem for MemSymbolicIndex<IV> {
     type MemVal = MemVal<IV>;
     type Index = IV;
 }
 
-impl<IV: IndexVal> ReadOnlyMem for SymbolicMemSymbolicIndex<IV> {
+impl<IV: IndexVal> ReadOnlyMem for MemSymbolicIndex<IV> {
     fn read(&self, idx: Self::Index) -> MemoryResult<Option<Self::MemVal>> {
         Ok(Some(MemVal {
             writes: self.writes.clone(),
@@ -29,7 +29,7 @@ impl<IV: IndexVal> ReadOnlyMem for SymbolicMemSymbolicIndex<IV> {
     }
 }
 
-impl<IV: IndexVal> WriteableMem for SymbolicMemSymbolicIndex<IV> {
+impl<IV: IndexVal> WriteableMem for MemSymbolicIndex<IV> {
     fn write(&self, idx: Self::Index, val: Self::MemVal) -> MemoryResult<Self> {
         let mut writes = self.writes.clone();
         writes.push((idx, val));
@@ -37,10 +37,10 @@ impl<IV: IndexVal> WriteableMem for SymbolicMemSymbolicIndex<IV> {
     }
 }
 
-impl<IV: IndexVal> SymbolicMemSymbolicIndex<IV> {
+impl<IV: IndexVal> MemSymbolicIndex<IV> {
     pub fn new() -> Self {
         Self { writes: vec![] }
     }
 }
 
-impl<IV: IndexVal> RWMem for SymbolicMemSymbolicIndex<IV> {}
+impl<IV: IndexVal> RWMem for MemSymbolicIndex<IV> {}
