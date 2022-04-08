@@ -1,15 +1,15 @@
 pub mod error;
-use std::borrow::Borrow;
 use std::rc::Rc;
 
 use crate::instructions::*;
-use crate::memory::{ReadOnlyMem, WriteableMem};
+use crate::memory::ReadOnlyMem;
+use crate::vals::SymbolicInt;
 use crate::{
-    memory::{memory_models::MemIntToInt, RWMem},
+    memory::{MemIntToInt, RWMem},
     stack::*,
 };
 use error::MachineError;
-use z3::ast::{Bool, Int};
+use z3::ast::{Bool};
 use z3::{Context, Model, SatResult, Solver};
 
 pub type MachineResult<T> = Result<T, MachineError>;
@@ -43,8 +43,7 @@ where
     I: VMInstruction<'a, Mem = Mem, ValStack = MachineStack>,
     StackVal: Into<MemIdx> + Into<MemVal>,
 {
-    pub fn new(stack: MachineStack, mem_init: Mem::InitArgs) -> Self {
-        let mem = Mem::init(mem_init);
+    pub fn new(stack: MachineStack, mem: Mem) -> Self {
         Self {
             mem,
             stack,
@@ -232,17 +231,17 @@ where
 
 // Implement machine initialization for a specific memory model
 impl<'a, MachineStack, I>
-    BaseMachine<'a, MemIntToInt<'a>, MachineStack, I, Int<'a>, Int<'a>, Int<'a>>
+    BaseMachine<'a, MemIntToInt, MachineStack, I, SymbolicInt, SymbolicInt, SymbolicInt>
 where
-    MachineStack: Stack<StackVal = Int<'a>>,
-    I: VMInstruction<'a, Mem = MemIntToInt<'a>, ValStack = MachineStack>,
+    MachineStack: Stack<StackVal = SymbolicInt>,
+    I: VMInstruction<'a, Mem = MemIntToInt, ValStack = MachineStack>,
 {
     // For symbolic memory
-    pub fn new_with_ctx(stack: MachineStack, mem_init_args: Rc<&'a Context>) -> Self {
-        let mem = MemIntToInt::init(mem_init_args.clone());
+    pub fn new_with_ctx(stack: MachineStack, ctx: Rc<&'a Context>) -> Self {
+        let mem = MemIntToInt::new();
         let ctx = SymbolicContext {
             constraints: vec![],
-            ctx: mem_init_args.clone(),
+            ctx: ctx.clone(),
         };
 
         Self {

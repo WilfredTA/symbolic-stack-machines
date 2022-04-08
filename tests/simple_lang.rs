@@ -1,12 +1,10 @@
-use symbolic_stack_machines::memory::{MemOpRecord, MemRecord, ReadOnlyMem};
-use symbolic_stack_machines::{instructions::*, machine::*, memory::memory_models::*, stack::*};
+use symbolic_stack_machines::memory::{MemIntToInt, MemOpRecord, MemRecord, ReadOnlyMem};
+use symbolic_stack_machines::vals::{MachineEq, SymbolicInt, SYM};
+use symbolic_stack_machines::{instructions::*, machine::*, stack::*};
 
 use std::rc::Rc;
-use z3::ast::{Ast, Bool, Int};
 use z3::{Config, Context};
 mod common;
-
-use common::{z3_int, z3_int_var};
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum Instruction<T> {
@@ -21,10 +19,10 @@ pub enum Instruction<T> {
     STOP,
 }
 
-impl<'a> VMInstruction<'a> for Instruction<Int<'a>> {
-    type ValStack = BaseStack<Int<'a>>;
+impl<'a> VMInstruction<'a> for Instruction<SymbolicInt> {
+    type ValStack = BaseStack<SymbolicInt>;
 
-    type Mem = MemIntToInt<'a>;
+    type Mem = MemIntToInt;
 
     fn exec(
         &self,
@@ -40,9 +38,9 @@ impl<'a> VMInstruction<'a> for Instruction<Int<'a>> {
         };
         match self {
             Instruction::Add => {
-                let op_1 = stack.peek(0).unwrap();
-                let op_2 = stack.peek(1).unwrap();
-                let res = &op_1 + &op_2;
+                let op_1: SymbolicInt = stack.peek(0).unwrap();
+                let op_2: SymbolicInt = stack.peek(1).unwrap();
+                let res = op_1.clone() + op_2.clone();
                 change_log.stack_diff = Some(StackRecord {
                     changed: vec![
                         StackOpRecord::Pop(op_1),
@@ -52,9 +50,9 @@ impl<'a> VMInstruction<'a> for Instruction<Int<'a>> {
                 });
             }
             Instruction::Sub => {
-                let op_1 = stack.peek(0).unwrap();
-                let op_2 = stack.peek(1).unwrap();
-                let res = &op_1 - &op_2;
+                let op_1: SymbolicInt = stack.peek(0).unwrap();
+                let op_2: SymbolicInt = stack.peek(1).unwrap();
+                let res = op_1.clone() - op_2.clone();
                 change_log.stack_diff = Some(StackRecord {
                     changed: vec![
                         StackOpRecord::Pop(op_1),
@@ -69,12 +67,10 @@ impl<'a> VMInstruction<'a> for Instruction<Int<'a>> {
                 });
             }
             Instruction::Assert(v) => {
-                let stack_top = stack.peek::<Int<'a>>(0).unwrap();
-                let constraint = stack_top._eq(v);
-                change_log.path_constraints.push(vec![constraint]);
+                todo!()
             }
             Instruction::MLOAD => {
-                let mem_offset = stack.peek::<Int<'a>>(0).unwrap();
+                let mem_offset: SymbolicInt = stack.peek(0).unwrap();
                 let val = {
                     match memory.read(mem_offset.clone()) {
                         Ok(val) => val.unwrap(),
@@ -88,12 +84,12 @@ impl<'a> VMInstruction<'a> for Instruction<Int<'a>> {
                 });
             }
             Instruction::MSTORE => {
-                let mem_offset = stack.peek::<Int<'a>>(0).unwrap();
-                let val = stack.peek::<Int<'a>>(1).unwrap();
+                let mem_offset: SymbolicInt = stack.peek(0).unwrap();
+                let val: SymbolicInt = stack.peek(1).unwrap();
                 let prev_val = {
                     match memory.read(mem_offset.clone()) {
                         Ok(val) => val.unwrap(),
-                        Err(e) => Int::from_u64(val.get_ctx(), 0),
+                        Err(e) => SymbolicInt::default(),
                     }
                 };
                 change_log.stack_diff = Some(StackRecord {
@@ -107,10 +103,12 @@ impl<'a> VMInstruction<'a> for Instruction<Int<'a>> {
                 });
             }
             Instruction::ISZERO => {
-                let top = stack.peek::<Int<'a>>(0).unwrap();
-                let zero = Int::from_u64(top.get_ctx(), 0);
-                let one = Int::from_u64(top.get_ctx(), 1);
-                let is_zero = Bool::ite(&top._eq(&zero), &one, &zero);
+                let top: SymbolicInt = stack.peek(0).unwrap();
+                let is_zero = SymbolicInt::machine_ite(
+                    SymbolicInt::machine_eq(&top, &0.into()),
+                    1.into(),
+                    0.into(),
+                );
                 change_log.stack_diff = Some(StackRecord {
                     changed: vec![
                         StackOpRecord::Pop(top.clone()),
@@ -119,17 +117,7 @@ impl<'a> VMInstruction<'a> for Instruction<Int<'a>> {
                 });
             }
             Instruction::JUMPI => {
-                let dest = stack.peek::<Int<'a>>(0).unwrap();
-                let ctx = dest.ctx;
-                let cond = stack.peek::<Int<'a>>(1).unwrap();
-                if let Some(dest) = dest.as_u64() {
-                    let zero = Int::from_u64(ctx, 0);
-                    change_log.path_constraints.push(vec![cond._eq(&zero)]);
-                    change_log
-                        .path_constraints
-                        .push(vec![Bool::not(&cond._eq(&zero))]);
-                    change_log.pc_change = Some(dest as usize);
-                }
+                todo!()
             }
             Instruction::STOP => {
                 change_log.halt = true;
@@ -178,15 +166,15 @@ fn test_basic_sym_mem() {
     cfg.set_model_generation(true);
     let ctx = Context::new(&cfg);
 
-    let stack: BaseStack<Int> = BaseStack::init();
+    let stack: BaseStack<SymbolicInt> = BaseStack::init();
     let machine = BaseMachine::new_with_ctx(stack, Rc::new(&ctx));
     let pgm = vec![
-        push(z3_int_var("a", &ctx)),
-        push(z3_int(3, &ctx)),
-        push(z3_int_var("c", &ctx)),
+        push(SYM("a")),
+        push(3.into()),
+        push(SYM("c")),
         add(),
         sub(),
-        assert(z3_int(4, &ctx)),
+        assert(4.into()),
     ];
 
     let _res = machine.run_sym(&pgm);
@@ -198,44 +186,40 @@ fn test_jumpi() {
     cfg.set_model_generation(true);
     let ctx = Context::new(&cfg);
 
-    let stack: BaseStack<Int> = BaseStack::init();
+    let stack: BaseStack<SymbolicInt> = BaseStack::init();
     let machine = BaseMachine::new_with_ctx(stack, Rc::new(&ctx));
     let pgm = vec![
-        push(z3_int(1, &ctx)),
-        push(z3_int(2, &ctx)),
-        push(z3_int(3, &ctx)),
+        push(1.into()),
+        push(2.into()),
+        push(3.into()),
         add(),
         sub(),
-        push(z3_int(4, &ctx)),
+        push(4.into()),
         sub(),
         is_zero(),
-        push(z3_int(12, &ctx)),
+        push(12.into()),
         jumpi(),
-        push(z3_int(100, &ctx)),
+        push(100.into()),
         stop(),
-        push(z3_int(200, &ctx)),
+        push(200.into()),
     ];
 
     let res = machine.run_sym(&pgm);
     let (reachable, unreachable) = res;
-    let first_path_reachable_stack: &BaseStack<Int> = &reachable.first().unwrap().0 .1;
-    let first_path_unreachable_stack: &BaseStack<Int> = &unreachable.first().unwrap().0 .1;
+    let first_path_reachable_stack: &BaseStack<SymbolicInt> = &reachable.first().unwrap().0 .1;
+    let first_path_unreachable_stack: &BaseStack<SymbolicInt> = &unreachable.first().unwrap().0 .1;
 
     assert_eq!(
         first_path_reachable_stack
-            .peek::<Int>(0)
-            .unwrap()
-            .as_u64()
+            .peek::<SymbolicInt>(0)
             .unwrap(),
-        200
+        200.into()
     );
     assert_eq!(
         first_path_unreachable_stack
-            .peek::<Int>(0)
-            .unwrap()
-            .as_u64()
+            .peek::<SymbolicInt>(0)
             .unwrap(),
-        100
+        100.into()
     );
 }
 
@@ -245,29 +229,29 @@ fn test_multi_jumpi() {
     cfg.set_model_generation(true);
     let ctx = Context::new(&cfg);
 
-    let stack: BaseStack<Int> = BaseStack::init();
+    let stack: BaseStack<SymbolicInt> = BaseStack::init();
     let machine = BaseMachine::new_with_ctx(stack, Rc::new(&ctx));
     let pgm = vec![
-        push(z3_int(1, &ctx)),
-        push(z3_int(2, &ctx)),
-        push(z3_int(3, &ctx)),
+        push(1.into()),
+        push(2.into()),
+        push(3.into()),
         add(),
         sub(),
-        push(z3_int(3, &ctx)),
+        push(3.into()),
         sub(),
-        push(z3_int(13, &ctx)),
+        push(13.into()),
         jumpi(),
-        push(z3_int(100, &ctx)),
+        push(100.into()),
         stop(),
         stop(),
         stop(),
-        push(z3_int(200, &ctx)),
-        push(z3_int(201, &ctx)),
+        push(200.into()),
+        push(201.into()),
         sub(),
-        push(z3_int(19, &ctx)),
+        push(19.into()),
         jumpi(),
         stop(),
-        push(z3_int(300, &ctx)),
+        push(300.into()),
         stop(),
     ];
 

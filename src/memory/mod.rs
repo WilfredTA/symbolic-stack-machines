@@ -1,31 +1,26 @@
 pub mod error;
-pub mod memory_models;
-pub mod symbolic;
-pub mod symbolic_bv;
-use std::marker::PhantomData;
+mod symbolic_index;
 
-use crate::instructions::val::Val;
 use error::MemoryError;
-use z3::{ast::Array, FuncDecl};
+pub use symbolic_index::{
+    IndexVal as SymbolicIndexIndexVal, MemIntToInt, MemVal as SymbolicIndexMemVal,
+};
 
-pub type MemoryResult<T> = Result<T, MemoryError>;
-pub trait ReadOnlyMem: Sized {
+pub trait Mem: Sized {
     type MemVal;
     type Index;
+}
+
+pub type MemoryResult<T> = Result<T, MemoryError>;
+pub trait ReadOnlyMem: Mem {
     fn read(&self, idx: Self::Index) -> MemoryResult<Option<Self::MemVal>>;
 }
 
-pub trait WriteableMem: Sized {
-    type MemVal;
-    type Index;
-
+pub trait WriteableMem: Mem {
     fn write(&self, idx: Self::Index, val: Self::MemVal) -> MemoryResult<Self>;
 }
 
-pub trait RWMem: ReadOnlyMem + WriteableMem {
-    type InitArgs: Clone;
-    fn init(args: Self::InitArgs) -> Self;
-}
+pub trait RWMem: ReadOnlyMem + WriteableMem {}
 
 pub type MemorySlotChange<Idx, MemVal> = (Idx, MemVal, MemVal);
 pub enum MemOpRecord<I, V> {
