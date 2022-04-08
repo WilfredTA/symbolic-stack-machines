@@ -21,7 +21,7 @@ pub enum Instruction<T> {
     STOP,
 }
 
-impl<'a> VMInstruction<'a> for Instruction<Int<'a>> {
+impl<'a> VMInstruction for Instruction<Int<'a>> {
     type ValStack = BaseStack<Int<'a>>;
 
     type Mem = MemIntToInt<'a>;
@@ -30,11 +30,10 @@ impl<'a> VMInstruction<'a> for Instruction<Int<'a>> {
         &self,
         stack: &Self::ValStack,
         memory: &Self::Mem,
-    ) -> InstructionResult<ExecRecord<'a, Self::ValStack, Self::Mem>> {
-        let mut change_log: ExecRecord<'a, Self::ValStack, Self::Mem> = ExecRecord {
+    ) -> InstructionResult<ExecRecord<Self::ValStack, Self::Mem>> {
+        let mut change_log: ExecRecord<Self::ValStack, Self::Mem> = ExecRecord {
             stack_diff: None,
             mem_diff: None,
-            path_constraints: vec![],
             pc_change: None,
             halt: false,
         };
@@ -69,9 +68,7 @@ impl<'a> VMInstruction<'a> for Instruction<Int<'a>> {
                 });
             }
             Instruction::Assert(v) => {
-                let stack_top = stack.peek::<Int<'a>>(0).unwrap();
-                let constraint = stack_top._eq(v);
-                change_log.path_constraints.push(vec![constraint]);
+                todo!()
             }
             Instruction::MLOAD => {
                 let mem_offset = stack.peek::<Int<'a>>(0).unwrap();
@@ -119,17 +116,7 @@ impl<'a> VMInstruction<'a> for Instruction<Int<'a>> {
                 });
             }
             Instruction::JUMPI => {
-                let dest = stack.peek::<Int<'a>>(0).unwrap();
-                let ctx = dest.ctx;
-                let cond = stack.peek::<Int<'a>>(1).unwrap();
-                if let Some(dest) = dest.as_u64() {
-                    let zero = Int::from_u64(ctx, 0);
-                    change_log.path_constraints.push(vec![cond._eq(&zero)]);
-                    change_log
-                        .path_constraints
-                        .push(vec![Bool::not(&cond._eq(&zero))]);
-                    change_log.pc_change = Some(dest as usize);
-                }
+                todo!()
             }
             Instruction::STOP => {
                 change_log.halt = true;

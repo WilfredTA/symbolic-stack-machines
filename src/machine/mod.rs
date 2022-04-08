@@ -25,7 +25,7 @@ pub struct BaseMachine<'a, Mem, MachineStack, I, MemIdx, MemVal, StackVal>
 where
     Mem: RWMem + ReadOnlyMem<Index = MemIdx, MemVal = MemVal>,
     MachineStack: Stack<StackVal = StackVal>,
-    I: VMInstruction<'a, Mem = Mem, ValStack = MachineStack>,
+    I: VMInstruction<Mem = Mem, ValStack = MachineStack>,
     StackVal: Into<MemIdx> + Into<MemVal>,
 {
     mem: Mem,
@@ -40,7 +40,7 @@ impl<'a, Mem, MachineStack, I, MemIdx, MemVal, StackVal>
 where
     Mem: RWMem + ReadOnlyMem<Index = MemIdx, MemVal = MemVal> + std::fmt::Debug + Clone,
     MachineStack: Stack<StackVal = StackVal> + std::fmt::Debug + Clone,
-    I: VMInstruction<'a, Mem = Mem, ValStack = MachineStack>,
+    I: VMInstruction<Mem = Mem, ValStack = MachineStack>,
     StackVal: Into<MemIdx> + Into<MemVal>,
 {
     pub fn new(stack: MachineStack, mem_init: Mem::InitArgs) -> Self {
@@ -81,7 +81,7 @@ where
         ) {
             for inst in &pgm[pc.clone()..] {
                 let rec = inst.exec(&stack, &mem).unwrap();
-                println!("EXEC RECORD CONSTRAINTS: {:?}", rec.path_constraints);
+
                 if rec.halt || pc.clone() == pgm.len() {
                     return (None, None);
                 } else {
@@ -103,33 +103,6 @@ where
                         }
                     };
 
-                    if rec.path_constraints.len() == 1 {
-                        let curr_path_constraints = rec.path_constraints.first().cloned().unwrap();
-                        return (
-                            Some((
-                                pc.clone() + 1,
-                                stack.clone(),
-                                mem.clone(),
-                                curr_path_constraints,
-                            )),
-                            None,
-                        );
-                    }
-
-                    if rec.path_constraints.len() == 2 {
-                        let branch_one_rules = rec.path_constraints.first().cloned().unwrap();
-                        let branch_two_rules = rec.path_constraints.get(1).cloned().unwrap();
-
-                        return (
-                            Some((pc.clone() + 1, stack.clone(), mem.clone(), branch_one_rules)),
-                            Some((
-                                rec.pc_change.unwrap(),
-                                stack.clone(),
-                                mem.clone(),
-                                branch_two_rules,
-                            )),
-                        );
-                    }
                     return (
                         Some((pc.clone() + 1, stack.clone(), mem.clone(), vec![])),
                         None,
@@ -235,7 +208,7 @@ impl<'a, MachineStack, I>
     BaseMachine<'a, MemIntToInt<'a>, MachineStack, I, Int<'a>, Int<'a>, Int<'a>>
 where
     MachineStack: Stack<StackVal = Int<'a>>,
-    I: VMInstruction<'a, Mem = MemIntToInt<'a>, ValStack = MachineStack>,
+    I: VMInstruction<Mem = MemIntToInt<'a>, ValStack = MachineStack>,
 {
     // For symbolic memory
     pub fn new_with_ctx(stack: MachineStack, mem_init_args: Rc<&'a Context>) -> Self {
