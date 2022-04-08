@@ -10,7 +10,7 @@ pub use symbolic_index::{
 
 pub use concrete_index::MemVal as ConcreteIndexMemVal;
 
-pub trait Mem: Sized {
+pub trait Mem: Sized + std::fmt::Debug {
     type MemVal;
     type Index;
 }
@@ -30,7 +30,7 @@ pub type MemorySlotChange<Idx, MemVal> = (Idx, MemVal, MemVal);
 pub enum MemOpRecord<I, V> {
     Write(MemorySlotChange<I, V>),
 }
-pub struct MemRecord<M: WriteableMem> {
+pub struct MemRecord<M: Mem> {
     pub diff: Vec<MemOpRecord<M::Index, M::MemVal>>,
 }
 

@@ -1,11 +1,11 @@
 pub mod error;
 use error::StackError;
 pub type StackResult<T> = Result<T, StackError>;
-pub trait Stack: Sized {
+pub trait Stack: Sized + std::fmt::Debug {
     type StackVal;
+
     fn push<V: Into<Self::StackVal>>(&self, v: V) -> StackResult<Self>;
     fn pop(&self) -> StackResult<Self>;
-
     fn peek<V: From<Self::StackVal>>(&self, idx: usize) -> Option<V>;
 }
 
@@ -70,7 +70,7 @@ impl<T> BaseStack<T> {
 
 impl<T> Stack for BaseStack<T>
 where
-    T: Clone,
+    T: Clone + std::fmt::Debug,
 {
     type StackVal = T;
     fn push<V>(&self, val: V) -> StackResult<Self>

@@ -15,17 +15,17 @@ pub enum Instruction<T> {
     STOP,
 }
 
-impl VMInstruction for Instruction<SymbolicInt> {
-    type ValStack = BaseStack<SymbolicInt>;
+impl ConcreteVMInstruction for Instruction<SymbolicInt> {
+    type S = BaseStack<SymbolicInt>;
 
-    type Mem = MemIntToInt;
+    type M = MemIntToInt;
 
     fn exec(
         &self,
-        stack: &Self::ValStack,
-        memory: &Self::Mem,
-    ) -> InstructionResult<ExecRecord<Self::ValStack, Self::Mem>> {
-        let mut change_log: ExecRecord<Self::ValStack, Self::Mem> = ExecRecord {
+        stack: &Self::S,
+        memory: &Self::M,
+    ) -> InstructionResult<ExecRecord<Self::S, Self::M>> {
+        let mut change_log: ExecRecord<Self::S, Self::M> = ExecRecord {
             stack_diff: None,
             mem_diff: None,
             pc_change: None,
