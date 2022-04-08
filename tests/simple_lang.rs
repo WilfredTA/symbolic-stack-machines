@@ -19,7 +19,7 @@ pub enum Instruction<T> {
     STOP,
 }
 
-impl<'a> VMInstruction<'a> for Instruction<SymbolicInt> {
+impl VMInstruction for Instruction<SymbolicInt> {
     type ValStack = BaseStack<SymbolicInt>;
 
     type Mem = MemIntToInt;
@@ -28,11 +28,10 @@ impl<'a> VMInstruction<'a> for Instruction<SymbolicInt> {
         &self,
         stack: &Self::ValStack,
         memory: &Self::Mem,
-    ) -> InstructionResult<ExecRecord<'a, Self::ValStack, Self::Mem>> {
-        let mut change_log: ExecRecord<'a, Self::ValStack, Self::Mem> = ExecRecord {
+    ) -> InstructionResult<ExecRecord<Self::ValStack, Self::Mem>> {
+        let mut change_log: ExecRecord<Self::ValStack, Self::Mem> = ExecRecord {
             stack_diff: None,
             mem_diff: None,
-            path_constraints: vec![],
             pc_change: None,
             halt: false,
         };
@@ -162,12 +161,9 @@ pub fn stop<T>() -> Instruction<T> {
 
 #[test]
 fn test_basic_sym_mem() {
-    let mut cfg = Config::default();
-    cfg.set_model_generation(true);
-    let ctx = Context::new(&cfg);
-
     let stack: BaseStack<SymbolicInt> = BaseStack::init();
-    let machine = BaseMachine::new_with_ctx(stack, Rc::new(&ctx));
+    let mem = MemIntToInt::new();
+    let machine = BaseMachine::new(stack, mem);
     let pgm = vec![
         push(SYM("a")),
         push(3.into()),
@@ -177,17 +173,15 @@ fn test_basic_sym_mem() {
         assert(4.into()),
     ];
 
-    let _res = machine.run_sym(&pgm);
+    let _res = machine.run(&pgm);
 }
 
 #[test]
 fn test_jumpi() {
-    let mut cfg = Config::default();
-    cfg.set_model_generation(true);
-    let ctx = Context::new(&cfg);
-
     let stack: BaseStack<SymbolicInt> = BaseStack::init();
-    let machine = BaseMachine::new_with_ctx(stack, Rc::new(&ctx));
+    let mem = MemIntToInt::new();
+    let machine = BaseMachine::new(stack, mem);
+
     let pgm = vec![
         push(1.into()),
         push(2.into()),
@@ -204,33 +198,15 @@ fn test_jumpi() {
         push(200.into()),
     ];
 
-    let res = machine.run_sym(&pgm);
-    let (reachable, unreachable) = res;
-    let first_path_reachable_stack: &BaseStack<SymbolicInt> = &reachable.first().unwrap().0 .1;
-    let first_path_unreachable_stack: &BaseStack<SymbolicInt> = &unreachable.first().unwrap().0 .1;
-
-    assert_eq!(
-        first_path_reachable_stack
-            .peek::<SymbolicInt>(0)
-            .unwrap(),
-        200.into()
-    );
-    assert_eq!(
-        first_path_unreachable_stack
-            .peek::<SymbolicInt>(0)
-            .unwrap(),
-        100.into()
-    );
+    let _res = machine.run(&pgm);
 }
 
 #[test]
 fn test_multi_jumpi() {
-    let mut cfg = Config::default();
-    cfg.set_model_generation(true);
-    let ctx = Context::new(&cfg);
-
     let stack: BaseStack<SymbolicInt> = BaseStack::init();
-    let machine = BaseMachine::new_with_ctx(stack, Rc::new(&ctx));
+    let mem = MemIntToInt::new();
+    let machine = BaseMachine::new(stack, mem);
+
     let pgm = vec![
         push(1.into()),
         push(2.into()),
@@ -255,5 +231,5 @@ fn test_multi_jumpi() {
         stop(),
     ];
 
-    let _res = machine.run_sym(&pgm);
+    let _res = machine.run(&pgm);
 }
