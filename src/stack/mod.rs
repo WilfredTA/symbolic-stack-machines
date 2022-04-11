@@ -1,5 +1,7 @@
 pub mod error;
 use error::StackError;
+
+use crate::vals::ConcreteInt;
 pub type StackResult<T> = Result<T, StackError>;
 pub trait Stack: Sized + std::fmt::Debug {
     type StackVal;
@@ -63,7 +65,7 @@ where
 pub struct BaseStack<T>(Vec<T>);
 
 impl<T> BaseStack<T> {
-    pub fn init() -> Self {
+    pub fn new() -> Self {
         Self(vec![])
     }
 }
@@ -97,3 +99,5 @@ where
         self.0.get(get_idx).cloned().map(|val| val.into())
     }
 }
+
+pub type ConcreteIntStack = BaseStack<ConcreteInt>;

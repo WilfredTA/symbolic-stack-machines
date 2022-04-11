@@ -1,15 +1,16 @@
 pub mod error;
 
 mod concrete;
-mod symbolic;
 mod hybrid;
 mod impls;
+mod symbolic;
 
 use std::ops::Not;
 
 use error::InstructionError;
 
-pub use concrete::{ConcreteVMInstruction, ExecRecord};
+pub use concrete::{ConcreteVMInstruction, DynConcreteVMInstruction, ExecRecord};
+pub use impls::helpers;
 
 pub type InstructionResult<T> = Result<T, InstructionError>;
 

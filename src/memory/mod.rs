@@ -8,11 +8,11 @@ pub use symbolic_index::{
     IndexVal as SymbolicIndexIndexVal, MemIntToInt, MemVal as SymbolicIndexMemVal,
 };
 
-pub use concrete_index::MemVal as ConcreteIndexMemVal;
+pub use concrete_index::{IndexVal as ConcreteIndexIndexVal, MemVal as ConcreteIndexMemVal, MemConcreteIntToConcreteInt};
 
 pub trait Mem: Sized + std::fmt::Debug {
-    type MemVal;
     type Index;
+    type MemVal;
 }
 
 pub type MemoryResult<T> = Result<T, MemoryError>;

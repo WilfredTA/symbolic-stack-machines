@@ -3,7 +3,7 @@ use std::{
     ops::{Add, Sub},
 };
 
-use crate::memory::ConcreteIndexMemVal;
+use crate::{memory::ConcreteIndexMemVal, memory::ConcreteIndexIndexVal, instructions::Binary};
 
 use super::MachineEq;
 
@@ -28,6 +28,7 @@ impl MachineEq for ConcreteInt {
     }
 }
 
+impl ConcreteIndexIndexVal for ConcreteInt {}
 impl ConcreteIndexMemVal for ConcreteInt {}
 
 impl From<Wraps> for ConcreteInt {
@@ -63,5 +64,11 @@ impl TryInto<usize> for ConcreteInt {
 
     fn try_into(self) -> Result<usize, Self::Error> {
         self.0.try_into()
+    }
+}
+
+impl Binary for ConcreteInt {
+    fn one() -> Self {
+        1.into()
     }
 }

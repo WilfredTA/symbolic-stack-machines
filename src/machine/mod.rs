@@ -1,73 +1,33 @@
-pub mod error;
+mod concrete;
 
-use crate::instructions::*;
-use crate::memory::ReadOnlyMem;
-use crate::{memory::RWMem, stack::*};
+pub mod error;
+pub use concrete::ConcreteIntMachine;
+
 use error::MachineError;
+
+use crate::instructions::DynConcreteVMInstruction;
 
 pub type MachineResult<T> = Result<T, MachineError>;
 
 pub type Program<I> = Vec<I>;
+pub type ConcreteProgram<S, M> = Program<DynConcreteVMInstruction<S, M>>;
 
-pub struct BaseMachine<Mem, MachineStack, I, MemIdx, MemVal, StackVal>
-where
-    Mem: RWMem + ReadOnlyMem<Index = MemIdx, MemVal = MemVal>,
-    MachineStack: Stack<StackVal = StackVal>,
-    I: ConcreteVMInstruction<MachineStack, Mem>,
-    StackVal: Into<MemIdx> + Into<MemVal>,
-{
-    mem: Mem,
-    stack: MachineStack,
-    #[allow(dead_code)]
-    pgm: Program<I>,
-    #[allow(dead_code)]
-    pc: usize,
+pub trait BaseMachine<S, M, RV, I> {
+    fn peek_instruction(&self) -> Option<&I>;
+    fn can_exec(&self) -> bool;
+    fn return_value(&self) -> RV;
 }
 
-impl<Mem, MachineStack, I, MemIdx, MemVal, StackVal>
-    BaseMachine<Mem, MachineStack, I, MemIdx, MemVal, StackVal>
-where
-    Mem: RWMem + ReadOnlyMem<Index = MemIdx, MemVal = MemVal> + std::fmt::Debug + Clone,
-    MachineStack: Stack<StackVal = StackVal> + std::fmt::Debug + Clone,
-    I: ConcreteVMInstruction<MachineStack, Mem>,
-    StackVal: Into<MemIdx> + Into<MemVal>,
-{
-    pub fn new(stack: MachineStack, mem: Mem) -> Self {
-        Self {
-            mem,
-            stack,
-            pgm: vec![],
-            pc: 0,
-        }
+pub trait ConcreteMachine<S, M, RV, I>: BaseMachine<S, M, RV, I> {
+    fn exec(&self) -> Self;
+}
+
+pub fn run_machine<S, M, RV, I, Ma: ConcreteMachine<S, M, RV, I>>(m: Ma) -> RV {
+    let mut mm = m;
+
+    while mm.can_exec() {
+        mm = mm.exec();
     }
 
-    pub fn run(self, pgm: &Program<I>) -> Option<MachineStack::StackVal>
-    where
-        Mem: Clone,
-        MachineStack: Clone,
-    {
-        let mut stack = self.stack.clone();
-        let mut mem = self.mem.clone();
-
-        for inst in pgm {
-            let rec = inst.exec(&stack, &mem).unwrap();
-            stack = {
-                if let Some(stack_diff) = rec.stack_diff {
-                    stack_diff.apply(stack).unwrap()
-                } else {
-                    stack
-                }
-            };
-
-            mem = {
-                if let Some(mem_diff) = rec.mem_diff {
-                    mem_diff.apply(mem).unwrap()
-                } else {
-                    mem
-                }
-            };
-        }
-
-        stack.peek(0)
-    }
+    mm.return_value()
 }
