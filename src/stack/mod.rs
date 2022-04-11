@@ -1,7 +1,7 @@
 pub mod error;
 use error::StackError;
 
-use crate::vals::ConcreteInt;
+use crate::vals::{ConcreteInt, SymbolicInt};
 pub type StackResult<T> = Result<T, StackError>;
 pub trait Stack: Sized + std::fmt::Debug {
     type StackVal;
@@ -101,3 +101,4 @@ where
 }
 
 pub type ConcreteIntStack = BaseStack<ConcreteInt>;
+pub type SymbolicIntStack = BaseStack<SymbolicInt>;

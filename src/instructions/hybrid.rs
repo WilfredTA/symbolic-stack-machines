@@ -23,3 +23,9 @@ where
         }
     }
 }
+
+impl<S, M, C> From<DynConcreteVMInstruction<S, M>> for HybridVMInstruction<S, M, C> {
+    fn from(c: DynConcreteVMInstruction<S, M>) -> Self {
+        HybridVMInstruction::C(c)
+    }
+}

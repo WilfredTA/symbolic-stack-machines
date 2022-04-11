@@ -10,7 +10,8 @@ use std::ops::Not;
 use error::InstructionError;
 
 pub use concrete::{ConcreteVMInstruction, DynConcreteVMInstruction, ExecRecord};
-pub use impls::helpers;
+pub use impls::{helpers, sym_helpers};
+pub use hybrid::HybridVMInstruction;
 
 pub type InstructionResult<T> = Result<T, InstructionError>;
 

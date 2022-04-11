@@ -1,4 +1,5 @@
-use crate::memory::{SymbolicIndexIndexVal, SymbolicIndexMemVal};
+use crate::{memory::{SymbolicIndexIndexVal, SymbolicIndexMemVal, ConcreteIndexMemVal}, instructions::Binary};
+
 use std::{
     num::TryFromIntError,
     ops::{Add, Sub},
@@ -147,5 +148,13 @@ impl MachineEq for SymbolicInt {
             }
             MachineEqPred::S(p) => Inner::Ite(p, then.into(), xelse.into()).into(),
         }
+    }
+}
+
+impl ConcreteIndexMemVal for SymbolicInt { }
+
+impl Binary for SymbolicInt {
+    fn one() -> Self {
+        1.into()
     }
 }

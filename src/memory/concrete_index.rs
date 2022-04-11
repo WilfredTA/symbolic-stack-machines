@@ -1,4 +1,4 @@
-use crate::vals::ConcreteInt;
+use crate::vals::{ConcreteInt, SymbolicInt};
 
 use super::{Mem, MemoryResult, RWMem, ReadOnlyMem, WriteableMem};
 use std::{fmt::Debug, marker::PhantomData};
@@ -69,3 +69,4 @@ impl<IV: IndexVal, MV: MemVal> RWMem for MemConcreteIndex<IV, MV> where
 }
 
 pub type MemConcreteIntToConcreteInt = MemConcreteIndex<ConcreteInt, ConcreteInt>;
+pub type MemConcreteIntToSymbolicInt = MemConcreteIndex<ConcreteInt, SymbolicInt>;

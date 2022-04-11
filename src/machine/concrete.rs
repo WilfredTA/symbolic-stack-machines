@@ -1,6 +1,10 @@
-use crate::{stack::{Stack, ConcreteIntStack}, memory::{Mem, WriteableMem, MemConcreteIntToConcreteInt}, instructions::{ConcreteVMInstruction, DynConcreteVMInstruction}};
+use crate::{
+    instructions::{ConcreteVMInstruction, DynConcreteVMInstruction},
+    memory::{Mem, MemConcreteIntToConcreteInt, WriteableMem},
+    stack::{ConcreteIntStack, Stack},
+};
 
-use super::{Program, BaseMachine, ConcreteMachine};
+use super::{BaseMachine, ConcreteMachine, Program};
 
 #[derive(Debug)]
 pub struct BaseConcreteMachine<'a, S, M, I>
@@ -48,6 +52,18 @@ where
     fn return_value(&self) -> Option<S::StackVal> {
         self.stack.peek(0)
     }
+
+    fn stack(&self) -> &S {
+        &self.stack
+    }
+
+    fn mem(&self) -> &M {
+        &self.mem
+    }
+
+    fn pc(&self) -> usize {
+        self.pc
+    }
 }
 
 impl<'a, S, M, I> ConcreteMachine<S, M, Option<S::StackVal>, I> for BaseConcreteMachine<'a, S, M, I>
@@ -91,6 +107,15 @@ where
             stack,
             pgm: self.pgm,
             pc,
+        }
+    }
+
+    fn clone_machine(&self, stack: S, mem: M, pc: usize) -> Self {
+        Self {
+            stack,
+            mem,
+            pc,
+            pgm: self.pgm
         }
     }
 }

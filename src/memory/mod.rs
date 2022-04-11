@@ -8,7 +8,10 @@ pub use symbolic_index::{
     IndexVal as SymbolicIndexIndexVal, MemIntToInt, MemVal as SymbolicIndexMemVal,
 };
 
-pub use concrete_index::{IndexVal as ConcreteIndexIndexVal, MemVal as ConcreteIndexMemVal, MemConcreteIntToConcreteInt};
+pub use concrete_index::{
+    IndexVal as ConcreteIndexIndexVal, MemConcreteIntToConcreteInt, MemConcreteIntToSymbolicInt,
+    MemVal as ConcreteIndexMemVal,
+};
 
 pub trait Mem: Sized + std::fmt::Debug {
     type Index;
