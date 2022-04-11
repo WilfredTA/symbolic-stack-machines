@@ -13,7 +13,7 @@ pub struct BaseMachine<Mem, MachineStack, I, MemIdx, MemVal, StackVal>
 where
     Mem: RWMem + ReadOnlyMem<Index = MemIdx, MemVal = MemVal>,
     MachineStack: Stack<StackVal = StackVal>,
-    I: ConcreteVMInstruction<M = Mem, S = MachineStack>,
+    I: ConcreteVMInstruction<MachineStack, Mem>,
     StackVal: Into<MemIdx> + Into<MemVal>,
 {
     mem: Mem,
@@ -29,7 +29,7 @@ impl<Mem, MachineStack, I, MemIdx, MemVal, StackVal>
 where
     Mem: RWMem + ReadOnlyMem<Index = MemIdx, MemVal = MemVal> + std::fmt::Debug + Clone,
     MachineStack: Stack<StackVal = StackVal> + std::fmt::Debug + Clone,
-    I: ConcreteVMInstruction<M = Mem, S = MachineStack>,
+    I: ConcreteVMInstruction<MachineStack, Mem>,
     StackVal: Into<MemIdx> + Into<MemVal>,
 {
     pub fn new(stack: MachineStack, mem: Mem) -> Self {

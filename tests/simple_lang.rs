@@ -15,17 +15,13 @@ pub enum Instruction<T> {
     STOP,
 }
 
-impl ConcreteVMInstruction for Instruction<SymbolicInt> {
-    type S = BaseStack<SymbolicInt>;
-
-    type M = MemIntToInt;
-
+impl ConcreteVMInstruction<BaseStack<SymbolicInt>, MemIntToInt> for Instruction<SymbolicInt> {
     fn exec(
         &self,
-        stack: &Self::S,
-        memory: &Self::M,
-    ) -> InstructionResult<ExecRecord<Self::S, Self::M>> {
-        let mut change_log: ExecRecord<Self::S, Self::M> = ExecRecord {
+        stack: &BaseStack<SymbolicInt>,
+        memory: &MemIntToInt,
+    ) -> InstructionResult<ExecRecord<BaseStack<SymbolicInt>, MemIntToInt>> {
+        let mut change_log: ExecRecord<BaseStack<SymbolicInt>, MemIntToInt> = ExecRecord {
             stack_diff: None,
             mem_diff: None,
             pc_change: None,
@@ -81,20 +77,16 @@ impl ConcreteVMInstruction for Instruction<SymbolicInt> {
             Instruction::MSTORE => {
                 let mem_offset: SymbolicInt = stack.peek(0).unwrap();
                 let val: SymbolicInt = stack.peek(1).unwrap();
-                let prev_val = {
-                    match memory.read(mem_offset.clone()) {
-                        Ok(val) => val.unwrap(),
-                        Err(_e) => SymbolicInt::default(),
-                    }
-                };
+
                 change_log.stack_diff = Some(StackRecord {
                     changed: vec![
                         StackOpRecord::Pop(mem_offset.clone()),
                         StackOpRecord::Pop(val.clone()),
                     ],
                 });
+
                 change_log.mem_diff = Some(MemRecord {
-                    diff: vec![MemOpRecord::Write((mem_offset, prev_val, val))],
+                    diff: vec![MemOpRecord::Write((mem_offset, val))],
                 });
             }
             Instruction::ISZERO => {

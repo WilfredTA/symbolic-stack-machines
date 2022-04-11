@@ -1,16 +1,12 @@
 use crate::{memory::Mem, stack::Stack};
 
-pub trait SymbolicVMInstruction: std::fmt::Debug {
-    type S: Stack;
-    type M: Mem;
-    type C;
-
+pub trait SymbolicVMInstruction<S: Stack, M: Mem, C>: std::fmt::Debug {
     fn sym_exec(
         &self,
-        s: &Self::S,
-        m: &Self::M,
+        s: &S,
+        m: &M,
         pc: usize,
-    ) -> Vec<(Self::S, Self::M, usize, Vec<Self::C>)>;
+    ) -> Vec<(S, M, usize, Vec<C>)>;
 }
 
-pub type DynSymbolicVMInstruction<S, M, C> = Box<dyn SymbolicVMInstruction<S = S, M = M, C = C>>;
+pub type DynSymbolicVMInstruction<S, M, C> = Box<dyn SymbolicVMInstruction<S, M, C>>;

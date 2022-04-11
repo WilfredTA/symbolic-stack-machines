@@ -1,6 +1,9 @@
 use std::ops::Deref;
 
-use crate::{stack::{Stack, StackRecord}, memory::{MemRecord, Mem}};
+use crate::{
+    memory::{Mem, MemRecord},
+    stack::{Stack, StackRecord},
+};
 
 use super::InstructionResult;
 
@@ -15,27 +18,36 @@ where
     pub halt: bool,
 }
 
-pub trait ConcreteVMInstruction: std::fmt::Debug {
-    type S: Stack;
-    type M: Mem;
-
-    fn exec(
-        &self,
-        stack: &Self::S,
-        memory: &Self::M,
-    ) -> InstructionResult<ExecRecord<Self::S, Self::M>>;
+impl<S: Stack, M: Mem> Default for ExecRecord<S, M> {
+    fn default() -> Self {
+        ExecRecord {
+            stack_diff: None,
+            mem_diff: None,
+            pc_change: None,
+            halt: false,
+        }
+    }
 }
 
-pub type DynConcreteVMInstruction<S, M> = Box<dyn ConcreteVMInstruction<S = S, M = M>>;
-
-impl<S, M> ConcreteVMInstruction for DynConcreteVMInstruction<S, M>
+pub trait ConcreteVMInstruction<S, M>: std::fmt::Debug
 where
     S: Stack,
     M: Mem,
 {
-    type S = S;
-    type M = M;
+    fn exec(
+        &self,
+        stack: &S,
+        memory: &M,
+    ) -> InstructionResult<ExecRecord<S, M>>;
+}
 
+pub type DynConcreteVMInstruction<S, M> = Box<dyn ConcreteVMInstruction<S, M>>;
+
+impl<S, M> ConcreteVMInstruction<S,M> for DynConcreteVMInstruction<S, M>
+where
+    S: Stack,
+    M: Mem,
+{
     fn exec(&self, stack: &S, memory: &M) -> InstructionResult<ExecRecord<S, M>> {
         self.deref().exec(stack, memory)
     }
