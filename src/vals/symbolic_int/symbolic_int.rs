@@ -1,11 +1,9 @@
-use crate::{memory::{SymbolicIndexIndexVal, SymbolicIndexMemVal, ConcreteIndexMemVal}, instructions::Binary};
+use crate::{memory::{SymbolicIndexIndexVal, SymbolicIndexMemVal, ConcreteIndexMemVal}, instructions::Binary, vals::MachineEq};
 
 use std::{
     num::TryFromIntError,
     ops::{Add, Sub},
 };
-
-use super::machine_eq::MachineEq;
 
 pub type Wraps = i64;
 
@@ -29,8 +27,8 @@ pub enum Inner {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct EqCheck {
-    l: Box<SymbolicInt>,
-    r: Box<SymbolicInt>,
+    pub l: Box<SymbolicInt>,
+    pub r: Box<SymbolicInt>,
 }
 
 #[allow(non_snake_case)]

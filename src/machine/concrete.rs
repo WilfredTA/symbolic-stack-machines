@@ -115,7 +115,7 @@ where
             stack,
             mem,
             pc,
-            pgm: self.pgm
+            pgm: self.pgm,
         }
     }
 }
@@ -126,3 +126,13 @@ pub type ConcreteIntMachine<'a> = BaseConcreteMachine<
     MemConcreteIntToConcreteInt,
     DynConcreteVMInstruction<ConcreteIntStack, MemConcreteIntToConcreteInt>,
 >;
+
+pub fn run_machine<S, M, RV, I, Ma: ConcreteMachine<S, M, RV, I>>(m: Ma) -> RV {
+    let mut mm = m;
+
+    while mm.can_exec() {
+        mm = mm.exec();
+    }
+
+    mm.return_value()
+}
