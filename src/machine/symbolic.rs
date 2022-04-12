@@ -124,7 +124,7 @@ where
 
                     Self {
                         concrete_machine,
-                        constraints: self.constraints.clone(),
+                        constraints: constraints,
 
                         stack_pd: PhantomData,
                         mem_pd: PhantomData,
