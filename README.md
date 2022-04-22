@@ -46,3 +46,56 @@ See `lib.rs` for a toy instruction set and its symbolic execution.
 2. Remove direct z3 dependency and generate an IR + transformation from IR -> target (e.g., smtlib2, rust-z3 bindings)
 3. For niche exec environment, provide custom context definition and access on the machine
 4. Add a generic context switch method; useful for describing behavior of one program calling another (such as smart contract calls)
+
+
+
+
+
+
+
+# Architecture 
+
+*From Tannr<>Will meeting Apr 21 2022*
+
+Core Library
+    - Abstract Instruction
+    - Abstract Machine
+    - Abstract ExecRecord
+    - Machine Components
+        - Abstract Memory
+        - Abstract Stack
+        - Abstract Storage
+        - Abstract Environment (syscalls; evm gas type thing;)
+    - IR
+
+    Machine <--- Vec<Instruction>
+       |  ^
+       |  |
+       |  | ExecRecord
+       V  |
+   Inst::Exec 
+
+
+
+Auxiliary More Core than Libs that Use Core Library
+    - modules:
+        - Memory
+            - SymbolicMem (abstracted over idx type & val type)
+                - SymIntSymInt
+                - SymIntConcreteInt
+                - ConcreteIntSymInt
+                - etc..
+        - Stack
+        - Storage
+            - HardDiskInodeFileSystem
+            - FlatStorageArray
+        - Env
+            - EthEnv
+            - Bitcoin Env
+        - Solvers
+            - z3
+            - Eth-SMT
+            - Yices
+            - CVC4|5
+            - Smtlib2
+        
