@@ -102,10 +102,10 @@ where
                 let ret = i.exec::<C>(&self.stack,&self.mem, &self.custom_env).unwrap();
                 if ret.halt || pc == pgm.len() {
                     return AbstractExecBranch {
-                        l: todo!(),
-                        r: todo!(),
-                        l_constraints: todo!(),
-                        r_constraints: todo!()
+                        l: None,
+                        r: None,
+                        l_constraints: vec![],
+                        r_constraints: vec![]
                     };
                 }
 
