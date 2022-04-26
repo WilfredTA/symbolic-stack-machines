@@ -1,5 +1,7 @@
 use std::borrow::Borrow;
 pub use std::rc::Rc;
+
+
 #[derive(Clone)]
 pub enum Constraint<V> {
     Assert(V),
@@ -9,17 +11,46 @@ pub enum Constraint<V> {
     Ite(Rc<Constraint<V>>, V, V)
 }
 
+
+
 impl<V> Constraint<V> 
 where V: Clone
 {
     fn solve<C, M>(&self) -> SatResult<M> 
     where
-        C: Constrained<Model = M> + From<Self>
+        C: Solver<Model = M> + From<Self>
         
     {
         C::from(self.clone()).check()
-    } 
+    }
+
+    fn assert(v: V) -> Self {
+        Self::Assert(v)
+    }
+
+    fn and(self, c: Constraint<V>) -> Self {
+        Self::And(Rc::new(self), Rc::new(c))
+    }
+    // to do rest
 }
+
+pub struct ConstraintSolver<S: Solver, V> {
+    pub constraints: Vec<Constraint<V>>,
+    pub solver: S
+}
+
+pub trait Solver: Constrained {
+    fn assert<V>(&mut self, constraint: &Constraint<V>);
+    fn solve<V>(&self) -> SatResult<Self::Model>;
+}
+
+// impl<S,V> Constrained for ConstraintSolver<S,V> {
+//     type Model;
+
+//     fn check(&self) -> SatResult<Self::Model> {
+//         todo!()
+//     }
+// }
 #[derive(Clone)]
 pub enum CmpType {
   GT,

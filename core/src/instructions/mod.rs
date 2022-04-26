@@ -37,7 +37,7 @@ pub struct AbstractExecRecord<S, M, Ext, C>
 where
     S: Stack,
     M: RWMem,
-    Ext: EnvExtension,
+    Ext: EnvExtensionRecord,
     C: Into<Constraint<C>>,
 {
     pub stack_diff: Option<StackRecord<S>>,
@@ -45,18 +45,16 @@ where
     pub ext_diff: Option<Ext>,
     pub pc_change: Option<usize>,
     pub halt: bool,
-    constraints: Option<Vec<C>>,
+    pub constraints: Option<Vec<Vec<Constraint<C>>>>,
 }
 
-pub trait EnvExtensionRecord {
-    type Env: EnvExtension;
-    type ErrorType;
-    fn apply(&self, env: Self::Env) -> Result<Self::Env, Self::ErrorType>;
+pub trait EnvExtensionRecord: Sized {
+    fn apply<E: EnvExtension>(&self, env: E) -> Result<E, E::ErrorType>;
 }
 
 pub trait EnvExtension {
     type InnerValue;
-    type ErrorType;
+    type ErrorType: std::fmt::Debug;
     type IndexType;
     type DiffRecordType: EnvExtensionRecord;
     fn write<V: Into<Self::InnerValue>>(&self, v: V) -> Result<Self, Self::ErrorType> where Self: Sized;
@@ -71,5 +69,6 @@ pub trait AbstractInstruction {
     type ReturnRecord;
 
     fn exec<C: Into<Constraint<C>>>(&self, stack: &Self::Stack, mem: &Self::Mem, ext: &Self::Extension) 
-    -> InstructionResult<AbstractExecRecord<Self::Stack, Self::Mem, Self::Extension, C>>;
+    -> InstructionResult<AbstractExecRecord<Self::Stack, Self::Mem, 
+    <<Self as crate::instructions::AbstractInstruction>::Extension as EnvExtension>::DiffRecordType, C>>;
 }
