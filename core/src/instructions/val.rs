@@ -114,4 +114,11 @@ impl<'a> SymbolicBytes<'a> {
         let val = BV::from_u64(self.inner.get_ctx(), val, self.size as u32);
         self.inner = self.inner.bvadd(&val);
     }
+
+    pub fn extend(&self, other: BV<'a>) -> Self {
+        Self {
+            inner: self.inner.concat(&other),
+            size: self.size
+        }
+    }
 }

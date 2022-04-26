@@ -1,5 +1,5 @@
-use symbolic_stack_machines::memory::{MemOpRecord, MemRecord, ReadOnlyMem};
-use symbolic_stack_machines::{instructions::*, machine::*, memory::memory_models::*, stack::*};
+use symbolic_stack_machines_core::memory::{MemOpRecord, MemRecord, ReadOnlyMem};
+use symbolic_stack_machines_core::{instructions::*, machine::*, memory::memory_models::*, stack::*};
 
 use std::rc::Rc;
 use z3::ast::{Ast, Bool, Int};
