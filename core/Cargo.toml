@@ -1,0 +1,12 @@
+[package]
+name = "symbolic-stack-machines-core"
+version = "0.1.0"
+edition = "2021"
+authors = ["Tannr Allard <tannr@hey.com>", "Will Berman <will@paradigm.xyz>"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html[workspace]
+[dependencies]
+byteorder = "1.4.3"
+hex = "0.4.3"
+thiserror = "1.0.30"
+z3 = "0.11.2"
