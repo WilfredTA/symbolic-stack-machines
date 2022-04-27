@@ -93,7 +93,7 @@ where
             pc,
         }
     }
-    pub fn exec<C: Into<Constraint<C>> + Clone, CS: Solver>(&self, solver: Option<CS>) -> MachineResult<PathSummary<I, C, CS::Model>> {
+    pub fn exec<C: Into<Constraint<C>> + Clone, G, Ast, CS: Solver<C, Ast, G>>(&self, solver: Option<CS>) -> MachineResult<PathSummary<I, C, CS::Model>> {
        
 
         let execute = |pc: usize, pgm: &Vec<I>, mut stack:S, mut mem: M, mut ext: Ext | -> AbstractExecBranch< I, C> {
@@ -220,9 +220,9 @@ where
            
                 let constraints = &leaf.1;
                 for constraint in constraints {
-                    solver.assert(constraint);
+                    solver.generic_assert(constraint);
                 }
-                let sat = solver.solve::<C>();
+                let sat = solver.solve();
                 if let SatResult::Sat(m) = sat {
                     summary.reachable.push((leaf, SatResult::Sat(m)));
                 } else {

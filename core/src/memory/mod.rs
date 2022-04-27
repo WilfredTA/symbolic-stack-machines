@@ -2,6 +2,7 @@ pub mod error;
 pub mod memory_models;
 pub mod symbolic;
 pub mod symbolic_bv;
+pub mod r#abstract;
 use std::marker::PhantomData;
 
 use crate::instructions::val::Val;

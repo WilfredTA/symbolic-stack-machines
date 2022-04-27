@@ -19,6 +19,11 @@ pub enum Node<V> {
     Compound(Rc<Constraint<V>>),
 }
 
+impl<G> AsRef<Constraint<G>> for Constraint<G> {
+    fn as_ref(&self) -> &Constraint<G> {
+        self
+    }
+} 
 
 
 
@@ -201,14 +206,16 @@ where V: Clone
     // to do rest
 }
 
-pub struct ConstraintSolver<S: Solver, V> {
-    pub constraints: Vec<Constraint<V>>,
-    pub solver: S
-}
+// pub struct ConstraintSolver<S: Solver, V> {
+//     pub constraints: Vec<Constraint<V>>,
+//     pub solver: S
+// }
 
-pub trait Solver: Constrained {
-    fn assert<V>(&mut self, constraint: &Constraint<V>);
-    fn solve<V>(&self) -> SatResult<Self::Model>;
+pub trait Solver<V, Ast, G>: Constrained + Transpile<V, Ast, G> 
+where V: Clone
+{
+    fn generic_assert(&mut self, constraint: &Constraint<V>);
+    fn solve(&self) -> SatResult<Self::Model>;
 }
 
 #[derive(Clone)]
@@ -234,7 +241,8 @@ impl<T: Clone> AbstractConstraintValue<T> {
 
 pub enum SatResult<M> {
     Sat(M),
-    Unsat
+    Unsat,
+    Unknown
 }
 
 pub trait Constrained {
