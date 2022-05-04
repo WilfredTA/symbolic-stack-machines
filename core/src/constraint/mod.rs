@@ -45,11 +45,6 @@ impl<V: Clone> Node<V> {
         }
     }
 }
-
-
-
-
-
 pub trait Transpile<V: Clone, Ast, G> {
 
     fn val_to_ground_type(&self, v: V) -> G;
@@ -228,16 +223,7 @@ pub enum CmpType<V> {
   NEQ(Node<V>, Node<V>),
 }
 
-#[derive(Clone)]
-pub struct AbstractConstraintValue<T>(T);
-impl<T: Clone> AbstractConstraintValue<T> {
-    fn new(t: T) -> Self {
-        Self(t)
-    }
-    fn read_inner<V: From<T>>(&self) -> V {
-        self.clone().0.into()
-    }
-}
+
 
 pub enum SatResult<M> {
     Sat(M),

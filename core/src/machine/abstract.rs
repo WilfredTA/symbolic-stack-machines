@@ -1,6 +1,6 @@
 use crate::{instructions::{AbstractInstruction, InstructionResult, error::InstructionError, EnvExtension, EnvExtensionRecord}, stack::Stack, constraint::{Solver, self, SatResult}};
 use crate::memory::{RWMem, ReadOnlyMem};
-use crate::constraint::{AbstractConstraintValue, CmpType, Constraint};
+use crate::constraint::{CmpType, Constraint};
 use thiserror::Error;
 
 #[derive(Error, Debug)]

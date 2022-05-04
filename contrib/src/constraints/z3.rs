@@ -1,8 +1,10 @@
 use symbolic_stack_machines_core::constraint::*;
+use symbolic_stack_machines_core::machine::r#abstract::AbstractExecBranch;
+use symbolic_stack_machines_core::value::r#abstract::{AbstractInt, AbstractValue, Val};
 use z3::ast::{Bool, Int, Ast};
 use z3::{Solver as Z3InnerSolver, SatResult as Z3SatResult, Model, Context, Config};
 
-
+pub type ValInt = Val<AbstractInt>;
 
 pub struct Z3SolverBuilder {
     ctx: Option<Context>,
@@ -54,11 +56,34 @@ pub fn z3_int<'a>(i: u64, ctxt: &'a Context) -> z3::ast::Int<'a> {
     Int::from_u64(&ctxt, i)
 }
 
+
+pub fn z3_int_var<'a>(i: &str, ctxt: &'a Context) -> z3::ast::Int<'a> {
+    Int::new_const(&ctxt, i)
+}
+
 impl<'a, T> Constrained for Z3Solver<'a, T> {
     type Model = Model<'a>;
 
     fn check(&self) -> SatResult<Self::Model> {
         todo!()
+    }
+}
+
+impl<'a> Solver<ValInt, Bool<'a>, Int<'a>> for Z3Solver<'a, ValInt>
+{
+    fn solve(&self) -> SatResult<Self::Model> {
+        match self.inner().check() {
+            Z3SatResult::Sat => {
+                SatResult::Sat(self.inner().get_model().unwrap())
+            },
+            Z3SatResult::Unsat => SatResult::Unsat,
+            Z3SatResult::Unknown => SatResult::Unknown,
+            
+        }
+    }
+
+    fn generic_assert(&mut self, constraint: &Constraint<ValInt>) {
+        self.inner().assert(&self.transpile(constraint));
     }
 }
 
@@ -95,6 +120,72 @@ impl<'a> Transpile<u64, Bool<'a>, Int<'a>> for Z3Solver<'a, u64> {
 
     fn ground_type_to_val(&self, g: Int<'a>) -> u64 {
         g.as_u64().unwrap()
+    }
+
+    fn assert(&self, c: Bool<'a>) -> Bool<'a> {
+        self.inner().assert(&c);
+        c
+    }
+
+    fn and(&self, l: Bool<'a>, r: Bool<'a>) -> Bool<'a> {
+        z3::ast::Bool::and(l.get_ctx(), &vec![&l, &r])
+    }
+
+    fn not(&self, c: Bool<'a>) -> Bool<'a> {
+        z3::ast::Bool::not(&c)
+    }
+
+    fn or(&self, l: Bool<'a>, r: Bool<'a>) -> Bool<'a> {
+        z3::ast::Bool::or(l.get_ctx(), &vec![&l, &r])
+    }
+
+    fn gt(&self, l: Int<'a>, r: Int<'a>) -> Bool<'a> {
+        l.gt(&r)
+    }
+
+    fn lt(&self, l: Int<'a>, r: Int<'a>) -> Bool<'a> {
+        l.lt(&r)
+    }
+
+    fn lte(&self, l: Int<'a>, r: Int<'a>) -> Bool<'a> {
+        l.le(&r)
+    }
+
+    fn gte(&self, l: Int<'a>, r: Int<'a>) -> Bool<'a> {
+        l.ge(&r)
+    }
+
+    fn eq(&self, l: Int<'a>, r: Int<'a>) -> Bool<'a> {
+        l._eq(&r)
+    }
+
+    fn neq(&self, l: Int<'a>, r: Int<'a>) -> Bool<'a> {
+        self.not(self.eq(l, r))
+    }
+
+    fn true_(&self) -> Bool<'a> {
+        Bool::from_bool(&self.get_ctx(), true)
+    }
+
+    fn false_(&self) -> Bool<'a> {
+        Bool::from_bool(&self.get_ctx(), false)
+    }
+}
+
+
+impl<'a> Transpile<ValInt, Bool<'a>, Int<'a>> for Z3Solver<'a, ValInt> {
+    fn val_to_ground_type(&self, v: ValInt) -> Int<'a> {
+        if let Some(val) = v.inner::<AbstractInt>().inner() {
+            z3_int(val, self.get_ctx())
+        } else {
+            z3_int_var(v.id(), self.get_ctx())
+        }
+        
+    }
+
+    fn ground_type_to_val(&self, g: Int<'a>) -> ValInt {
+        
+        ValInt::new(g.as_u64().unwrap().into(), g.to_string())
     }
 
     fn assert(&self, c: Bool<'a>) -> Bool<'a> {

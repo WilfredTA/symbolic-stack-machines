@@ -8,6 +8,7 @@ mod common;
 
 use common::{z3_int, z3_int_var};
 
+
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum Instruction<T> {
     Add,

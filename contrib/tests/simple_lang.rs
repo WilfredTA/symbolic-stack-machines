@@ -1,13 +1,13 @@
 use symbolic_stack_machines_core::memory::{MemOpRecord, MemRecord, ReadOnlyMem};
 use symbolic_stack_machines_core::{instructions::*, machine::*, memory::memory_models::*, stack::*};
-
+use symbolic_stack_machines_core::value::r#abstract::{AbstractInt, AbstractValue, Val};
 use std::rc::Rc;
 use z3::ast::{Ast, Bool, Int};
 use z3::{Config, Context};
 mod common;
 
 use common::{z3_int, z3_int_var};
-
+type ValInt = Val<AbstractInt>;
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum Instruction<T> {
     Add,
@@ -51,7 +51,21 @@ impl EnvExtensionRecord for DummyExtEnvRecord {
 }
 type SimpleLangRecord = AbstractExecRecord<BaseStack<u64>, BaseMemoryConcreteUint64, DummyExtEnvRecord, u64>;
 
+// impl AbstractInstruction for Instruction<ValInt> {
+//     type Stack;
 
+//     type Mem;
+
+//     type Extension;
+
+//     type ReturnRecord;
+
+//     fn exec<C: Into<symbolic_stack_machines_core::constraint::Constraint<C>>>(&self, stack: &Self::Stack, mem: &Self::Mem, ext: &Self::Extension) 
+//     -> InstructionResult<AbstractExecRecord<Self::Stack, Self::Mem, 
+//     EnvExtension::DiffRecordType, C>> {
+//         todo!()
+//     }
+// }
 
 impl AbstractInstruction for Instruction<u64> {
     type Stack = BaseStack<u64>;
