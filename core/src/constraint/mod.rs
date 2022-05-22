@@ -1,6 +1,4 @@
-use std::borrow::Borrow;
 pub use std::rc::Rc;
-
 
 #[derive(Clone)]
 pub enum Constraint<V> {
@@ -11,7 +9,7 @@ pub enum Constraint<V> {
     And(Node<V>, Node<V>),
     Or(Node<V>, Node<V>),
     BinCmp(CmpType<V>),
-    Ite(Rc<Constraint<V>>, V, V)
+    Ite(Rc<Constraint<V>>, V, V),
 }
 #[derive(Clone)]
 pub enum Node<V> {
@@ -23,9 +21,7 @@ impl<G> AsRef<Constraint<G>> for Constraint<G> {
     fn as_ref(&self) -> &Constraint<G> {
         self
     }
-} 
-
-
+}
 
 impl<V: Clone> Node<V> {
     pub fn new_simple(v: V) -> Self {
@@ -46,7 +42,6 @@ impl<V: Clone> Node<V> {
     }
 }
 pub trait Transpile<V: Clone, Ast, G> {
-
     fn val_to_ground_type(&self, v: V) -> G;
     fn ground_type_to_val(&self, g: G) -> V;
     fn assert(&self, c: Ast) -> Ast;
@@ -80,14 +75,14 @@ pub trait Transpile<V: Clone, Ast, G> {
                 } else {
                     panic!("Cannot assert a ground value")
                 }
-            },
+            }
             Constraint::Not(c) => {
                 if let Node::Compound(constraint) = c {
                     self.transpile(constraint)
                 } else {
                     panic!("Cannot logically operate a ground value")
                 }
-            },
+            }
             Constraint::And(l, r) => {
                 let l = {
                     if let Node::Compound(c) = l {
@@ -106,7 +101,7 @@ pub trait Transpile<V: Clone, Ast, G> {
                 };
 
                 self.and(l, r)
-            },
+            }
             Constraint::Or(l, r) => {
                 let l = {
                     if let Node::Compound(c) = l {
@@ -125,44 +120,45 @@ pub trait Transpile<V: Clone, Ast, G> {
                 };
 
                 self.or(l, r)
-            },
-            Constraint::BinCmp(cmp) => {
-                match cmp {
-                    CmpType::GT(l, r) => {
-                        self.gt(self.val_to_ground_type(l.unwrap()), self.val_to_ground_type(r.unwrap()))
-                    },
-                    CmpType::LT(l, r) => {
-                        self.lt(self.val_to_ground_type(l.unwrap()), self.val_to_ground_type(r.unwrap()))
-                    },
-                    CmpType::GTE(l, r) => {
-                        self.gte(self.val_to_ground_type(l.unwrap()), self.val_to_ground_type(r.unwrap()))
-                    },
-                    CmpType::LTE(l, r) => {
-                        self.lte(self.val_to_ground_type(l.unwrap()), self.val_to_ground_type(r.unwrap()))
-                    },
-                    CmpType::EQ(l, r) => {
-                        self.eq(self.val_to_ground_type(l.unwrap()), self.val_to_ground_type(r.unwrap()))
-                    },
-                    CmpType::NEQ(l, r) => {
-                        self.neq(self.val_to_ground_type(l.unwrap()), self.val_to_ground_type(r.unwrap()))
-                    },
-                }
+            }
+            Constraint::BinCmp(cmp) => match cmp {
+                CmpType::GT(l, r) => self.gt(
+                    self.val_to_ground_type(l.unwrap()),
+                    self.val_to_ground_type(r.unwrap()),
+                ),
+                CmpType::LT(l, r) => self.lt(
+                    self.val_to_ground_type(l.unwrap()),
+                    self.val_to_ground_type(r.unwrap()),
+                ),
+                CmpType::GTE(l, r) => self.gte(
+                    self.val_to_ground_type(l.unwrap()),
+                    self.val_to_ground_type(r.unwrap()),
+                ),
+                CmpType::LTE(l, r) => self.lte(
+                    self.val_to_ground_type(l.unwrap()),
+                    self.val_to_ground_type(r.unwrap()),
+                ),
+                CmpType::EQ(l, r) => self.eq(
+                    self.val_to_ground_type(l.unwrap()),
+                    self.val_to_ground_type(r.unwrap()),
+                ),
+                CmpType::NEQ(l, r) => self.neq(
+                    self.val_to_ground_type(l.unwrap()),
+                    self.val_to_ground_type(r.unwrap()),
+                ),
             },
             Constraint::Ite(_, _, _) => todo!(),
-            Constraint::True => {
-                self.assert(self.true_())
-            },
-            Constraint::False => {
-                self.assert(self.false_())
-            },
+            Constraint::True => self.assert(self.true_()),
+            Constraint::False => self.assert(self.false_()),
         }
     }
 }
 
-impl<V> Constraint<V> 
-where V: Clone
+#[allow(dead_code)]
+impl<V> Constraint<V>
+where
+    V: Clone,
 {
-
     fn assert(c: Constraint<V>) -> Self {
         Self::Assert(Node::new_compound(c))
     }
@@ -206,8 +202,9 @@ where V: Clone
 //     pub solver: S
 // }
 
-pub trait Solver<V, Ast, G>: Constrained + Transpile<V, Ast, G> 
-where V: Clone
+pub trait Solver<V, Ast, G>: Constrained + Transpile<V, Ast, G>
+where
+    V: Clone,
 {
     fn generic_assert(&mut self, constraint: &Constraint<V>);
     fn solve(&self) -> SatResult<Self::Model>;
@@ -215,25 +212,22 @@ where V: Clone
 
 #[derive(Clone)]
 pub enum CmpType<V> {
-  GT(Node<V>, Node<V>),
-  LT(Node<V>, Node<V>),
-  GTE(Node<V>, Node<V>),
-  LTE(Node<V>, Node<V>),
-  EQ(Node<V>, Node<V>),
-  NEQ(Node<V>, Node<V>),
+    GT(Node<V>, Node<V>),
+    LT(Node<V>, Node<V>),
+    GTE(Node<V>, Node<V>),
+    LTE(Node<V>, Node<V>),
+    EQ(Node<V>, Node<V>),
+    NEQ(Node<V>, Node<V>),
 }
-
-
 
 pub enum SatResult<M> {
     Sat(M),
     Unsat,
-    Unknown
+    Unknown,
 }
 
 pub trait Constrained {
     type Model;
-    
+
     fn check(&self) -> SatResult<Self::Model>;
-    
 }
