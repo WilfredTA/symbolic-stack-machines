@@ -116,7 +116,7 @@ impl<'a> SymbolicBytes<'a> {
     pub fn extend(&self, other: BV<'a>) -> Self {
         Self {
             inner: self.inner.concat(&other),
-            size: self.size
+            size: self.size,
         }
     }
 }

@@ -10,7 +10,7 @@
 // }
 
 // pub type MachineResult<T> = Result<T, AbstractMachineError>;
-// pub struct AbstractExecBranch<IType, T> 
+// pub struct AbstractExecBranch<IType, T>
 // where IType: AbstractInstruction
 // {
 //     pub l: Option<AbstractMachine<IType>>,
@@ -41,7 +41,7 @@
 //     }
 // }
 
-// impl<I,T> From<SingleBranch<I, T>> for AbstractExecBranch<I, T> 
+// impl<I,T> From<SingleBranch<I, T>> for AbstractExecBranch<I, T>
 // where I: AbstractInstruction
 // {
 //     fn from(b: SingleBranch<I, T>) -> Self {
@@ -56,9 +56,8 @@
 
 // pub type SingleBranch<I: AbstractInstruction, T> = (AbstractMachine<I>, Vec<Constraint<T>>);
 
-
 // #[derive(Default)]
-// pub struct PathSummary<IType, T, M> 
+// pub struct PathSummary<IType, T, M>
 // where IType: AbstractInstruction
 // {
 //     pub reachable: Vec<(SingleBranch<IType, T>, SatResult<M>)>,
@@ -83,7 +82,6 @@
 //     I: AbstractInstruction<Stack = S, Mem = M, Extension = Ext> + Clone,
 // {
 
-   
 //     pub fn new(stack: S, mem: M, custom_env: Ext, pgm: Vec<I>, pc: usize) -> Self {
 //         Self {
 //             pgm,
@@ -94,10 +92,9 @@
 //         }
 //     }
 //     pub fn exec<C: Into<Constraint<C>> + Clone, G, Ast, CS: Solver<C, Ast, G>>(&self, solver: Option<CS>) -> MachineResult<PathSummary<I, C, CS::Model>> {
-       
 
 //         let execute = |pc: usize, pgm: &Vec<I>, mut stack:S, mut mem: M, mut ext: Ext | -> AbstractExecBranch< I, C> {
-            
+
 //             for i in &pgm[pc..] {
 //                 let ret = i.exec::<C>(&self.stack,&self.mem, &self.custom_env).unwrap();
 //                 if ret.halt || pc == pgm.len() {
@@ -127,7 +124,7 @@
 
 //                 ext = {
 //                     if let Some(ext_diff) = ret.ext_diff {
-//                         ext_diff.apply(ext).unwrap() 
+//                         ext_diff.apply(ext).unwrap()
 //                     } else {
 //                         ext
 //                     }
@@ -144,7 +141,7 @@
 //                     if let Some(c) = constraints.first() {
 //                         continuation_branch.l_constraints = c.clone();
 //                     }
-    
+
 //                     if let Some(c) = constraints.get(1) {
 //                         continuation_branch.r_constraints = c.clone();
 //                         // Can unrwap pc_change on right side since it will be a jump of some form
@@ -158,7 +155,7 @@
 //             AbstractExecBranch {
 //                 l: None,
 //                 r: None,
-              
+
 //                 l_constraints:vec![],
 //                 r_constraints: vec![],
 //             }
@@ -167,7 +164,7 @@
 //         let init_branch: AbstractExecBranch<I, C> = AbstractExecBranch {
 //             l: Some(self.clone()),
 //             r: None,
-          
+
 //             l_constraints:vec![],
 //             r_constraints: vec![],
 //         };
@@ -209,7 +206,6 @@
 //                 break;
 //             }
 //         }
-                
 
 //         let mut summary = PathSummary {
 //             reachable: vec![],
@@ -217,7 +213,7 @@
 //         };
 //         if let Some(mut solver) = solver {
 //             for leaf in leaves {
-           
+
 //                 let constraints = &leaf.1;
 //                 for constraint in constraints {
 //                     solver.generic_assert(constraint);

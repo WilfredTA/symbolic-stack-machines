@@ -4,7 +4,7 @@ use std::rc::Rc;
 use z3::ast::{Array, Ast, Int, BV};
 use z3::{Context, FuncDecl};
 
-use super::{RWMem, ReadOnlyMem, WriteableMem, Mem};
+use super::{Mem, RWMem, ReadOnlyMem, WriteableMem};
 #[derive(Debug, Clone)]
 pub struct BaseMemoryConcreteIndex<T> {
     pub _inner: Vec<Val<T>>,
@@ -38,7 +38,7 @@ pub type MemBitVecToAny<'a, T> = BaseMemorySymbolicArray<'a, BV<'a>, T>;
 pub type MemBitVecToInt<'a> = MemBitVecToAny<'a, Int<'a>>;
 pub type BaseMemoryConcreteUint64 = BaseMemoryConcreteIndex<u64>;
 
-impl<'a, I> Mem for BaseMemorySymbolicArray<'a, I, BV<'a>> 
+impl<'a, I> Mem for BaseMemorySymbolicArray<'a, I, BV<'a>>
 where
     I: z3::ast::Ast<'a>,
 {
@@ -46,7 +46,6 @@ where
 
     type Index = I;
 }
-
 
 impl<'a, I> ReadOnlyMem for BaseMemorySymbolicArray<'a, I, BV<'a>>
 where
@@ -91,7 +90,7 @@ where
     }
 }
 
-impl <'a> Mem for BaseMemorySymbolicArray<'a, u64, u64> {
+impl<'a> Mem for BaseMemorySymbolicArray<'a, u64, u64> {
     type MemVal = u64;
     type Index = u64;
 }
@@ -138,7 +137,7 @@ impl<'a> RWMem for BaseMemorySymbolicArray<'a, u64, u64> {
     }
 }
 
-impl <'a> Mem for MemIntToInt<'a> {
+impl<'a> Mem for MemIntToInt<'a> {
     type MemVal = Int<'a>;
     type Index = Int<'a>;
 }

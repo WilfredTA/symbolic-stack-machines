@@ -1,8 +1,8 @@
+pub mod r#abstract;
 pub mod error;
 pub mod memory_models;
 pub mod symbolic;
 pub mod symbolic_bv;
-pub mod r#abstract;
 
 use error::MemoryError;
 

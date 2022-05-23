@@ -1,5 +1,7 @@
 use symbolic_stack_machines_core::memory::{MemOpRecord, MemRecord, ReadOnlyMem};
-use symbolic_stack_machines_core::{instructions::*, machine::*, memory::memory_models::*, stack::*};
+use symbolic_stack_machines_core::{
+    instructions::*, machine::*, memory::memory_models::*, stack::*,
+};
 
 use std::rc::Rc;
 use z3::ast::{Ast, Bool, Int};
@@ -7,7 +9,6 @@ use z3::{Config, Context};
 mod common;
 
 use common::{z3_int, z3_int_var};
-
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum Instruction<T> {

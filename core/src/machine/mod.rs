@@ -1,9 +1,9 @@
-pub mod error;
 pub mod r#abstract;
+pub mod error;
 use std::rc::Rc;
 
 use crate::instructions::*;
-use crate::memory::{ReadOnlyMem};
+use crate::memory::ReadOnlyMem;
 use crate::{
     memory::{memory_models::MemIntToInt, RWMem},
     stack::*,

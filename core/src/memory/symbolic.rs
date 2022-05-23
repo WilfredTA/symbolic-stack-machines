@@ -9,7 +9,7 @@ pub struct BaseSymbolicMem<'a> {
     inner: Array<'a>,
 }
 
-impl <'a> Mem for BaseSymbolicMem<'a> {
+impl<'a> Mem for BaseSymbolicMem<'a> {
     type MemVal = Int<'a>;
     type Index = Int<'a>;
 }
