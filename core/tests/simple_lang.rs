@@ -1,5 +1,7 @@
 use symbolic_stack_machines_core::memory::{MemOpRecord, MemRecord, ReadOnlyMem};
-use symbolic_stack_machines_core::{instructions::*, machine::*, memory::memory_models::*, stack::*};
+use symbolic_stack_machines_core::{
+    instructions::*, machine::*, memory::memory_models::*, stack::*,
+};
 
 use std::rc::Rc;
 use z3::ast::{Ast, Bool, Int};
@@ -7,7 +9,6 @@ use z3::{Config, Context};
 mod common;
 
 use common::{z3_int, z3_int_var};
-
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum Instruction<T> {
@@ -94,7 +95,7 @@ impl<'a> VMInstruction<'a> for Instruction<Int<'a>> {
                 let prev_val = {
                     match memory.read(mem_offset.clone()) {
                         Ok(val) => val.unwrap(),
-                        Err(e) => Int::from_u64(val.get_ctx(), 0),
+                        Err(_e) => Int::from_u64(val.get_ctx(), 0),
                     }
                 };
                 change_log.stack_diff = Some(StackRecord {
@@ -121,7 +122,7 @@ impl<'a> VMInstruction<'a> for Instruction<Int<'a>> {
             }
             Instruction::JUMPI => {
                 let dest = stack.peek::<Int<'a>>(0).unwrap();
-                let ctx = dest.ctx;
+                let ctx = dest.get_ctx();
                 let cond = stack.peek::<Int<'a>>(1).unwrap();
                 if let Some(dest) = dest.as_u64() {
                     let zero = Int::from_u64(ctx, 0);

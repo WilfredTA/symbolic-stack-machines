@@ -1,4 +1,5 @@
 pub mod constraints;
+pub mod instructions;
 
 #[cfg(test)]
 mod tests {

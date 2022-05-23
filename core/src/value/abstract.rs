@@ -1,15 +1,12 @@
-
-
-
 #[derive(Clone)]
 pub struct AbstractValue<T> {
     symbol: String,
-    val: T
+    val: T,
 }
 
 #[derive(Clone, Default)]
 pub struct AbstractInt {
-    concrete: Option<u64>
+    concrete: Option<u64>,
 }
 
 impl AbstractInt {
@@ -20,16 +17,14 @@ impl AbstractInt {
 
 impl From<u64> for AbstractInt {
     fn from(v: u64) -> Self {
-        Self {
-            concrete: Some(v)
-        }
+        Self { concrete: Some(v) }
     }
 }
 pub type Val<T> = AbstractValue<T>;
 
 impl<T: Clone> AbstractValue<T> {
     pub fn new(val: T, symbol: String) -> Self {
-        Self {symbol, val}
+        Self { symbol, val }
     }
     pub fn inner<V: From<T>>(&self) -> V {
         self.val.clone().into()
@@ -47,4 +42,3 @@ impl<T: Clone> AbstractValue<T> {
         self.symbol = new_symbol;
     }
 }
-

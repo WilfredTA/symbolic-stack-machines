@@ -1,10 +1,10 @@
-use crate::instructions::val::{HybridVal, SymbolicBytes, Val};
+use crate::instructions::val::Val;
 use std::marker::PhantomData;
 use std::rc::Rc;
 use z3::ast::{Array, Ast, Int, BV};
 use z3::{Context, FuncDecl};
 
-use super::{RWMem, ReadOnlyMem, WriteableMem};
+use super::{Mem, RWMem, ReadOnlyMem, WriteableMem};
 #[derive(Debug, Clone)]
 pub struct BaseMemoryConcreteIndex<T> {
     pub _inner: Vec<Val<T>>,
@@ -37,14 +37,20 @@ pub type MemIntToInt<'a> = BaseMemorySymbolicArray<'a, Int<'a>, Int<'a>>;
 pub type MemBitVecToAny<'a, T> = BaseMemorySymbolicArray<'a, BV<'a>, T>;
 pub type MemBitVecToInt<'a> = MemBitVecToAny<'a, Int<'a>>;
 pub type BaseMemoryConcreteUint64 = BaseMemoryConcreteIndex<u64>;
-impl<'a, I> ReadOnlyMem for BaseMemorySymbolicArray<'a, I, BV<'a>>
+
+impl<'a, I> Mem for BaseMemorySymbolicArray<'a, I, BV<'a>>
 where
     I: z3::ast::Ast<'a>,
 {
     type MemVal = BV<'a>;
 
     type Index = I;
+}
 
+impl<'a, I> ReadOnlyMem for BaseMemorySymbolicArray<'a, I, BV<'a>>
+where
+    I: z3::ast::Ast<'a>,
+{
     fn read(&self, idx: Self::Index) -> super::MemoryResult<Option<Self::MemVal>> {
         Ok(self._inner.select(&idx).as_bv())
     }
@@ -54,10 +60,6 @@ impl<'a, I> WriteableMem for BaseMemorySymbolicArray<'a, I, BV<'a>>
 where
     I: z3::ast::Ast<'a>,
 {
-    type MemVal = BV<'a>;
-
-    type Index = I;
-
     fn write(&self, idx: Self::Index, val: Self::MemVal) -> super::MemoryResult<Self> {
         Ok(Self {
             _inner: self._inner.store(&idx, &val),
@@ -88,39 +90,40 @@ where
     }
 }
 
-impl<'a> ReadOnlyMem for BaseMemorySymbolicArray<'a, u64, u64>
-{
+impl<'a> Mem for BaseMemorySymbolicArray<'a, u64, u64> {
     type MemVal = u64;
-
     type Index = u64;
+}
 
+impl<'a> ReadOnlyMem for BaseMemorySymbolicArray<'a, u64, u64> {
     fn read(&self, idx: Self::Index) -> super::MemoryResult<Option<Self::MemVal>> {
-        Ok(self._inner.select(&Int::from_u64(self._inner.get_ctx(), idx)).as_int().unwrap().as_u64())
+        Ok(self
+            ._inner
+            .select(&Int::from_u64(self._inner.get_ctx(), idx))
+            .as_int()
+            .unwrap()
+            .as_u64())
     }
 }
 
-impl<'a> WriteableMem for BaseMemorySymbolicArray<'a, u64, u64>
-
-{
-    type MemVal = u64;
-
-    type Index = u64;
-
+impl<'a> WriteableMem for BaseMemorySymbolicArray<'a, u64, u64> {
     fn write(&self, idx: Self::Index, val: Self::MemVal) -> super::MemoryResult<Self> {
         Ok(Self {
-            _inner: self._inner.store(&Int::from_u64(self._inner.get_ctx(), idx), &Int::from_u64(self._inner.get_ctx(), val)),
+            _inner: self._inner.store(
+                &Int::from_u64(self._inner.get_ctx(), idx),
+                &Int::from_u64(self._inner.get_ctx(), val),
+            ),
             idx_set: PhantomData::<u64>,
             val_set: PhantomData::<Val<u64>>,
         })
     }
 }
 
-impl<'a> RWMem for BaseMemorySymbolicArray<'a, u64, u64>
-{
+impl<'a> RWMem for BaseMemorySymbolicArray<'a, u64, u64> {
     type InitArgs = (Rc<&'a Context>, u64, usize);
 
     fn init(args: Self::InitArgs) -> Self {
-        let (ctx, domain, range_size) = args;
+        let (ctx, _domain, _range_size) = args;
         Self {
             _inner: Array::new_const(
                 ctx.as_ref(),
@@ -134,22 +137,18 @@ impl<'a> RWMem for BaseMemorySymbolicArray<'a, u64, u64>
     }
 }
 
+impl<'a> Mem for MemIntToInt<'a> {
+    type MemVal = Int<'a>;
+    type Index = Int<'a>;
+}
 
 impl<'a> ReadOnlyMem for MemIntToInt<'a> {
-    type MemVal = Int<'a>;
-
-    type Index = Int<'a>;
-
     fn read(&self, idx: Self::Index) -> super::MemoryResult<Option<Self::MemVal>> {
         Ok(self._inner.select(&idx).as_int())
     }
 }
 
 impl<'a> WriteableMem for MemIntToInt<'a> {
-    type MemVal = Int<'a>;
-
-    type Index = Int<'a>;
-
     fn write(&self, idx: Self::Index, val: Self::MemVal) -> super::MemoryResult<Self> {
         Ok(Self {
             _inner: self._inner.store(&idx, &val),
@@ -176,22 +175,18 @@ impl<'a> RWMem for MemIntToInt<'a> {
     }
 }
 
+impl Mem for BaseMemoryConcreteUint64 {
+    type MemVal = u64;
+    type Index = u64;
+}
 
 impl ReadOnlyMem for BaseMemoryConcreteUint64 {
-    type MemVal = u64;
-
-    type Index = u64;
-
     fn read(&self, idx: Self::Index) -> super::MemoryResult<Option<Self::MemVal>> {
         Ok(self._inner.get(idx as usize).map(|v| v.0))
     }
 }
 
 impl WriteableMem for BaseMemoryConcreteUint64 {
-    type MemVal = u64;
-
-    type Index = u64;
-
     fn write(&self, idx: Self::Index, val: Self::MemVal) -> super::MemoryResult<Self> {
         let mut inner = self._inner.clone();
         inner[idx as usize] = Val(val);
@@ -206,7 +201,7 @@ impl WriteableMem for BaseMemoryConcreteUint64 {
 impl RWMem for BaseMemoryConcreteUint64 {
     type InitArgs = ();
 
-    fn init(args: Self::InitArgs) -> Self {
+    fn init(_args: Self::InitArgs) -> Self {
         Self {
             _inner: vec![],
             idx_set: PhantomData::<usize>,

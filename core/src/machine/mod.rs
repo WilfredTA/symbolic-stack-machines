@@ -1,10 +1,9 @@
-pub mod error;
 pub mod r#abstract;
-use std::borrow::Borrow;
+pub mod error;
 use std::rc::Rc;
 
 use crate::instructions::*;
-use crate::memory::{ReadOnlyMem, WriteableMem};
+use crate::memory::ReadOnlyMem;
 use crate::{
     memory::{memory_models::MemIntToInt, RWMem},
     stack::*,
@@ -31,7 +30,9 @@ where
 {
     mem: Mem,
     stack: MachineStack,
+    #[allow(dead_code)]
     pgm: Program<'a, I>,
+    #[allow(dead_code)]
     pc: usize,
     context: Option<SymbolicContext<'a>>,
 }

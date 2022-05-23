@@ -1,5 +1,3 @@
-use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
-use hex::{decode, encode};
 use std::borrow::Borrow;
 use std::ops::{Add, Sub};
 use z3::ast::{Ast, Int, BV};
@@ -118,7 +116,7 @@ impl<'a> SymbolicBytes<'a> {
     pub fn extend(&self, other: BV<'a>) -> Self {
         Self {
             inner: self.inner.concat(&other),
-            size: self.size
+            size: self.size,
         }
     }
 }

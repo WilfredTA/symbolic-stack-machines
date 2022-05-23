@@ -1,8 +1,7 @@
 use symbolic_stack_machines_core::constraint::*;
-use symbolic_stack_machines_core::machine::r#abstract::AbstractExecBranch;
-use symbolic_stack_machines_core::value::r#abstract::{AbstractInt, AbstractValue, Val};
-use z3::ast::{Bool, Int, Ast};
-use z3::{Solver as Z3InnerSolver, SatResult as Z3SatResult, Model, Context, Config};
+use symbolic_stack_machines_core::value::r#abstract::{AbstractInt, Val};
+use z3::ast::{Ast, Bool, Int};
+use z3::{Config, Context, Model, SatResult as Z3SatResult, Solver as Z3InnerSolver};
 
 pub type ValInt = Val<AbstractInt>;
 
@@ -12,9 +11,7 @@ pub struct Z3SolverBuilder {
 
 impl<'a> Z3SolverBuilder {
     pub fn new() -> Self {
-        Self {
-            ctx: None
-        }
+        Self { ctx: None }
     }
 
     pub fn ctx(mut self, cfg: Option<Config>) -> Self {
@@ -23,17 +20,20 @@ impl<'a> Z3SolverBuilder {
     }
 
     pub fn build<T>(self) -> Z3Solver<'a, T> {
-        Z3Solver { inner: None, constraints: vec![], ctx: self.ctx.unwrap() }
+        Z3Solver {
+            inner: None,
+            constraints: vec![],
+            ctx: self.ctx.unwrap(),
+        }
     }
 }
 pub struct Z3Solver<'a, T> {
     inner: Option<Z3InnerSolver<'a>>,
     constraints: Vec<Constraint<T>>,
-    ctx: Context
+    ctx: Context,
 }
 
 impl<'a, T> Z3Solver<'a, T> {
-
     pub fn inner(&self) -> &Z3InnerSolver<'a> {
         assert!(self.inner.is_some());
         self.inner.as_ref().unwrap()
@@ -47,15 +47,13 @@ impl<'a, T> Z3Solver<'a, T> {
     }
 
     pub fn set_solver(&'a mut self) {
-       self.inner = Some(Z3InnerSolver::new(&self.ctx));
+        self.inner = Some(Z3InnerSolver::new(&self.ctx));
     }
-
 }
 
 pub fn z3_int<'a>(i: u64, ctxt: &'a Context) -> z3::ast::Int<'a> {
     Int::from_u64(&ctxt, i)
 }
-
 
 pub fn z3_int_var<'a>(i: &str, ctxt: &'a Context) -> z3::ast::Int<'a> {
     Int::new_const(&ctxt, i)
@@ -69,16 +67,12 @@ impl<'a, T> Constrained for Z3Solver<'a, T> {
     }
 }
 
-impl<'a> Solver<ValInt, Bool<'a>, Int<'a>> for Z3Solver<'a, ValInt>
-{
+impl<'a> Solver<ValInt, Bool<'a>, Int<'a>> for Z3Solver<'a, ValInt> {
     fn solve(&self) -> SatResult<Self::Model> {
         match self.inner().check() {
-            Z3SatResult::Sat => {
-                SatResult::Sat(self.inner().get_model().unwrap())
-            },
+            Z3SatResult::Sat => SatResult::Sat(self.inner().get_model().unwrap()),
             Z3SatResult::Unsat => SatResult::Unsat,
             Z3SatResult::Unknown => SatResult::Unknown,
-            
         }
     }
 
@@ -87,16 +81,12 @@ impl<'a> Solver<ValInt, Bool<'a>, Int<'a>> for Z3Solver<'a, ValInt>
     }
 }
 
-impl<'a> Solver<u64, Bool<'a>, Int<'a>> for Z3Solver<'a, u64>
-{
+impl<'a> Solver<u64, Bool<'a>, Int<'a>> for Z3Solver<'a, u64> {
     fn solve(&self) -> SatResult<Self::Model> {
         match self.inner().check() {
-            Z3SatResult::Sat => {
-                SatResult::Sat(self.inner().get_model().unwrap())
-            },
+            Z3SatResult::Sat => SatResult::Sat(self.inner().get_model().unwrap()),
             Z3SatResult::Unsat => SatResult::Unsat,
             Z3SatResult::Unknown => SatResult::Unknown,
-            
         }
     }
 
@@ -110,7 +100,7 @@ impl<'a> Solver<u64, Bool<'a>, Int<'a>> for Z3Solver<'a, u64>
 // impl<'a, T, A> Transpile<T, Bool<'a>, A> for Z3Solver<'a, T>
 // where A: From<T> + Ast<'a>
 // {
-    
+
 // }
 
 impl<'a> Transpile<u64, Bool<'a>, Int<'a>> for Z3Solver<'a, u64> {
@@ -172,7 +162,6 @@ impl<'a> Transpile<u64, Bool<'a>, Int<'a>> for Z3Solver<'a, u64> {
     }
 }
 
-
 impl<'a> Transpile<ValInt, Bool<'a>, Int<'a>> for Z3Solver<'a, ValInt> {
     fn val_to_ground_type(&self, v: ValInt) -> Int<'a> {
         if let Some(val) = v.inner::<AbstractInt>().inner() {
@@ -180,11 +169,9 @@ impl<'a> Transpile<ValInt, Bool<'a>, Int<'a>> for Z3Solver<'a, ValInt> {
         } else {
             z3_int_var(v.id(), self.get_ctx())
         }
-        
     }
 
     fn ground_type_to_val(&self, g: Int<'a>) -> ValInt {
-        
         ValInt::new(g.as_u64().unwrap().into(), g.to_string())
     }
 

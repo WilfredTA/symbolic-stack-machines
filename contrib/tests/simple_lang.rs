@@ -1,13 +1,18 @@
-use symbolic_stack_machines_core::memory::{MemOpRecord, MemRecord, ReadOnlyMem};
-use symbolic_stack_machines_core::{instructions::*, machine::*, memory::memory_models::*, stack::*};
-use symbolic_stack_machines_core::value::r#abstract::{AbstractInt, AbstractValue, Val};
 use std::rc::Rc;
+use symbolic_stack_machines_core::memory::{MemOpRecord, MemRecord, ReadOnlyMem};
+use symbolic_stack_machines_core::value::r#abstract::{AbstractInt, Val};
+use symbolic_stack_machines_core::{
+    instructions::*, machine::*, memory::memory_models::*, stack::*,
+};
 use z3::ast::{Ast, Bool, Int};
 use z3::{Config, Context};
 mod common;
 
 use common::{z3_int, z3_int_var};
+
+#[allow(dead_code)]
 type ValInt = Val<AbstractInt>;
+
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum Instruction<T> {
     Add,
@@ -32,15 +37,17 @@ impl EnvExtension for DummyExtEnv {
 
     type DiffRecordType = DummyExtEnvRecord;
 
-    fn write<V: Into<Self::InnerValue>>(&self, v: V) -> Result<Self, Self::ErrorType> where Self: Sized {
+    fn write<V: Into<Self::InnerValue>>(&self, _v: V) -> Result<Self, Self::ErrorType>
+    where
+        Self: Sized,
+    {
         todo!()
     }
 
-    fn read<I: Into<Self::IndexType>>(&self, idx: I) -> Result<Self::InnerValue, Self::ErrorType> {
+    fn read<I: Into<Self::IndexType>>(&self, _idx: I) -> Result<Self::InnerValue, Self::ErrorType> {
         todo!()
     }
 }
-
 
 pub struct DummyExtEnvRecord {}
 
@@ -49,7 +56,10 @@ impl EnvExtensionRecord for DummyExtEnvRecord {
         Ok(env)
     }
 }
-type SimpleLangRecord = AbstractExecRecord<BaseStack<u64>, BaseMemoryConcreteUint64, DummyExtEnvRecord, u64>;
+
+#[allow(dead_code)]
+type SimpleLangRecord =
+    AbstractExecRecord<BaseStack<u64>, BaseMemoryConcreteUint64, DummyExtEnvRecord, u64>;
 
 // impl AbstractInstruction for Instruction<ValInt> {
 //     type Stack;
@@ -60,27 +70,25 @@ type SimpleLangRecord = AbstractExecRecord<BaseStack<u64>, BaseMemoryConcreteUin
 
 //     type ReturnRecord;
 
-//     fn exec<C: Into<symbolic_stack_machines_core::constraint::Constraint<C>>>(&self, stack: &Self::Stack, mem: &Self::Mem, ext: &Self::Extension) 
-//     -> InstructionResult<AbstractExecRecord<Self::Stack, Self::Mem, 
+//     fn exec<C: Into<symbolic_stack_machines_core::constraint::Constraint<C>>>(&self, stack: &Self::Stack, mem: &Self::Mem, ext: &Self::Extension)
+//     -> InstructionResult<AbstractExecRecord<Self::Stack, Self::Mem,
 //     EnvExtension::DiffRecordType, C>> {
 //         todo!()
 //     }
 // }
 
-impl AbstractInstruction for Instruction<u64> {
-    type Stack = BaseStack<u64>;
-
-    type Mem = BaseMemoryConcreteUint64;
-
-    type Extension = DummyExtEnv;
-
-    type ReturnRecord = DummyExtEnvRecord;
-
-    fn exec<C: Into<symbolic_stack_machines_core::constraint::Constraint<C>>>(&self, stack: &Self::Stack, mem: &Self::Mem, ext: &Self::Extension) 
-    -> InstructionResult<AbstractExecRecord<Self::Stack, Self::Mem, 
-   DummyExtEnvRecord, C>> {
-        
-
+impl AbstractInstruction<BaseStack<u64>, BaseMemoryConcreteUint64, DummyExtEnv, DummyExtEnvRecord>
+    for Instruction<u64>
+{
+    fn exec<C: Into<symbolic_stack_machines_core::constraint::Constraint<C>>>(
+        &self,
+        _stack: &BaseStack<u64>,
+        _mem: &BaseMemoryConcreteUint64,
+        _ext: &DummyExtEnv,
+    ) -> InstructionResult<
+        AbstractExecRecord<BaseStack<u64>, BaseMemoryConcreteUint64, DummyExtEnvRecord, C>,
+    > {
+        #[allow(unreachable_code)]
         Ok(AbstractExecRecord {
             stack_diff: todo!(),
             mem_diff: todo!(),
@@ -164,7 +172,7 @@ impl<'a> VMInstruction<'a> for Instruction<Int<'a>> {
                 let prev_val = {
                     match memory.read(mem_offset.clone()) {
                         Ok(val) => val.unwrap(),
-                        Err(e) => Int::from_u64(val.get_ctx(), 0),
+                        Err(_e) => Int::from_u64(val.get_ctx(), 0),
                     }
                 };
                 change_log.stack_diff = Some(StackRecord {
@@ -191,7 +199,7 @@ impl<'a> VMInstruction<'a> for Instruction<Int<'a>> {
             }
             Instruction::JUMPI => {
                 let dest = stack.peek::<Int<'a>>(0).unwrap();
-                let ctx = dest.ctx;
+                let ctx = dest.get_ctx();
                 let cond = stack.peek::<Int<'a>>(1).unwrap();
                 if let Some(dest) = dest.as_u64() {
                     let zero = Int::from_u64(ctx, 0);
