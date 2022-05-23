@@ -5,10 +5,10 @@ use symbolic_stack_machines_core::{
     stack::{Stack, StackOpRecord, StackRecord},
 };
 
-// The MachineEq trait is necessary because the type of equality used in the machine 
+// The MachineEq trait is necessary because the type of equality used in the machine
 // may be different than the type of equality used outside of the machine, and
 // `PartialEq` types the result of == as boolean.
-// 
+//
 // Using `MachineEq` lets us use our own separate predicate type which in the case
 // where the machine holds symbolic values can in example be a symbolic boolean.
 pub trait MachineEq {

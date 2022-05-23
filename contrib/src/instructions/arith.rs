@@ -21,8 +21,7 @@ where
         stack: &S,
         _mem: &M,
         _ext: &Extension,
-    ) -> InstructionResult<AbstractExecRecord<S, M, Extension::DiffRecordType, C>>
-    {
+    ) -> InstructionResult<AbstractExecRecord<S, M, Extension::DiffRecordType, C>> {
         let mut change_log = AbstractExecRecord::default();
 
         let op_1: T = stack.peek(0).unwrap();
@@ -57,8 +56,7 @@ where
         stack: &S,
         _mem: &M,
         _ext: &Extension,
-    ) -> InstructionResult<AbstractExecRecord<S, M, Extension::DiffRecordType, C>>
-    {
+    ) -> InstructionResult<AbstractExecRecord<S, M, Extension::DiffRecordType, C>> {
         let mut change_log = AbstractExecRecord::default();
 
         let op_1: T = stack.peek(0).unwrap();
