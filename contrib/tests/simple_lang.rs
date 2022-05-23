@@ -1,4 +1,5 @@
 use std::rc::Rc;
+use symbolic_stack_machines_core::constraint::Constraint;
 use symbolic_stack_machines_core::memory::{MemOpRecord, MemRecord, ReadOnlyMem};
 use symbolic_stack_machines_core::value::r#abstract::{AbstractInt, Val};
 use symbolic_stack_machines_core::{
@@ -57,6 +58,14 @@ impl EnvExtensionRecord for DummyExtEnvRecord {
     }
 }
 
+struct DummyConstraint {}
+
+impl Into<Constraint<DummyConstraint>> for DummyConstraint {
+    fn into(self) -> Constraint<DummyConstraint> {
+        panic!("dummy constraint cannot be used as real constraint")
+    }
+}
+
 #[allow(dead_code)]
 type SimpleLangRecord =
     AbstractExecRecord<BaseStack<u64>, BaseMemoryConcreteUint64, DummyExtEnvRecord, u64>;
@@ -77,16 +86,27 @@ type SimpleLangRecord =
 //     }
 // }
 
-impl AbstractInstruction<BaseStack<u64>, BaseMemoryConcreteUint64, DummyExtEnv, DummyExtEnvRecord>
-    for Instruction<u64>
+impl
+    AbstractInstruction<
+        BaseStack<u64>,
+        BaseMemoryConcreteUint64,
+        DummyExtEnv,
+        DummyExtEnvRecord,
+        DummyConstraint,
+    > for Instruction<u64>
 {
-    fn exec<C: Into<symbolic_stack_machines_core::constraint::Constraint<C>>>(
+    fn exec(
         &self,
         _stack: &BaseStack<u64>,
         _mem: &BaseMemoryConcreteUint64,
         _ext: &DummyExtEnv,
     ) -> InstructionResult<
-        AbstractExecRecord<BaseStack<u64>, BaseMemoryConcreteUint64, DummyExtEnvRecord, C>,
+        AbstractExecRecord<
+            BaseStack<u64>,
+            BaseMemoryConcreteUint64,
+            DummyExtEnvRecord,
+            DummyConstraint,
+        >,
     > {
         #[allow(unreachable_code)]
         Ok(AbstractExecRecord {
@@ -169,12 +189,6 @@ impl<'a> VMInstruction<'a> for Instruction<Int<'a>> {
             Instruction::MSTORE => {
                 let mem_offset = stack.peek::<Int<'a>>(0).unwrap();
                 let val = stack.peek::<Int<'a>>(1).unwrap();
-                let prev_val = {
-                    match memory.read(mem_offset.clone()) {
-                        Ok(val) => val.unwrap(),
-                        Err(_e) => Int::from_u64(val.get_ctx(), 0),
-                    }
-                };
                 change_log.stack_diff = Some(StackRecord {
                     changed: vec![
                         StackOpRecord::Pop(mem_offset.clone()),
@@ -182,7 +196,7 @@ impl<'a> VMInstruction<'a> for Instruction<Int<'a>> {
                     ],
                 });
                 change_log.mem_diff = Some(MemRecord {
-                    diff: vec![MemOpRecord::Write((mem_offset, prev_val, val))],
+                    diff: vec![MemOpRecord::Write((mem_offset, val))],
                 });
             }
             Instruction::ISZERO => {

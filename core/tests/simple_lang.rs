@@ -92,12 +92,6 @@ impl<'a> VMInstruction<'a> for Instruction<Int<'a>> {
             Instruction::MSTORE => {
                 let mem_offset = stack.peek::<Int<'a>>(0).unwrap();
                 let val = stack.peek::<Int<'a>>(1).unwrap();
-                let prev_val = {
-                    match memory.read(mem_offset.clone()) {
-                        Ok(val) => val.unwrap(),
-                        Err(_e) => Int::from_u64(val.get_ctx(), 0),
-                    }
-                };
                 change_log.stack_diff = Some(StackRecord {
                     changed: vec![
                         StackOpRecord::Pop(mem_offset.clone()),
@@ -105,7 +99,7 @@ impl<'a> VMInstruction<'a> for Instruction<Int<'a>> {
                     ],
                 });
                 change_log.mem_diff = Some(MemRecord {
-                    diff: vec![MemOpRecord::Write((mem_offset, prev_val, val))],
+                    diff: vec![MemOpRecord::Write((mem_offset, val))],
                 });
             }
             Instruction::ISZERO => {

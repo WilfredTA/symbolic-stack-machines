@@ -82,13 +82,17 @@ pub trait EnvExtension {
     fn read<I: Into<Self::IndexType>>(&self, idx: I) -> Result<Self::InnerValue, Self::ErrorType>;
 }
 
-pub trait AbstractInstruction<S: Stack, M: Mem, Extension: EnvExtension, ReturnRecord> {
-    fn exec<C>(
+pub trait AbstractInstruction<S, M, Extension, ReturnRecord, C> 
+where
+    S: Stack, 
+    M: Mem, 
+    Extension: EnvExtension,
+    C: Into<Constraint<C>>
+{
+    fn exec(
         &self,
         stack: &S,
         mem: &M,
         ext: &Extension,
-    ) -> InstructionResult<AbstractExecRecord<S, M, Extension::DiffRecordType, C>>
-    where
-        C: Into<Constraint<C>>;
+    ) -> InstructionResult<AbstractExecRecord<S, M, Extension::DiffRecordType, C>>;
 }
