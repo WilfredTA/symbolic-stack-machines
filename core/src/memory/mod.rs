@@ -25,7 +25,7 @@ pub trait RWMem: ReadOnlyMem + WriteableMem {
     fn init(args: Self::InitArgs) -> Self;
 }
 
-pub type MemorySlotChange<Idx, MemVal> = (Idx, MemVal, MemVal);
+pub type MemorySlotChange<Idx, MemVal> = (Idx, MemVal);
 pub enum MemOpRecord<I, V> {
     Write(MemorySlotChange<I, V>),
 }
@@ -45,8 +45,7 @@ where
                     Ok(m) => {
                         let MemOpRecord::Write(r) = r;
                         let idx = r.0;
-                        let _old_val = r.1;
-                        let new_val = r.2;
+                        let new_val = r.1;
                         m.write(idx, new_val)
                     }
                     Err(e) => Err(e),
