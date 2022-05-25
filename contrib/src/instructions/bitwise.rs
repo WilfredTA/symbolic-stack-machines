@@ -1,6 +1,8 @@
 use symbolic_stack_machines_core::{
-    constraint::Constraint,
-    instructions::{AbstractExecRecord, AbstractInstruction, EnvExtension, InstructionResult},
+    instructions::{
+        AbstractExecRecord, AbstractInstruction, ConcreteAbstractExecRecord, EnvExtension,
+        InstructionResult,
+    },
     memory::Mem,
     stack::{Stack, StackOpRecord, StackRecord},
 };
@@ -20,21 +22,25 @@ pub trait MachineEq {
 
 pub struct ISZERO;
 
-impl<T, S, M, Extension, ReturnRecord, C> AbstractInstruction<S, M, Extension, ReturnRecord, C>
-    for ISZERO
+impl<T, S, M, Extension>
+    AbstractInstruction<
+        S,
+        M,
+        Extension,
+        ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>,
+    > for ISZERO
 where
     T: From<u8> + MachineEq,
     S: Stack<StackVal = T>,
     M: Mem,
     Extension: EnvExtension,
-    C: Into<Constraint<C>>,
 {
     fn exec(
         &self,
         stack: &S,
         _memory: &M,
         _ext: &Extension,
-    ) -> InstructionResult<AbstractExecRecord<S, M, Extension::DiffRecordType, C>> {
+    ) -> InstructionResult<ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>> {
         let mut change_log = AbstractExecRecord::default();
 
         let op: T = stack.peek(0).unwrap();

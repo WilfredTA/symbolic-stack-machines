@@ -1,27 +1,33 @@
 use symbolic_stack_machines_core::{
-    constraint::Constraint,
-    instructions::{AbstractExecRecord, AbstractInstruction, EnvExtension, InstructionResult},
+    instructions::{
+        AbstractExecRecord, AbstractInstruction, ConcreteAbstractExecRecord, EnvExtension,
+        InstructionResult,
+    },
     memory::{Mem, MemOpRecord, MemRecord, ReadOnlyMem, WriteableMem},
     stack::{Stack, StackOpRecord, StackRecord},
 };
 
 pub struct PUSH<T>(pub T);
 
-impl<T, S, M, Extension, ReturnRecord, C> AbstractInstruction<S, M, Extension, ReturnRecord, C>
-    for PUSH<T>
+impl<T, S, M, Extension>
+    AbstractInstruction<
+        S,
+        M,
+        Extension,
+        ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>,
+    > for PUSH<T>
 where
     T: Clone + std::fmt::Debug,
     S: Stack<StackVal = T>,
     M: Mem,
     Extension: EnvExtension,
-    C: Into<Constraint<C>>,
 {
     fn exec(
         &self,
         _stack: &S,
         _memory: &M,
         _ext: &Extension,
-    ) -> InstructionResult<AbstractExecRecord<S, M, Extension::DiffRecordType, C>> {
+    ) -> InstructionResult<ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>> {
         let mut change_log = AbstractExecRecord::default();
 
         change_log.stack_diff = Some(StackRecord {
@@ -34,20 +40,24 @@ where
 
 pub struct STOP;
 
-impl<S, M, Extension, ReturnRecord, C> AbstractInstruction<S, M, Extension, ReturnRecord, C>
-    for STOP
+impl<S, M, Extension>
+    AbstractInstruction<
+        S,
+        M,
+        Extension,
+        ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>,
+    > for STOP
 where
     S: Stack,
     M: Mem,
     Extension: EnvExtension,
-    C: Into<Constraint<C>>,
 {
     fn exec(
         &self,
         _stack: &S,
         _memory: &M,
         _ext: &Extension,
-    ) -> InstructionResult<AbstractExecRecord<S, M, Extension::DiffRecordType, C>> {
+    ) -> InstructionResult<ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>> {
         let mut change_log = AbstractExecRecord::default();
 
         change_log.halt = true;
@@ -58,22 +68,26 @@ where
 
 pub struct JUMPI;
 
-impl<T, S, M, Extension, ReturnRecord, C> AbstractInstruction<S, M, Extension, ReturnRecord, C>
-    for JUMPI
+impl<T, S, M, Extension>
+    AbstractInstruction<
+        S,
+        M,
+        Extension,
+        ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>,
+    > for JUMPI
 where
     T: From<u8> + Eq + TryInto<usize>,
     S: Stack<StackVal = T>,
     M: Mem,
     <T as TryInto<usize>>::Error: std::fmt::Debug,
     Extension: EnvExtension,
-    C: Into<Constraint<C>>,
 {
     fn exec(
         &self,
         stack: &S,
         _memory: &M,
         _ext: &Extension,
-    ) -> InstructionResult<AbstractExecRecord<S, M, Extension::DiffRecordType, C>> {
+    ) -> InstructionResult<ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>> {
         let mut change_log = AbstractExecRecord::default();
 
         let dest: T = stack.peek(0).unwrap();
@@ -90,21 +104,25 @@ where
 
 pub struct MLOAD;
 
-impl<T, S, M, Extension, ReturnRecord, C> AbstractInstruction<S, M, Extension, ReturnRecord, C>
-    for MLOAD
+impl<T, S, M, Extension>
+    AbstractInstruction<
+        S,
+        M,
+        Extension,
+        ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>,
+    > for MLOAD
 where
     T: Default + Clone,
     S: Stack<StackVal = T>,
     M: ReadOnlyMem<Index = T, MemVal = T>,
     Extension: EnvExtension,
-    C: Into<Constraint<C>>,
 {
     fn exec(
         &self,
         stack: &S,
         memory: &M,
         _ext: &Extension,
-    ) -> InstructionResult<AbstractExecRecord<S, M, Extension::DiffRecordType, C>> {
+    ) -> InstructionResult<ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>> {
         let mut change_log = AbstractExecRecord::default();
 
         let mem_idx: T = stack.peek(0).unwrap();
@@ -120,21 +138,25 @@ where
 
 pub struct MSTORE;
 
-impl<T, S, M, Extension, ReturnRecord, C> AbstractInstruction<S, M, Extension, ReturnRecord, C>
-    for MSTORE
+impl<T, S, M, Extension>
+    AbstractInstruction<
+        S,
+        M,
+        Extension,
+        ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>,
+    > for MSTORE
 where
     T: Clone,
     S: Stack<StackVal = T>,
     M: WriteableMem<Index = T, MemVal = T>,
     Extension: EnvExtension,
-    C: Into<Constraint<C>>,
 {
     fn exec(
         &self,
         stack: &S,
         _memory: &M,
         _ext: &Extension,
-    ) -> InstructionResult<AbstractExecRecord<S, M, Extension::DiffRecordType, C>> {
+    ) -> InstructionResult<ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>> {
         let mut change_log = AbstractExecRecord::default();
 
         let mem_idx: T = stack.peek(0).unwrap();

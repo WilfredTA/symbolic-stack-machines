@@ -1,7 +1,9 @@
 pub mod error;
 use error::StackError;
+
 pub type StackResult<T> = Result<T, StackError>;
-pub trait Stack: Sized {
+
+pub trait Stack: Sized + Clone {
     type StackVal;
     fn push<V: Into<Self::StackVal>>(&self, v: V) -> StackResult<Self>;
     fn pop(&self) -> StackResult<Self>;
