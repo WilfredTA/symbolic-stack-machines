@@ -27,6 +27,7 @@ pub enum Instruction<T> {
     STOP,
 }
 
+#[derive(Clone)]
 pub struct DummyExtEnv {}
 
 impl EnvExtension for DummyExtEnv {
@@ -68,7 +69,7 @@ impl Into<Constraint<DummyConstraint>> for DummyConstraint {
 
 #[allow(dead_code)]
 type SimpleLangRecord =
-    AbstractExecRecord<BaseStack<u64>, BaseMemoryConcreteUint64, DummyExtEnvRecord, u64>;
+    ConcreteAbstractExecRecord<BaseStack<u64>, BaseMemoryConcreteUint64, DummyExtEnvRecord>;
 
 // impl AbstractInstruction for Instruction<ValInt> {
 //     type Stack;
@@ -91,8 +92,7 @@ impl
         BaseStack<u64>,
         BaseMemoryConcreteUint64,
         DummyExtEnv,
-        DummyExtEnvRecord,
-        DummyConstraint,
+        ConcreteAbstractExecRecord<BaseStack<u64>, BaseMemoryConcreteUint64, DummyExtEnvRecord>,
     > for Instruction<u64>
 {
     fn exec(
@@ -101,12 +101,7 @@ impl
         _mem: &BaseMemoryConcreteUint64,
         _ext: &DummyExtEnv,
     ) -> InstructionResult<
-        AbstractExecRecord<
-            BaseStack<u64>,
-            BaseMemoryConcreteUint64,
-            DummyExtEnvRecord,
-            DummyConstraint,
-        >,
+        ConcreteAbstractExecRecord<BaseStack<u64>, BaseMemoryConcreteUint64, DummyExtEnvRecord>,
     > {
         #[allow(unreachable_code)]
         Ok(AbstractExecRecord {

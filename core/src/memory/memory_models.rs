@@ -40,7 +40,7 @@ pub type BaseMemoryConcreteUint64 = BaseMemoryConcreteIndex<u64>;
 
 impl<'a, I> Mem for BaseMemorySymbolicArray<'a, I, BV<'a>>
 where
-    I: z3::ast::Ast<'a>,
+    I: z3::ast::Ast<'a> + Clone,
 {
     type MemVal = BV<'a>;
 
@@ -49,7 +49,7 @@ where
 
 impl<'a, I> ReadOnlyMem for BaseMemorySymbolicArray<'a, I, BV<'a>>
 where
-    I: z3::ast::Ast<'a>,
+    I: z3::ast::Ast<'a> + Clone,
 {
     fn read(&self, idx: Self::Index) -> super::MemoryResult<Option<Self::MemVal>> {
         Ok(self._inner.select(&idx).as_bv())
@@ -58,7 +58,7 @@ where
 
 impl<'a, I> WriteableMem for BaseMemorySymbolicArray<'a, I, BV<'a>>
 where
-    I: z3::ast::Ast<'a>,
+    I: z3::ast::Ast<'a> + Clone,
 {
     fn write(&self, idx: Self::Index, val: Self::MemVal) -> super::MemoryResult<Self> {
         Ok(Self {

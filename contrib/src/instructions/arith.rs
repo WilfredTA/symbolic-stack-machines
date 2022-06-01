@@ -1,27 +1,33 @@
 use symbolic_stack_machines_core::{
-    constraint::Constraint,
-    instructions::{AbstractExecRecord, AbstractInstruction, EnvExtension, InstructionResult},
+    instructions::{
+        AbstractExecRecord, AbstractInstruction, ConcreteAbstractExecRecord, EnvExtension,
+        InstructionResult,
+    },
     memory::Mem,
     stack::{Stack, StackOpRecord, StackRecord},
 };
 
 pub struct ADD;
 
-impl<T, S, M, Extension, ReturnRecord, C> AbstractInstruction<S, M, Extension, ReturnRecord, C>
-    for ADD
+impl<T, S, M, Extension>
+    AbstractInstruction<
+        S,
+        M,
+        Extension,
+        ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>,
+    > for ADD
 where
     T: std::ops::Add + std::ops::Add<Output = T> + Clone,
     S: Stack<StackVal = T>,
     M: Mem,
     Extension: EnvExtension,
-    C: Into<Constraint<C>>,
 {
     fn exec(
         &self,
         stack: &S,
         _mem: &M,
         _ext: &Extension,
-    ) -> InstructionResult<AbstractExecRecord<S, M, Extension::DiffRecordType, C>> {
+    ) -> InstructionResult<ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>> {
         let mut change_log = AbstractExecRecord::default();
 
         let op_1: T = stack.peek(0).unwrap();
@@ -42,21 +48,25 @@ where
 
 pub struct SUB;
 
-impl<T, S, M, Extension, ReturnRecord, C> AbstractInstruction<S, M, Extension, ReturnRecord, C>
-    for SUB
+impl<T, S, M, Extension>
+    AbstractInstruction<
+        S,
+        M,
+        Extension,
+        ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>,
+    > for SUB
 where
     T: std::ops::Sub + std::ops::Sub<Output = T> + Clone,
     S: Stack<StackVal = T>,
     M: Mem,
     Extension: EnvExtension,
-    C: Into<Constraint<C>>,
 {
     fn exec(
         &self,
         stack: &S,
         _mem: &M,
         _ext: &Extension,
-    ) -> InstructionResult<AbstractExecRecord<S, M, Extension::DiffRecordType, C>> {
+    ) -> InstructionResult<ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>> {
         let mut change_log = AbstractExecRecord::default();
 
         let op_1: T = stack.peek(0).unwrap();

@@ -6,7 +6,7 @@ pub mod symbolic_bv;
 
 use error::MemoryError;
 
-pub trait Mem: Sized {
+pub trait Mem: Sized + Clone {
     type MemVal;
     type Index;
 }

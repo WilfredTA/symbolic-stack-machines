@@ -1,6 +1,6 @@
 pub mod error;
 pub mod val;
-use crate::constraint::*;
+use crate::constraint::Constraint;
 use crate::memory::*;
 use crate::stack::*;
 use error::InstructionError;
@@ -37,22 +37,22 @@ where
     S: Stack,
     M: Mem,
     Ext: EnvExtensionRecord,
-    C: Into<Constraint<C>>,
 {
     pub stack_diff: Option<StackRecord<S>>,
     pub mem_diff: Option<MemRecord<M>>,
     pub ext_diff: Option<Ext>,
     pub pc_change: Option<usize>,
     pub halt: bool,
-    pub constraints: Option<Vec<Vec<Constraint<C>>>>,
+    pub constraints: Option<Vec<Constraint<C>>>,
 }
+
+pub type ConcreteAbstractExecRecord<S, M, Ext> = AbstractExecRecord<S, M, Ext, ()>;
 
 impl<S, M, Ext, C> Default for AbstractExecRecord<S, M, Ext, C>
 where
     S: Stack,
     M: Mem,
     Ext: EnvExtensionRecord,
-    C: Into<Constraint<C>>,
 {
     fn default() -> Self {
         Self {
@@ -70,7 +70,7 @@ pub trait EnvExtensionRecord: Sized {
     fn apply<E: EnvExtension>(&self, env: E) -> Result<E, E::ErrorType>;
 }
 
-pub trait EnvExtension {
+pub trait EnvExtension: Clone {
     type InnerValue;
     type ErrorType: std::fmt::Debug;
     type IndexType;
@@ -82,17 +82,11 @@ pub trait EnvExtension {
     fn read<I: Into<Self::IndexType>>(&self, idx: I) -> Result<Self::InnerValue, Self::ErrorType>;
 }
 
-pub trait AbstractInstruction<S, M, Extension, ReturnRecord, C>
+pub trait AbstractInstruction<S, M, Extension, StepResult>
 where
     S: Stack,
     M: Mem,
     Extension: EnvExtension,
-    C: Into<Constraint<C>>,
 {
-    fn exec(
-        &self,
-        stack: &S,
-        mem: &M,
-        ext: &Extension,
-    ) -> InstructionResult<AbstractExecRecord<S, M, Extension::DiffRecordType, C>>;
+    fn exec(&self, stack: &S, mem: &M, ext: &Extension) -> InstructionResult<StepResult>;
 }
