@@ -1,6 +1,8 @@
+use std::marker::PhantomData;
+
 use crate::{
     constraint::Constraint,
-    instructions::{AbstractInstruction, EnvExtension},
+    instructions::{self, AbstractInstruction, EnvExtension},
     memory::{Mem, WriteableMem},
     stack::Stack,
 };
@@ -15,71 +17,185 @@ pub trait OuterInterpreter<Output, M> {
     fn run(&self, m: M) -> MachineResult<Output>;
 }
 
-pub struct ConcreteOuterInterpreter<'a, S, M, E, I, InstructionStepResult, InterpreterStepResult>
-where
+pub struct ConcreteOuterInterpreter<
+    S,
+    M,
+    E,
+    I,
+    InstructionStepResult,
+    InterpreterStepResult,
+    Runner,
+> where
     S: Stack,
     M: Mem,
     E: EnvExtension,
     I: AbstractInstruction<S, M, E, InstructionStepResult>,
 {
-    inner_interpreter:
-        dyn InnerInterpreter<'a, S, M, E, I, InstructionStepResult, InterpreterStepResult>,
+    inner_interpreter: Runner,
+    _stack: PhantomData<S>,
+    _mem: PhantomData<M>,
+    _env: PhantomData<E>,
+    _instruction: PhantomData<I>,
+    _instruction_output: PhantomData<InstructionStepResult>,
+    _exec_output: PhantomData<InterpreterStepResult>,
 }
-
-impl<'a, S, M, E, I, InstructionStepResult>
-    OuterInterpreter<AbstractMachine<'a, S, M, E, I>, AbstractMachine<'a, S, M, E, I>>
-    for ConcreteOuterInterpreter<
-        'a,
-        S,
-        M,
-        E,
-        I,
-        InstructionStepResult,
-        AbstractMachine<'a, S, M, E, I>,
-    >
+impl<'a, S, M, E, I, InstructionStepResult, InterpreterResult, Runner>
+    ConcreteOuterInterpreter<S, M, E, I, InstructionStepResult, InterpreterResult, Runner>
 where
     S: Stack,
     M: WriteableMem,
     E: EnvExtension,
     I: AbstractInstruction<S, M, E, InstructionStepResult>,
+    Runner: InnerInterpreter<'a, S, M, E, InstructionStepResult, InterpreterResult>,
+{
+    pub fn new(inner: Runner) -> Self {
+        Self {
+            inner_interpreter: inner,
+            _stack: PhantomData::<S>,
+            _mem: PhantomData::<M>,
+            _env: PhantomData::<E>,
+            _instruction: PhantomData::<I>,
+            _instruction_output: PhantomData::<InstructionStepResult>,
+            _exec_output: PhantomData::<InterpreterResult>,
+        }
+    }
+}
+
+impl<'a, S, M, E, I, InstructionStepResult, Runner>
+    OuterInterpreter<
+        AbstractMachine<
+            'a,
+            S,
+            M,
+            E,
+            &'a (dyn instructions::AbstractInstruction<S, M, E, InstructionStepResult> + 'a),
+        >,
+        AbstractMachine<
+            'a,
+            S,
+            M,
+            E,
+            &'a (dyn instructions::AbstractInstruction<S, M, E, InstructionStepResult> + 'a),
+        >,
+    >
+    for ConcreteOuterInterpreter<
+        S,
+        M,
+        E,
+        I,
+        InstructionStepResult,
+        AbstractMachine<
+            'a,
+            S,
+            M,
+            E,
+            &'a (dyn instructions::AbstractInstruction<S, M, E, InstructionStepResult> + 'a),
+        >,
+        Runner,
+    >
+where
+    S: Stack + 'a,
+    M: WriteableMem + 'a,
+    E: EnvExtension + 'a,
+    InstructionStepResult: 'a,
+    I: AbstractInstruction<S, M, E, InstructionStepResult>,
+    Runner: InnerInterpreter<
+        'a,
+        S,
+        M,
+        E,
+        InstructionStepResult,
+        AbstractMachine<
+            'a,
+            S,
+            M,
+            E,
+            &'a (dyn instructions::AbstractInstruction<S, M, E, InstructionStepResult>),
+        >,
+    >,
 {
     fn run(
         &self,
-        m: AbstractMachine<'a, S, M, E, I>,
-    ) -> MachineResult<AbstractMachine<'a, S, M, E, I>> {
+        m: AbstractMachine<
+            'a,
+            S,
+            M,
+            E,
+            &'a (dyn instructions::AbstractInstruction<S, M, E, InstructionStepResult> + 'a),
+        >,
+    ) -> MachineResult<
+        AbstractMachine<
+            'a,
+            S,
+            M,
+            E,
+            &'a (dyn instructions::AbstractInstruction<S, M, E, InstructionStepResult> + 'a),
+        >,
+    > {
         let mut x = m;
 
         while x.can_continue() {
-            x = self.inner_interpreter.step(x)?;
+            let current_instruction = x.pgm.get(x.pc.unwrap()).unwrap();
+            x = self.inner_interpreter.step(x, *current_instruction)?;
         }
 
         Ok(x)
     }
 }
 
-pub struct SymbolicOuterInterpreter<'a, S, M, E, I, InstructionStepResult, InterpreterStepResult>
-where
+pub struct SymbolicOuterInterpreter<
+    S,
+    M,
+    E,
+    I,
+    InstructionStepResult,
+    InterpreterStepResult,
+    Runner,
+> where
     S: Stack,
     M: Mem,
     E: EnvExtension,
     I: AbstractInstruction<S, M, E, InstructionStepResult>,
 {
-    inner_interpreter:
-        dyn InnerInterpreter<'a, S, M, E, I, InstructionStepResult, InterpreterStepResult>,
+    inner_interpreter: Runner,
+    _stack: PhantomData<S>,
+    _mem: PhantomData<M>,
+    _env: PhantomData<E>,
+    _instruction: PhantomData<I>,
+    _instruction_output: PhantomData<InstructionStepResult>,
+    _exec_output: PhantomData<InterpreterStepResult>,
 }
 
 pub type SingleBranch<'a, S, M, E, I, C> = (AbstractMachine<'a, S, M, E, I>, Vec<Constraint<C>>);
 
-impl<'a, S, M, E, I, InstructionStepResult, C>
-    OuterInterpreter<Vec<SingleBranch<'a, S, M, E, I, C>>, AbstractMachine<'a, S, M, E, I>>
+impl<'a, S, M, E, I, InstructionStepResult, C, Runner>
+    OuterInterpreter<
+        Vec<
+            SingleBranch<
+                'a,
+                S,
+                M,
+                E,
+                &'a (dyn instructions::AbstractInstruction<S, M, E, InstructionStepResult> + 'a),
+                C,
+            >,
+        >,
+        AbstractMachine<
+            'a,
+            S,
+            M,
+            E,
+            &'a (dyn instructions::AbstractInstruction<S, M, E, InstructionStepResult> + 'a),
+        >,
+    >
     for SymbolicOuterInterpreter<
-        'a,
         S,
         M,
         E,
         I,
         InstructionStepResult,
         AbstractExecBranch<'a, S, M, E, I, C>,
+        Runner,
     >
 where
     S: Stack,
@@ -87,20 +203,71 @@ where
     E: EnvExtension,
     I: AbstractInstruction<S, M, E, InstructionStepResult>,
     C: Clone,
+    Runner: InnerInterpreter<
+        'a,
+        S,
+        M,
+        E,
+        InstructionStepResult,
+        AbstractExecBranch<
+            'a,
+            S,
+            M,
+            E,
+            &'a (dyn instructions::AbstractInstruction<S, M, E, InstructionStepResult> + 'a),
+            C,
+        >,
+    >,
 {
     fn run(
         &self,
-        m: AbstractMachine<'a, S, M, E, I>,
-    ) -> MachineResult<Vec<SingleBranch<'a, S, M, E, I, C>>> {
-        let mut trace_tree: Vec<SingleBranch<'a, S, M, E, I, C>> = vec![(m, vec![])];
+        m: AbstractMachine<
+            'a,
+            S,
+            M,
+            E,
+            &'a (dyn instructions::AbstractInstruction<S, M, E, InstructionStepResult> + 'a),
+        >,
+    ) -> MachineResult<
+        Vec<
+            SingleBranch<
+                'a,
+                S,
+                M,
+                E,
+                &'a (dyn instructions::AbstractInstruction<S, M, E, InstructionStepResult> + 'a),
+                C,
+            >,
+        >,
+    > {
+        let mut trace_tree: Vec<
+            SingleBranch<
+                'a,
+                S,
+                M,
+                E,
+                &'a (dyn instructions::AbstractInstruction<S, M, E, InstructionStepResult> + 'a),
+                C,
+            >,
+        > = vec![(m, vec![])];
 
-        let mut leaves: Vec<SingleBranch<'a, S, M, E, I, C>> = vec![];
+        let mut leaves: Vec<
+            SingleBranch<
+                'a,
+                S,
+                M,
+                E,
+                &'a (dyn instructions::AbstractInstruction<S, M, E, InstructionStepResult> + 'a),
+                C,
+            >,
+        > = vec![];
 
         loop {
             let start_branch = trace_tree.pop();
             if let Some((mach, constraints)) = start_branch {
                 if mach.can_continue() {
-                    let new_machines = self.inner_interpreter.step(mach)?;
+                    let curr_instruction = mach.pgm.get(mach.pc.unwrap()).unwrap();
+                    let new_machines = self.inner_interpreter.step(mach, *curr_instruction)?;
 
                     new_machines
                         .into_iter()
