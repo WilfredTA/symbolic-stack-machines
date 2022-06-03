@@ -1,3 +1,5 @@
+use std::marker::PhantomData;
+
 use crate::{
     constraint::Constraint,
     instructions::{AbstractInstruction, EnvExtension},
@@ -15,18 +17,47 @@ pub trait OuterInterpreter<Output, M> {
     fn run(&self, m: M) -> MachineResult<Output>;
 }
 
-pub struct ConcreteOuterInterpreter<'a, S, M, E, I, InstructionStepResult, InterpreterStepResult>
+pub struct ConcreteOuterInterpreter<'a, S, M, E, I, InstructionStepResult, InterpreterStepResult, Runner>
 where
     S: Stack,
     M: Mem,
     E: EnvExtension,
     I: AbstractInstruction<S, M, E, InstructionStepResult>,
+    Runner: InnerInterpreter<'a, S, M, E, I, InstructionStepResult, InterpreterStepResult>
 {
-    inner_interpreter:
-        dyn InnerInterpreter<'a, S, M, E, I, InstructionStepResult, InterpreterStepResult>,
+    inner_interpreter: Runner,
+    _lt: PhantomData<&'a I>,
+    _stack: PhantomData<S>,
+    _mem: PhantomData<M>,
+    _env: PhantomData<E>,
+    _instruction: PhantomData<I>,
+    _instruction_output: PhantomData<InstructionStepResult>,
+    _exec_output: PhantomData<InterpreterStepResult>,
 }
 
-impl<'a, S, M, E, I, InstructionStepResult>
+impl<'a, S, M, E, I, InstructionStepResult, InterpreterStepResult, Runner> ConcreteOuterInterpreter<'a, S, M, E, I, InstructionStepResult, InterpreterStepResult, Runner> 
+where
+    S: Stack,
+    M: Mem,
+    E: EnvExtension,
+    I: AbstractInstruction<S, M, E, InstructionStepResult>,
+    Runner: InnerInterpreter<'a, S, M, E, I, InstructionStepResult, InterpreterStepResult>
+{
+    pub fn new(runner: Runner) -> Self {
+        Self {
+            inner_interpreter: runner,
+            _lt: PhantomData::<&'a I>,
+            _stack: PhantomData::<S>,
+            _mem: PhantomData::<M>,
+            _env: PhantomData::<E>,
+            _instruction: PhantomData::<I>,
+            _instruction_output: PhantomData::<InstructionStepResult>,
+            _exec_output: PhantomData::<InterpreterStepResult>,
+        }
+    }
+}
+
+impl<'a, S, M, E, I, InstructionStepResult, Runner>
     OuterInterpreter<AbstractMachine<'a, S, M, E, I>, AbstractMachine<'a, S, M, E, I>>
     for ConcreteOuterInterpreter<
         'a,
@@ -36,12 +67,14 @@ impl<'a, S, M, E, I, InstructionStepResult>
         I,
         InstructionStepResult,
         AbstractMachine<'a, S, M, E, I>,
+        Runner
     >
 where
     S: Stack,
     M: WriteableMem,
     E: EnvExtension,
     I: AbstractInstruction<S, M, E, InstructionStepResult>,
+    Runner: InnerInterpreter<'a, S, M, E, I, InstructionStepResult, AbstractMachine<'a, S, M, E, I>>,
 {
     fn run(
         &self,
@@ -57,20 +90,28 @@ where
     }
 }
 
-pub struct SymbolicOuterInterpreter<'a, S, M, E, I, InstructionStepResult, InterpreterStepResult>
+pub type SingleBranch<'a, S, M, E, I, C> = (AbstractMachine<'a, S, M, E, I>, Vec<Constraint<C>>);
+pub struct SymbolicOuterInterpreter<'a, S, M, E, I, InstructionStepResult, InterpreterStepResult, Runner>
 where
     S: Stack,
     M: Mem,
     E: EnvExtension,
     I: AbstractInstruction<S, M, E, InstructionStepResult>,
+    Runner: InnerInterpreter<'a, S, M, E, I, InstructionStepResult, InterpreterStepResult> + 'a
 {
-    inner_interpreter:
-        dyn InnerInterpreter<'a, S, M, E, I, InstructionStepResult, InterpreterStepResult>,
+    inner_interpreter: Runner,
+    _lt: PhantomData<&'a I>,
+    _stack: PhantomData<S>,
+    _mem: PhantomData<M>,
+    _env: PhantomData<E>,
+    _instruction: PhantomData<I>,
+    _instruction_output: PhantomData<InstructionStepResult>,
+    _exec_output: PhantomData<InterpreterStepResult>,
 }
 
-pub type SingleBranch<'a, S, M, E, I, C> = (AbstractMachine<'a, S, M, E, I>, Vec<Constraint<C>>);
 
-impl<'a, S, M, E, I, InstructionStepResult, C>
+
+impl<'a, S, M, E, I, InstructionStepResult, C, Runner>
     OuterInterpreter<Vec<SingleBranch<'a, S, M, E, I, C>>, AbstractMachine<'a, S, M, E, I>>
     for SymbolicOuterInterpreter<
         'a,
@@ -80,6 +121,7 @@ impl<'a, S, M, E, I, InstructionStepResult, C>
         I,
         InstructionStepResult,
         AbstractExecBranch<'a, S, M, E, I, C>,
+        Runner
     >
 where
     S: Stack,
@@ -87,6 +129,7 @@ where
     E: EnvExtension,
     I: AbstractInstruction<S, M, E, InstructionStepResult>,
     C: Clone,
+    Runner: InnerInterpreter<'a, S, M, E, I, InstructionStepResult, AbstractExecBranch<'a, S, M, E, I, C>>,
 {
     fn run(
         &self,
