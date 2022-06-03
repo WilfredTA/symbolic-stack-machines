@@ -22,8 +22,8 @@ where
     E: EnvExtension,
     I: AbstractInstruction<S, M, E, InstructionStepResult>,
 {
-    inner_interpreter:
-        dyn InnerInterpreter<'a, S, M, E, I, InstructionStepResult, InterpreterStepResult>,
+    pub inner_interpreter:
+        Box<dyn InnerInterpreter<'a, S, M, E, I, InstructionStepResult, InterpreterStepResult>>,
 }
 
 impl<'a, S, M, E, I, InstructionStepResult>

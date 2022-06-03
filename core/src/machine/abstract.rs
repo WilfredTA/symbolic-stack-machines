@@ -17,7 +17,6 @@ where
     pub pc: Option<usize>,
     pub pgm: &'a [I],
 }
-
 // NOTE(will): For some reason, calling `.clone` directly on
 // `AbstractMachine` requires that `I` implement `Clone`. `I` is behind
 // a reference and shouldn't have to implement clone in order to clone
