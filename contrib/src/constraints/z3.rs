@@ -3,7 +3,7 @@ use symbolic_stack_machines_core::value::r#abstract::{AbstractInt, Val};
 use z3::ast::{Ast, Bool, Int};
 use z3::{Config, Context, Model, SatResult as Z3SatResult, Solver as Z3InnerSolver};
 
-pub type ValInt = Val<AbstractInt>;
+pub type ValInt = AbstractInt;
 
 pub struct Z3SolverBuilder {
     ctx: Option<Context>,
@@ -102,6 +102,8 @@ impl<'a> Solver<u64, Bool<'a>, Int<'a>> for Z3Solver<'a, u64> {
 // {
 
 // }
+
+// TODO(tannr): Impl Transpile from 
 
 impl<'a> Transpile<u64, Bool<'a>, Int<'a>> for Z3Solver<'a, u64> {
     fn val_to_ground_type(&self, v: u64) -> Int<'a> {

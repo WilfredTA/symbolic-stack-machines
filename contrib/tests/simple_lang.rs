@@ -12,7 +12,7 @@ mod common;
 use common::{z3_int, z3_int_var};
 
 #[allow(dead_code)]
-type ValInt = Val<AbstractInt>;
+type ValInt = AbstractInt;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum Instruction<T> {
