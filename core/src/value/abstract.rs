@@ -1,25 +1,43 @@
-use std::rc::Rc;
 use rand::Rng;
+use std::{any::Any, ops::Deref, rc::Rc};
 use z3::ast::BV;
-#[derive(Clone)]
+
+#[derive(Clone, Debug)]
 pub struct AbstractValue<T> {
-    symbol: String,
+    symbol: Option<String>,
     val: T,
+}
+
+pub trait GroundValueConversion {
+    type GroundVal;
+    fn to(&self) -> Self::GroundVal;
 }
 
 // To do: Transpile like so:
 // InnerValue (and all sub types) implement Into<smt_val> (e.g., Booleans implement Into<z3::ast::Bool>)
 
-impl<T: Clone> AbstractValue<T> {
-    pub fn new(val: T, symbol: String) -> Self {
-        Self { symbol, val }
+impl<T> AsRef<T> for AbstractValue<T> {
+    fn as_ref(&self) -> &T {
+        &self.val
     }
-    pub fn inner<V: From<T>>(&self) -> V {
+}
+impl<T: Clone> AbstractValue<T> {
+    pub fn new(val: impl Into<T>, symbol: Option<String>) -> Self {
+        Self {
+            symbol,
+            val: val.into(),
+        }
+    }
+    pub fn inner(&self) -> T {
         self.val.clone().into()
     }
 
     pub fn id(&self) -> &str {
-        self.symbol.as_str()
+        if let Some(ref symb) = self.symbol {
+            symb.as_str()
+        } else {
+            ""
+        }
     }
 
     pub fn set_val(&mut self, new_val: T) {
@@ -27,30 +45,73 @@ impl<T: Clone> AbstractValue<T> {
     }
 
     pub fn set_symbol(&mut self, new_symbol: String) {
-        self.symbol = new_symbol;
+        self.symbol = Some(new_symbol);
     }
 }
 
-// TODO(tannr): Impl arithmetic ops, comparison ops, equality ops for inner value
-// Do it in such a way that if values are symbolic, then a `Constraint` tree is produced that can be passed to Transpile::transpile()
-
-
-
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Value<T>(pub Rc<T>);
+impl<T> Value<T> {
+    pub fn inner(&self) -> Rc<T> {
+        Rc::clone(&self.0)
+    }
+}
 
-#[derive(Clone)]
+impl Value<InnerValue> {
+    pub fn is_ground_value(&self) -> bool {
+        match self.0.as_ref() {
+            InnerValue::ConcreteLiteral(_) => true,
+            InnerValue::SymbolicLiteral(_) => true,
+            InnerValue::Boolean(_) => false,
+            InnerValue::Arithmetic(_) => false,
+        }
+    }
+
+    pub fn get_ground_value(&self) -> Option<GroundValue> {
+        match self.0.as_ref() {
+            InnerValue::ConcreteLiteral(v) => {
+                Some(GroundValue::Concrete(v.inner().as_ref().clone()))
+            }
+            InnerValue::SymbolicLiteral(v) => {
+                Some(GroundValue::Symbolic(v.inner().as_ref().clone()))
+            }
+            InnerValue::Boolean(v) => match v.inner().as_ref() {
+                Boolean::ValCmp(cmp) => None,
+                Boolean::BoolFormula(v) => None,
+            },
+            InnerValue::Arithmetic(v) => None,
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum GroundValue {
+    Concrete(ConcreteInnerValue),
+    Symbolic(SymbolicInnerValue),
+    Boolean(bool),
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum InnerValue {
     ConcreteLiteral(Value<ConcreteInnerValue>),
     SymbolicLiteral(Value<SymbolicInnerValue>),
-    Boolean(Boolean),
-    Arithmetic(Arithmetic),
+    Boolean(Value<Boolean>),
+    Arithmetic(Value<Arithmetic>),
     // Binary
 }
 
+// impl InnerValue {
+//     pub fn unwrap(&self) -> Rc<dyn Any> {
+//         match self {
+//             InnerValue::ConcreteLiteral(v) => Rc::new(v.clone()),
+//             InnerValue::SymbolicLiteral(v) => Rc::new(v.clone()),
+//             InnerValue::Boolean(v) => Rc::new(v.clone()),
+//             InnerValue::Arithmetic(v) => Rc::new(v.clone()),
+//         }
+//     }
+// }
 
-
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Arithmetic {
     Add(Value<InnerValue>, Value<InnerValue>),
     Sub(Value<InnerValue>, Value<InnerValue>),
@@ -58,13 +119,13 @@ pub enum Arithmetic {
     Div(Value<InnerValue>, Value<InnerValue>),
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Boolean {
     ValCmp(ValCmp),
-    BoolFormula(BoolFormula)
+    BoolFormula(BoolFormula),
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum BoolFormula {
     True,
     False,
@@ -75,7 +136,7 @@ pub enum BoolFormula {
     Assert(Value<InnerValue>),
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ValCmp {
     Gt(Value<InnerValue>, Value<InnerValue>),
     Gte(Value<InnerValue>, Value<InnerValue>),
@@ -85,7 +146,7 @@ pub enum ValCmp {
     Neq(Value<InnerValue>, Value<InnerValue>),
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ConcreteInnerValue {
     ConcreteU8(u8),
     ConcreteU16(u16),
@@ -95,7 +156,7 @@ pub enum ConcreteInnerValue {
     ConcreteBytes(Vec<u8>),
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum SymbolicInnerValue {
     SymbolicU8(u8),
     SymbolicU16(u16),
@@ -110,10 +171,10 @@ impl std::ops::Add for InnerValue {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
-        Self::Arithmetic(Arithmetic::Add(
-                Value(Rc::new(self.clone())), Value(Rc::new(rhs.clone()))
-            )
-        )
+        Self::Arithmetic(Value(Rc::new(Arithmetic::Add(
+            Value(Rc::new(self.clone())),
+            Value(Rc::new(rhs.clone())),
+        ))))
     }
 }
 
@@ -121,10 +182,10 @@ impl std::ops::Sub for InnerValue {
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self::Output {
-        Self::Arithmetic(Arithmetic::Sub(
-                Value(Rc::new(self.clone())), Value(Rc::new(rhs.clone()))
-            )
-        )
+        Self::Arithmetic(Value(Rc::new(Arithmetic::Sub(
+            Value(Rc::new(self.clone())),
+            Value(Rc::new(rhs.clone())),
+        ))))
     }
 }
 
@@ -132,10 +193,10 @@ impl std::ops::Mul for InnerValue {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self::Output {
-        Self::Arithmetic(Arithmetic::Mul(
-            Value(Rc::new(self.clone())), Value(Rc::new(rhs.clone()))
-        )
-    )
+        Self::Arithmetic(Value(Rc::new(Arithmetic::Mul(
+            Value(Rc::new(self.clone())),
+            Value(Rc::new(rhs.clone())),
+        ))))
     }
 }
 
@@ -143,72 +204,54 @@ impl std::ops::Div for InnerValue {
     type Output = Self;
 
     fn div(self, rhs: Self) -> Self::Output {
-        Self::Arithmetic(Arithmetic::Div(
-            Value(Rc::new(self.clone())), Value(Rc::new(rhs.clone()))
-        )
-    )
+        Self::Arithmetic(Value(Rc::new(Arithmetic::Div(
+            Value(Rc::new(self.clone())),
+            Value(Rc::new(rhs.clone())),
+        ))))
     }
 }
 
 impl InnerValue {
     pub fn _eq(&self, other: InnerValue) -> Self {
-        InnerValue::Boolean(
-            Boolean::ValCmp(
-                ValCmp::Eq(
-                    Value(Rc::new(self.clone())), Value(Rc::new(other.clone()))
-                )
-            )
-        )
+        InnerValue::Boolean(Value(Rc::new(Boolean::ValCmp(ValCmp::Eq(
+            Value(Rc::new(self.clone())),
+            Value(Rc::new(other.clone())),
+        )))))
     }
 
     pub fn _neq(&self, other: InnerValue) -> Self {
-        InnerValue::Boolean(
-            Boolean::ValCmp(
-                ValCmp::Neq(
-                    Value(Rc::new(self.clone())), Value(Rc::new(other.clone()))
-                )
-            )
-        )
+        InnerValue::Boolean(Value(Rc::new(Boolean::ValCmp(ValCmp::Neq(
+            Value(Rc::new(self.clone())),
+            Value(Rc::new(other.clone())),
+        )))))
     }
 
     pub fn _gt(&self, other: InnerValue) -> Self {
-        InnerValue::Boolean(
-            Boolean::ValCmp(
-                ValCmp::Gt(
-                    Value(Rc::new(self.clone())), Value(Rc::new(other.clone()))
-                )
-            )
-        )
+        InnerValue::Boolean(Value(Rc::new(Boolean::ValCmp(ValCmp::Gt(
+            Value(Rc::new(self.clone())),
+            Value(Rc::new(other.clone())),
+        )))))
     }
 
     pub fn _gte(&self, other: InnerValue) -> Self {
-        InnerValue::Boolean(
-            Boolean::ValCmp(
-                ValCmp::Gte(
-                    Value(Rc::new(self.clone())), Value(Rc::new(other.clone()))
-                )
-            )
-        )
+        InnerValue::Boolean(Value(Rc::new(Boolean::ValCmp(ValCmp::Gte(
+            Value(Rc::new(self.clone())),
+            Value(Rc::new(other.clone())),
+        )))))
     }
 
     pub fn _lt(&self, other: InnerValue) -> Self {
-        InnerValue::Boolean(
-            Boolean::ValCmp(
-                ValCmp::Lt(
-                    Value(Rc::new(self.clone())), Value(Rc::new(other.clone()))
-                )
-            )
-        )
+        InnerValue::Boolean(Value(Rc::new(Boolean::ValCmp(ValCmp::Lt(
+            Value(Rc::new(self.clone())),
+            Value(Rc::new(other.clone())),
+        )))))
     }
 
     pub fn _lte(&self, other: InnerValue) -> Self {
-        InnerValue::Boolean(
-            Boolean::ValCmp(
-                ValCmp::Lte(
-                    Value(Rc::new(self.clone())), Value(Rc::new(other.clone()))
-                )
-            )
-        )
+        InnerValue::Boolean(Value(Rc::new(Boolean::ValCmp(ValCmp::Lte(
+            Value(Rc::new(self.clone())),
+            Value(Rc::new(other.clone())),
+        )))))
     }
 }
 
@@ -255,31 +298,9 @@ impl From<u128> for InnerValue {
     }
 }
 
-
-
-// Convenient Exports
-
-// #[derive(Clone, Default)]
-// pub struct AbstractInt {
-//     concrete: Option<u64>,
-// }
-
-// impl AbstractInt {
-//     pub fn inner(&self) -> Option<u64> {
-//         self.concrete.clone()
-//     }
-// }
-
-// impl From<u64> for AbstractInt {
-//     fn from(v: u64) -> Self {
-//         Self { concrete: Some(v) }
-//     }
-// }
-
 const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ\
                             abcdefghijklmnopqrstuvwxyz";
 const SYMBOL_LEN: usize = 10;
-  
 
 fn random_val_symbol() -> String {
     let mut rng = rand::thread_rng();
@@ -297,9 +318,75 @@ pub type AbstractInt = AbstractValue<Option<u64>>;
 // Val is the universal value type
 pub type Val = AbstractValue<InnerValue>;
 
+impl Deref for AbstractValue<InnerValue> {
+    type Target = InnerValue;
 
-impl<T: Clone> From<T> for AbstractValue<T> {
-    fn from(v: T) -> Self {
-        AbstractValue::new(v, random_val_symbol())
+    fn deref(&self) -> &Self::Target {
+        self.as_ref()
     }
 }
+impl<T: Clone> From<T> for AbstractValue<T> {
+    fn from(v: T) -> Self {
+        AbstractValue::new(v, Some(random_val_symbol()))
+    }
+}
+
+impl<T> std::ops::Add for AbstractValue<T>
+where
+    T: std::ops::Add + std::ops::Add<Output = T> + Clone,
+{
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        let new_val: T = self.inner() + rhs.inner();
+        Self::new(new_val, None)
+    }
+}
+
+impl<T> std::ops::Sub for AbstractValue<T>
+where
+    T: std::ops::Sub + std::ops::Sub<Output = T> + Clone,
+{
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        let new_val: T = self.inner() - rhs.inner();
+        Self::new(new_val, None)
+    }
+}
+
+impl<T> std::ops::Div for AbstractValue<T>
+where
+    T: std::ops::Div + std::ops::Div<Output = T> + Clone,
+{
+    type Output = Self;
+
+    fn div(self, rhs: Self) -> Self::Output {
+        let new_val: T = self.inner() / rhs.inner();
+        Self::new(new_val, None)
+    }
+}
+
+// impl TryFrom<AbstractValue<InnerValue>> for u64
+// {
+//     type Error = String;
+
+//     fn try_from(v: AbstractValue<InnerValue>) -> Result<Self, Self::Error> {
+//         let v = match v.inner() {
+//             InnerValue::ConcreteLiteral(v) => {
+//                 match v.0.as_ref() {
+//                     ConcreteInnerValue::ConcreteU8(v) => v.to_owned() as u64,
+//                     ConcreteInnerValue::ConcreteU16(v) => v.to_owned() as u64,
+//                     ConcreteInnerValue::ConcreteU32(v) => v.to_owned() as u64,
+//                     ConcreteInnerValue::ConcreteU64(v) => v.to_owned() as u64,
+//                     ConcreteInnerValue::ConcreteU128(_v) => panic!("Cannot convert from u128 to u64"),
+//                     ConcreteInnerValue::ConcreteBytes(_v) => panic!("Cannot convert from vec<u8> to u64 safely"),
+//                 }
+//             },
+//             InnerValue::SymbolicLiteral(_) => todo!(),
+//             InnerValue::Boolean(_) => todo!(),
+//             InnerValue::Arithmetic(_) => todo!(),
+//         };
+//         Ok(v)
+//     }
+// }

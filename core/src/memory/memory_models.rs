@@ -14,7 +14,11 @@ pub struct BaseMemoryConcreteIndex<T> {
 
 impl<T> BaseMemoryConcreteIndex<T> {
     pub fn new() -> Self {
-        Self { _inner: vec![], idx_set: PhantomData::<usize>, val_set: PhantomData::<Val<T>> }
+        Self {
+            _inner: vec![],
+            idx_set: PhantomData::<usize>,
+            val_set: PhantomData::<Val<T>>,
+        }
     }
 }
 #[derive(Debug, Clone)]

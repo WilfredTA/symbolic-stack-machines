@@ -103,7 +103,7 @@ impl<'a> Solver<u64, Bool<'a>, Int<'a>> for Z3Solver<'a, u64> {
 
 // }
 
-// TODO(tannr): Impl Transpile from 
+// TODO(tannr): Impl Transpile from
 
 impl<'a> Transpile<u64, Bool<'a>, Int<'a>> for Z3Solver<'a, u64> {
     fn val_to_ground_type(&self, v: u64) -> Int<'a> {
@@ -166,7 +166,7 @@ impl<'a> Transpile<u64, Bool<'a>, Int<'a>> for Z3Solver<'a, u64> {
 
 impl<'a> Transpile<ValInt, Bool<'a>, Int<'a>> for Z3Solver<'a, ValInt> {
     fn val_to_ground_type(&self, v: ValInt) -> Int<'a> {
-        if let Some(val) = v.inner::<AbstractInt>().inner() {
+        if let Some(val) = v.inner() {
             z3_int(val, self.get_ctx())
         } else {
             z3_int_var(v.id(), self.get_ctx())
@@ -174,7 +174,7 @@ impl<'a> Transpile<ValInt, Bool<'a>, Int<'a>> for Z3Solver<'a, ValInt> {
     }
 
     fn ground_type_to_val(&self, g: Int<'a>) -> ValInt {
-        ValInt::new(g.as_u64().unwrap().into(), g.to_string())
+        ValInt::new(g.as_u64().unwrap(), Some(g.to_string()))
     }
 
     fn assert(&self, c: Bool<'a>) -> Bool<'a> {

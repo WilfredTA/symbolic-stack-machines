@@ -8,7 +8,7 @@ pub trait Stack: Sized + Clone {
     fn push<V: Into<Self::StackVal>>(&self, v: V) -> StackResult<Self>;
     fn pop(&self) -> StackResult<Self>;
 
-    fn peek<V: From<Self::StackVal>>(&self, idx: usize) -> Option<V>;
+    fn peek<V: TryFrom<Self::StackVal>>(&self, idx: usize) -> Option<V>;
 }
 
 #[derive(Clone)]
@@ -92,10 +92,13 @@ where
 
     fn peek<V>(&self, idx: usize) -> Option<V>
     where
-        V: From<Self::StackVal>,
+        V: TryFrom<Self::StackVal>,
     {
         let last_idx = self.0.len() - 1;
         let get_idx = last_idx - idx;
-        self.0.get(get_idx).cloned().map(|val| val.into())
+        self.0
+            .get(get_idx)
+            .cloned()
+            .map(|val| V::try_from(val).ok().unwrap())
     }
 }
