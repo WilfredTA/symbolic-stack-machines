@@ -20,7 +20,7 @@ use symbolic_stack_machines_core::{
     },
     memory::memory_models::BaseMemoryConcreteIndex,
     stack::{BaseStack, Stack},
-    value::r#abstract::*,
+    value::*,
 };
 mod common;
 use common::simple_lang::*;
@@ -98,6 +98,8 @@ fn test_abstract_arithmetic() {
         push(InnerValue::from(30_u64).into()),
         push(InnerValue::from(20_u64).into()),
         add(),
+        // push(AbstractValue::new(InnerValue::SymbolicLiteral(Value::new(SymbolicInnerValue::SymbolicU64(10))), Some("x".to_string()))),
+        // add()
     ];
     let pc = Some(0);
     let custom_env = DummyExtEnv {};
