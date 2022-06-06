@@ -7,13 +7,13 @@ pub trait Simplifiable {
 
 
 
-pub trait Arithmetic: Add + Sub + Mul + Div + Sized {}
+pub trait Arith: Add + Sub + Mul + Div + Sized {}
 
-pub trait Signed: Arithmetic + Neg {}
+pub trait Signed: Arith + Neg {}
 
 pub trait Binary: Shl + Shr + BitOr + BitAnd + BitXor + Not + Sized {}
 
 pub trait Comparable: PartialEq + Eq + PartialOrd + Ord + Sized {}
-pub trait Abstracted: Simplifiable + Arithmetic + Binary + Comparable {
+pub trait Abstracted: Simplifiable + Arith + Binary + Comparable {
 
 }
