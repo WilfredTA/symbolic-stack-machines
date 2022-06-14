@@ -1,10 +1,11 @@
 use symbolic_stack_machines_core::{
     instructions::{
-        AbstractExecRecord, AbstractInstruction, ConcreteAbstractExecRecord, EnvExtension,
+        AbstractExecRecord, AbstractInstruction, ConcreteAbstractExecRecord,
         InstructionResult,
     },
     memory::Mem,
     stack::{Stack, StackOpRecord, StackRecord},
+    environment::EnvExtension
 };
 
 // The MachineEq trait is necessary because the type of equality used in the machine

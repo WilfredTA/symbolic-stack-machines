@@ -1,7 +1,8 @@
 use crate::{
     constraint::Constraint,
+    environment::EnvExtension,
     instructions::{
-        AbstractExecRecord, AbstractInstruction, ConcreteAbstractExecRecord, EnvExtension,
+        AbstractExecRecord, AbstractInstruction, ConcreteAbstractExecRecord,
     },
     memory::{Mem, WriteableMem},
     stack::Stack,

@@ -1,7 +1,8 @@
 use std::rc::Rc;
 use symbolic_stack_machines_core::constraint::Constraint;
+use symbolic_stack_machines_core::environment::{EnvExtension, EnvExtensionRecord};
 use symbolic_stack_machines_core::memory::{MemOpRecord, MemRecord, ReadOnlyMem};
-use symbolic_stack_machines_core::value::{AbstractInt, Val};
+use symbolic_stack_machines_core::value::AbstractInt;
 use symbolic_stack_machines_core::{
     instructions::*, machine::*, memory::memory_models::*, stack::*,
 };

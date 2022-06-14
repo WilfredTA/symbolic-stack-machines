@@ -8,9 +8,9 @@ use symbolic_stack_machines_contrib::{
     instructions::{arith::*, bitwise::*, misc::*},
 };
 
-use symbolic_stack_machines_core::memory::{
+use symbolic_stack_machines_core::{memory::{
     memory_models::BaseMemoryConcreteUint64, MemOpRecord, MemRecord, ReadOnlyMem,
-};
+}, environment::{EnvExtension, EnvExtensionRecord}};
 use symbolic_stack_machines_core::{instructions::*, machine, memory::memory_models, stack};
 use symbolic_stack_machines_core::{
     machine::{

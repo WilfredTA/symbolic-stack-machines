@@ -4,3 +4,4 @@ pub mod machine;
 pub mod memory;
 pub mod stack;
 pub mod value;
+pub mod environment;
