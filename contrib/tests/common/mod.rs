@@ -10,9 +10,10 @@ pub fn z3_int_var<'a>(i: &str, ctxt: &'a Context) -> z3::ast::Int<'a> {
 
 pub mod simple_lang {
     use symbolic_stack_machines_core::{
-        instructions::{AbstractInstruction, ConcreteAbstractExecRecord, EnvExtension},
+        instructions::{AbstractInstruction, ConcreteAbstractExecRecord},
         memory::Mem,
         stack::Stack,
+        environment::EnvExtension
     };
 
     use super::*;
