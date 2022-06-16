@@ -1,5 +1,4 @@
 pub mod error;
-pub mod val;
 use crate::constraint::Constraint;
 use crate::environment::EnvExtension;
 use crate::environment::EnvExtensionRecord;

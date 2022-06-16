@@ -1,7 +1,5 @@
-use crate::memory::{MemoryResult, RWMem, ReadOnlyMem, WriteableMem};
-use std::rc::Rc;
+use crate::memory::{MemoryResult, ReadOnlyMem, WriteableMem};
 use z3::ast::{Array, Int};
-use z3::Context;
 
 use super::Mem;
 #[derive(Clone, Debug)]
@@ -25,20 +23,5 @@ impl<'a> WriteableMem for BaseSymbolicMem<'a> {
         Ok(Self {
             inner: self.inner.store(&idx, &val),
         })
-    }
-}
-
-impl<'a> RWMem for BaseSymbolicMem<'a> {
-    type InitArgs = Rc<&'a Context>;
-
-    fn init(args: Self::InitArgs) -> Self {
-        Self {
-            inner: Array::new_const(
-                args.as_ref(),
-                "memory",
-                &z3::Sort::int(args.as_ref()),
-                &z3::Sort::int(args.as_ref()),
-            ),
-        }
     }
 }

@@ -1,11 +1,10 @@
 use symbolic_stack_machines_core::{
+    environment::EnvExtension,
     instructions::{
-        AbstractExecRecord, AbstractInstruction, ConcreteAbstractExecRecord,
-        InstructionResult,
+        AbstractExecRecord, AbstractInstruction, ConcreteAbstractExecRecord, InstructionResult,
     },
     memory::{Mem, MemOpRecord, MemRecord, ReadOnlyMem, WriteableMem},
     stack::{Stack, StackOpRecord, StackRecord},
-    environment::EnvExtension
 };
 
 pub struct PUSH<T>(pub T);

@@ -1,19 +1,11 @@
 use symbolic_stack_machines_contrib::instructions::{arith::*, misc::*};
-use z3::{ast::Int, Context};
-pub fn z3_int<'a>(i: u64, ctxt: &'a Context) -> z3::ast::Int<'a> {
-    Int::from_u64(&ctxt, i)
-}
-
-pub fn z3_int_var<'a>(i: &str, ctxt: &'a Context) -> z3::ast::Int<'a> {
-    Int::new_const(&ctxt, i)
-}
 
 pub mod simple_lang {
     use symbolic_stack_machines_core::{
+        environment::EnvExtension,
         instructions::{AbstractInstruction, ConcreteAbstractExecRecord},
         memory::Mem,
         stack::Stack,
-        environment::EnvExtension
     };
 
     use super::*;

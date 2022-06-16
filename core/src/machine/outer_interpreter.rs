@@ -1,8 +1,9 @@
 use crate::{
     constraint::Constraint,
+    environment::EnvExtension,
     instructions::AbstractInstruction,
     memory::{Mem, WriteableMem},
-    stack::Stack, environment::EnvExtension,
+    stack::Stack,
 };
 
 use super::{

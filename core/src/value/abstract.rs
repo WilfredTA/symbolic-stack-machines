@@ -1,14 +1,12 @@
+use super::inner::*;
 use rand::Rng;
-use std::{ops::Deref};
-use super::{inner::*,};
+use std::ops::Deref;
 
 #[derive(Clone, Debug)]
 pub struct AbstractValue<T> {
     symbol: Option<String>,
     val: T,
 }
-
-
 
 // To do: Transpile like so:
 // InnerValue (and all sub types) implement Into<smt_val> (e.g., Booleans implement Into<z3::ast::Bool>)
@@ -46,13 +44,10 @@ impl<T: Clone> AbstractValue<T> {
     }
 }
 
-
-
 pub type AbstractInt = AbstractValue<Option<u64>>;
 
 // Val is the universal value type
 pub type Val = AbstractValue<InnerValue>;
-
 
 // TODO(tannr): impl Mul
 impl Deref for AbstractValue<InnerValue> {
@@ -103,7 +98,6 @@ where
         Self::new(new_val, None)
     }
 }
-
 
 const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ\
                             abcdefghijklmnopqrstuvwxyz";

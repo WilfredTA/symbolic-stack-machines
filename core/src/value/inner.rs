@@ -56,7 +56,6 @@ pub enum ValCmp {
     Neq(Value<InnerValue>, Value<InnerValue>),
 }
 
-
 impl InnerValue {
     pub fn _eq(&self, other: InnerValue) -> Self {
         InnerValue::Boolean(Value(Rc::new(Boolean::ValCmp(ValCmp::Eq(
@@ -101,9 +100,6 @@ impl InnerValue {
     }
 }
 
-
-
-
 impl std::ops::Add for InnerValue {
     type Output = Self;
 
@@ -147,8 +143,6 @@ impl std::ops::Div for InnerValue {
         ))))
     }
 }
-
-
 
 impl From<u8> for InnerValue {
     fn from(v: u8) -> Self {

@@ -20,10 +20,7 @@ pub trait WriteableMem: Mem {
     fn write(&self, idx: Self::Index, val: Self::MemVal) -> MemoryResult<Self>;
 }
 
-pub trait RWMem: ReadOnlyMem + WriteableMem {
-    type InitArgs: Clone;
-    fn init(args: Self::InitArgs) -> Self;
-}
+pub trait RWMem: ReadOnlyMem + WriteableMem {}
 
 pub type MemorySlotChange<Idx, MemVal> = (Idx, MemVal);
 pub enum MemOpRecord<I, V> {
