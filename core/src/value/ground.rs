@@ -1,4 +1,3 @@
-
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum GroundValue {
     Concrete(ConcreteInnerValue),
@@ -27,7 +26,6 @@ pub enum SymbolicInnerValue {
     SymbolicBitVec(Vec<u8>),
 }
 
-
 impl From<ConcreteInnerValue> for SymbolicInnerValue {
     fn from(v: ConcreteInnerValue) -> Self {
         match v {
@@ -40,4 +38,3 @@ impl From<ConcreteInnerValue> for SymbolicInnerValue {
         }
     }
 }
-

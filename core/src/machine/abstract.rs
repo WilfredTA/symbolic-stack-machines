@@ -1,6 +1,7 @@
 use crate::{
+    environment::{EnvExtension, EnvExtensionRecord},
     memory::{Mem, MemRecord, WriteableMem},
-    stack::{Stack, StackRecord}, environment::{EnvExtension, EnvExtensionRecord},
+    stack::{Stack, StackRecord},
 };
 
 #[derive(Clone)]

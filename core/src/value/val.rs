@@ -1,6 +1,6 @@
-use std::rc::Rc;
-use super::inner::*;
 use super::ground::*;
+use super::inner::*;
+use std::rc::Rc;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Value<T>(pub Rc<T>);
 impl<T> Value<T> {
@@ -11,7 +11,6 @@ impl<T> Value<T> {
         Self(Rc::new(v))
     }
 }
-
 
 impl Value<InnerValue> {
     pub fn is_ground_value(&self) -> bool {

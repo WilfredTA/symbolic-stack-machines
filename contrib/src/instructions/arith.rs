@@ -1,10 +1,10 @@
 use symbolic_stack_machines_core::{
+    environment::EnvExtension,
     instructions::{
-        AbstractExecRecord, AbstractInstruction, ConcreteAbstractExecRecord,
-        InstructionResult,
+        AbstractExecRecord, AbstractInstruction, ConcreteAbstractExecRecord, InstructionResult,
     },
     memory::Mem,
-    stack::{Stack, StackOpRecord, StackRecord}, environment::EnvExtension,
+    stack::{Stack, StackOpRecord, StackRecord},
 };
 
 pub struct ADD;

@@ -1,5 +1,5 @@
 use symbolic_stack_machines_core::constraint::*;
-use symbolic_stack_machines_core::value::{AbstractInt, Val};
+use symbolic_stack_machines_core::value::AbstractInt;
 use z3::ast::{Ast, Bool, Int};
 use z3::{Config, Context, Model, SatResult as Z3SatResult, Solver as Z3InnerSolver};
 
