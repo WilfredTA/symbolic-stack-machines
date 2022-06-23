@@ -8,6 +8,7 @@ authors = ["Tannr Allard <tannr@hey.com>"]
 
 [dependencies]
 byteorder = "1.4.3"
+enum-as-inner = "0.5.0"
 hex = "0.4.3"
 rand = "0.8.5"
 serde = {version = "1.0.136", features = ["derive"], default-features = true}

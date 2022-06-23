@@ -1,3 +1,5 @@
+use super::{Simplifiable, Irreducible};
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum GroundValue {
     Concrete(ConcreteInnerValue),
@@ -38,3 +40,27 @@ impl From<ConcreteInnerValue> for SymbolicInnerValue {
         }
     }
 }
+impl From<ConcreteInnerValue> for GroundValue {
+    fn from(c: ConcreteInnerValue) -> Self {
+        GroundValue::Concrete(c)
+    }
+}
+
+impl From<SymbolicInnerValue> for GroundValue {
+    fn from(c: SymbolicInnerValue) -> Self {
+        GroundValue::Symbolic(c)
+    }
+}
+impl From<&ConcreteInnerValue> for GroundValue {
+    fn from(c: &ConcreteInnerValue) -> Self {
+        GroundValue::Concrete(c.clone())
+    }
+}
+
+impl From<&SymbolicInnerValue> for GroundValue {
+    fn from(c: &SymbolicInnerValue) -> Self {
+        GroundValue::Symbolic(c.clone())
+    }
+}
+impl Irreducible for GroundValue {}
+
