@@ -1,7 +1,7 @@
 use symbolic_stack_machines_core::{
     environment::EnvExtension,
     instructions::{
-        AbstractExecRecord, AbstractInstruction, ConcreteAbstractExecRecord, InstructionResult,
+        AbstractExecRecord, AbstractInstruction, InstructionResult,
     },
     memory::Mem,
     stack::{Stack, StackOpRecord, StackRecord},
@@ -22,12 +22,12 @@ pub trait MachineEq {
 
 pub struct ISZERO;
 
-impl<T, S, M, Extension>
+impl<T, S, M, Extension, C>
     AbstractInstruction<
         S,
         M,
         Extension,
-        ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>,
+        AbstractExecRecord<S, M, Extension::DiffRecordType, C>,
     > for ISZERO
 where
     T: From<u8> + MachineEq,
@@ -40,7 +40,7 @@ where
         stack: &S,
         _memory: &M,
         _ext: &Extension,
-    ) -> InstructionResult<ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>> {
+    ) -> InstructionResult<AbstractExecRecord<S, M, Extension::DiffRecordType, C>> {
         let mut change_log = AbstractExecRecord::default();
 
         let op: T = stack.peek(0).unwrap();

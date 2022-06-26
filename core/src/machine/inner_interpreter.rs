@@ -1,12 +1,11 @@
 use crate::{
-    constraint::Constraint,
     environment::EnvExtension,
-    instructions::{AbstractExecRecord, AbstractInstruction, ConcreteAbstractExecRecord},
+    instructions::{AbstractExecRecord, AbstractInstruction},
     memory::{Mem, WriteableMem},
     stack::Stack,
 };
 
-use super::{r#abstract::AbstractMachine, MachineResult};
+use super::{r#abstract::AbstractMachine, MachineResult, types::AbstractExecBranch};
 
 pub trait InnerInterpreter<'a, S, M, E, I, InstructionStepResult, InterpreterStepResult>
 where
@@ -20,21 +19,21 @@ where
 
 pub struct ConcreteInnerInterpreter {}
 
-impl<'a, S, M, E, I>
+impl<'a, S, M, E, I, C>
     InnerInterpreter<
         'a,
         S,
         M,
         E,
         I,
-        ConcreteAbstractExecRecord<S, M, E::DiffRecordType>,
+        AbstractExecRecord<S, M, E::DiffRecordType, C>,
         AbstractMachine<'a, S, M, E, I>,
     > for ConcreteInnerInterpreter
 where
     S: Stack,
     M: WriteableMem,
     E: EnvExtension,
-    I: AbstractInstruction<S, M, E, ConcreteAbstractExecRecord<S, M, E::DiffRecordType>>,
+    I: AbstractInstruction<S, M, E, AbstractExecRecord<S, M, E::DiffRecordType, C>>,
 {
     fn step(
         &self,
@@ -53,10 +52,6 @@ where
         ))
     }
 }
-
-pub type AbstractExecBranch<'a, S, M, E, I, C> = Vec<SingleBranch<'a, S, M, E, I, C>>;
-
-pub type SingleBranch<'a, S, M, E, I, C> = (AbstractMachine<'a, S, M, E, I>, Vec<Constraint<C>>);
 
 pub struct SymbolicInnerInterpreter {}
 

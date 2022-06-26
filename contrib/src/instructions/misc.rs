@@ -1,7 +1,7 @@
 use symbolic_stack_machines_core::{
     environment::EnvExtension,
     instructions::{
-        AbstractExecRecord, AbstractInstruction, ConcreteAbstractExecRecord, InstructionResult,
+        AbstractExecRecord, AbstractInstruction, InstructionResult,
     },
     memory::{Mem, MemOpRecord, MemRecord, ReadOnlyMem, WriteableMem},
     stack::{Stack, StackOpRecord, StackRecord},
@@ -9,12 +9,12 @@ use symbolic_stack_machines_core::{
 
 pub struct PUSH<T>(pub T);
 
-impl<T, S, M, Extension>
+impl<T, S, M, Extension, C>
     AbstractInstruction<
         S,
         M,
         Extension,
-        ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>,
+        AbstractExecRecord<S, M, Extension::DiffRecordType, C>,
     > for PUSH<T>
 where
     T: Clone + std::fmt::Debug,
@@ -27,7 +27,7 @@ where
         _stack: &S,
         _memory: &M,
         _ext: &Extension,
-    ) -> InstructionResult<ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>> {
+    ) -> InstructionResult<AbstractExecRecord<S, M, Extension::DiffRecordType, C>> {
         let mut change_log = AbstractExecRecord::default();
 
         change_log.stack_diff = Some(StackRecord {
@@ -40,12 +40,12 @@ where
 
 pub struct STOP;
 
-impl<S, M, Extension>
+impl<S, M, Extension, C>
     AbstractInstruction<
         S,
         M,
         Extension,
-        ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>,
+        AbstractExecRecord<S, M, Extension::DiffRecordType, C>,
     > for STOP
 where
     S: Stack,
@@ -57,7 +57,7 @@ where
         _stack: &S,
         _memory: &M,
         _ext: &Extension,
-    ) -> InstructionResult<ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>> {
+    ) -> InstructionResult<AbstractExecRecord<S, M, Extension::DiffRecordType, C>> {
         let mut change_log = AbstractExecRecord::default();
 
         change_log.halt = true;
@@ -68,12 +68,12 @@ where
 
 pub struct JUMPI;
 
-impl<T, S, M, Extension>
+impl<T, S, M, Extension, C>
     AbstractInstruction<
         S,
         M,
         Extension,
-        ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>,
+        AbstractExecRecord<S, M, Extension::DiffRecordType, C>,
     > for JUMPI
 where
     T: From<u8> + Eq + TryInto<usize>,
@@ -87,7 +87,7 @@ where
         stack: &S,
         _memory: &M,
         _ext: &Extension,
-    ) -> InstructionResult<ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>> {
+    ) -> InstructionResult<AbstractExecRecord<S, M, Extension::DiffRecordType, C>> {
         let mut change_log = AbstractExecRecord::default();
 
         let dest: T = stack.peek(0).unwrap();
@@ -104,12 +104,12 @@ where
 
 pub struct MLOAD;
 
-impl<T, S, M, Extension>
+impl<T, S, M, Extension, C>
     AbstractInstruction<
         S,
         M,
         Extension,
-        ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>,
+        AbstractExecRecord<S, M, Extension::DiffRecordType, C>,
     > for MLOAD
 where
     T: Default + Clone,
@@ -122,7 +122,7 @@ where
         stack: &S,
         memory: &M,
         _ext: &Extension,
-    ) -> InstructionResult<ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>> {
+    ) -> InstructionResult<AbstractExecRecord<S, M, Extension::DiffRecordType, C>> {
         let mut change_log = AbstractExecRecord::default();
 
         let mem_idx: T = stack.peek(0).unwrap();
@@ -138,12 +138,12 @@ where
 
 pub struct MSTORE;
 
-impl<T, S, M, Extension>
+impl<T, S, M, Extension, C>
     AbstractInstruction<
         S,
         M,
         Extension,
-        ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>,
+        AbstractExecRecord<S, M, Extension::DiffRecordType, C>,
     > for MSTORE
 where
     T: Clone,
@@ -156,7 +156,7 @@ where
         stack: &S,
         _memory: &M,
         _ext: &Extension,
-    ) -> InstructionResult<ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>> {
+    ) -> InstructionResult<AbstractExecRecord<S, M, Extension::DiffRecordType, C>> {
         let mut change_log = AbstractExecRecord::default();
 
         let mem_idx: T = stack.peek(0).unwrap();
