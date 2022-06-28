@@ -3,43 +3,39 @@ use crate::{
     environment::EnvExtension,
     instructions::{AbstractExecRecord, AbstractInstruction, ConcreteAbstractExecRecord},
     memory::{Mem, WriteableMem},
-    stack::Stack,
 };
 
 use super::{r#abstract::AbstractMachine, MachineResult};
 
-pub trait InnerInterpreter<'a, S, M, E, I, InstructionStepResult, InterpreterStepResult>
+pub trait InnerInterpreter<'a, M, E, I, InstructionStepResult, InterpreterStepResult>
 where
-    S: Stack,
     M: Mem,
     E: EnvExtension,
-    I: AbstractInstruction<S, M, E, InstructionStepResult>,
+    I: AbstractInstruction<M, E, InstructionStepResult>,
 {
-    fn step(&self, m: AbstractMachine<'a, S, M, E, I>) -> MachineResult<InterpreterStepResult>;
+    fn step(&self, m: AbstractMachine<'a, M, E, I>) -> MachineResult<InterpreterStepResult>;
 }
 
 pub struct ConcreteInnerInterpreter {}
 
-impl<'a, S, M, E, I>
+impl<'a, M, E, I>
     InnerInterpreter<
         'a,
-        S,
         M,
         E,
         I,
-        ConcreteAbstractExecRecord<S, M, E::DiffRecordType>,
-        AbstractMachine<'a, S, M, E, I>,
+        ConcreteAbstractExecRecord<M, E::DiffRecordType>,
+        AbstractMachine<'a, M, E, I>,
     > for ConcreteInnerInterpreter
 where
-    S: Stack,
     M: WriteableMem,
     E: EnvExtension,
-    I: AbstractInstruction<S, M, E, ConcreteAbstractExecRecord<S, M, E::DiffRecordType>>,
+    I: AbstractInstruction<M, E, ConcreteAbstractExecRecord<M, E::DiffRecordType>>,
 {
     fn step(
         &self,
-        m: AbstractMachine<'a, S, M, E, I>,
-    ) -> MachineResult<AbstractMachine<'a, S, M, E, I>> {
+        m: AbstractMachine<'a, M, E, I>,
+    ) -> MachineResult<AbstractMachine<'a, M, E, I>> {
         let i = m.pgm.get(m.pc.unwrap()).unwrap();
 
         let exec_record = i.exec(&m.stack, &m.mem, &m.custom_env)?;
@@ -54,32 +50,30 @@ where
     }
 }
 
-pub type AbstractExecBranch<'a, S, M, E, I, C> = Vec<SingleBranch<'a, S, M, E, I, C>>;
+pub type AbstractExecBranch<'a, M, E, I, C> = Vec<SingleBranch<'a, M, E, I, C>>;
 
-pub type SingleBranch<'a, S, M, E, I, C> = (AbstractMachine<'a, S, M, E, I>, Vec<Constraint<C>>);
+pub type SingleBranch<'a, M, E, I, C> = (AbstractMachine<'a, M, E, I>, Vec<Constraint<C>>);
 
 pub struct SymbolicInnerInterpreter {}
 
-impl<'a, S, M, E, I, C>
+impl<'a, M, E, I, C>
     InnerInterpreter<
         'a,
-        S,
         M,
         E,
         I,
-        Vec<AbstractExecRecord<S, M, E::DiffRecordType, C>>,
-        AbstractExecBranch<'a, S, M, E, I, C>,
+        Vec<AbstractExecRecord<M, E::DiffRecordType, C>>,
+        AbstractExecBranch<'a, M, E, I, C>,
     > for SymbolicInnerInterpreter
 where
-    S: Stack,
     M: WriteableMem,
     E: EnvExtension,
-    I: AbstractInstruction<S, M, E, Vec<AbstractExecRecord<S, M, E::DiffRecordType, C>>>,
+    I: AbstractInstruction<M, E, Vec<AbstractExecRecord<M, E::DiffRecordType, C>>>,
 {
     fn step(
         &self,
-        m: AbstractMachine<'a, S, M, E, I>,
-    ) -> MachineResult<AbstractExecBranch<'a, S, M, E, I, C>> {
+        m: AbstractMachine<'a, M, E, I>,
+    ) -> MachineResult<AbstractExecBranch<'a, M, E, I, C>> {
         let pgm = m.pgm;
         let pc = m.pc.unwrap();
 
