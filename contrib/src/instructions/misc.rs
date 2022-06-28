@@ -10,11 +10,8 @@ use symbolic_stack_machines_core::{
 pub struct PUSH(pub StackVal);
 
 impl<M, Extension>
-    AbstractInstruction<
-        M,
-        Extension,
-        ConcreteAbstractExecRecord<M, Extension::DiffRecordType>,
-    > for PUSH
+    AbstractInstruction<M, Extension, ConcreteAbstractExecRecord<M, Extension::DiffRecordType>>
+    for PUSH
 where
     M: Mem,
     Extension: EnvExtension,
@@ -38,11 +35,8 @@ where
 pub struct STOP;
 
 impl<M, Extension>
-    AbstractInstruction<
-        M,
-        Extension,
-        ConcreteAbstractExecRecord<M, Extension::DiffRecordType>,
-    > for STOP
+    AbstractInstruction<M, Extension, ConcreteAbstractExecRecord<M, Extension::DiffRecordType>>
+    for STOP
 where
     M: Mem,
     Extension: EnvExtension,
@@ -64,11 +58,8 @@ where
 pub struct JUMPI;
 
 impl<M, Extension>
-    AbstractInstruction<
-        M,
-        Extension,
-        ConcreteAbstractExecRecord<M, Extension::DiffRecordType>,
-    > for JUMPI
+    AbstractInstruction<M, Extension, ConcreteAbstractExecRecord<M, Extension::DiffRecordType>>
+    for JUMPI
 where
     M: Mem,
     Extension: EnvExtension,
@@ -96,11 +87,8 @@ where
 pub struct MLOAD;
 
 impl<M, Extension>
-    AbstractInstruction<
-        M,
-        Extension,
-        ConcreteAbstractExecRecord<M, Extension::DiffRecordType>,
-    > for MLOAD
+    AbstractInstruction<M, Extension, ConcreteAbstractExecRecord<M, Extension::DiffRecordType>>
+    for MLOAD
 where
     M: ReadOnlyMem<Index = StackVal, MemVal = StackVal>,
     Extension: EnvExtension,
@@ -127,11 +115,8 @@ where
 pub struct MSTORE;
 
 impl<M, Extension>
-    AbstractInstruction<
-        M,
-        Extension,
-        ConcreteAbstractExecRecord<M, Extension::DiffRecordType>,
-    > for MSTORE
+    AbstractInstruction<M, Extension, ConcreteAbstractExecRecord<M, Extension::DiffRecordType>>
+    for MSTORE
 where
     M: WriteableMem<Index = StackVal, MemVal = StackVal>,
     Extension: EnvExtension,
@@ -148,10 +133,7 @@ where
         let mem_val = stack.peek(1).unwrap();
 
         change_log.stack_diff = Some(StackRecord {
-            changed: vec![
-                StackOpRecord::Pop,
-                StackOpRecord::Pop,
-            ],
+            changed: vec![StackOpRecord::Pop, StackOpRecord::Pop],
         });
 
         change_log.mem_diff = Some(MemRecord {

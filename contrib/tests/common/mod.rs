@@ -28,11 +28,8 @@ pub mod simple_lang {
     }
 
     impl<M, Extension>
-        AbstractInstruction<
-            M,
-            Extension,
-            ConcreteAbstractExecRecord<M, Extension::DiffRecordType>,
-        > for SimpleLang
+        AbstractInstruction<M, Extension, ConcreteAbstractExecRecord<M, Extension::DiffRecordType>>
+        for SimpleLang
     where
         M: Mem,
         Extension: EnvExtension,

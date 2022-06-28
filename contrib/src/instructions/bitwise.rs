@@ -4,17 +4,14 @@ use symbolic_stack_machines_core::{
         AbstractExecRecord, AbstractInstruction, ConcreteAbstractExecRecord, InstructionResult,
     },
     memory::Mem,
-    stack::{Stack, StackOpRecord, StackRecord, ZERO, ONE},
+    stack::{Stack, StackOpRecord, StackRecord, ONE, ZERO},
 };
 
 pub struct ISZERO;
 
 impl<M, Extension>
-    AbstractInstruction<
-        M,
-        Extension,
-        ConcreteAbstractExecRecord<M, Extension::DiffRecordType>,
-    > for ISZERO
+    AbstractInstruction<M, Extension, ConcreteAbstractExecRecord<M, Extension::DiffRecordType>>
+    for ISZERO
 where
     M: Mem,
     Extension: EnvExtension,

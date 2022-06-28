@@ -10,11 +10,8 @@ use symbolic_stack_machines_core::{
 pub struct ADD;
 
 impl<M, Extension>
-    AbstractInstruction<
-        M,
-        Extension,
-        ConcreteAbstractExecRecord<M, Extension::DiffRecordType>,
-    > for ADD
+    AbstractInstruction<M, Extension, ConcreteAbstractExecRecord<M, Extension::DiffRecordType>>
+    for ADD
 where
     M: Mem,
     Extension: EnvExtension,
@@ -46,11 +43,8 @@ where
 pub struct SUB;
 
 impl<M, Extension>
-    AbstractInstruction<
-        M,
-        Extension,
-        ConcreteAbstractExecRecord<M, Extension::DiffRecordType>,
-    > for SUB
+    AbstractInstruction<M, Extension, ConcreteAbstractExecRecord<M, Extension::DiffRecordType>>
+    for SUB
 where
     M: Mem,
     Extension: EnvExtension,

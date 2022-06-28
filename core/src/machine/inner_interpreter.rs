@@ -32,10 +32,7 @@ where
     E: EnvExtension,
     I: AbstractInstruction<M, E, ConcreteAbstractExecRecord<M, E::DiffRecordType>>,
 {
-    fn step(
-        &self,
-        m: AbstractMachine<'a, M, E, I>,
-    ) -> MachineResult<AbstractMachine<'a, M, E, I>> {
+    fn step(&self, m: AbstractMachine<'a, M, E, I>) -> MachineResult<AbstractMachine<'a, M, E, I>> {
         let i = m.pgm.get(m.pc.unwrap()).unwrap();
 
         let exec_record = i.exec(&m.stack, &m.mem, &m.custom_env)?;

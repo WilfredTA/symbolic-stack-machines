@@ -27,23 +27,13 @@ where
 
 impl<'a, M, E, I, InstructionStepResult>
     OuterInterpreter<AbstractMachine<'a, M, E, I>, AbstractMachine<'a, M, E, I>>
-    for ConcreteOuterInterpreter<
-        'a,
-        M,
-        E,
-        I,
-        InstructionStepResult,
-        AbstractMachine<'a, M, E, I>,
-    >
+    for ConcreteOuterInterpreter<'a, M, E, I, InstructionStepResult, AbstractMachine<'a, M, E, I>>
 where
     M: WriteableMem,
     E: EnvExtension,
     I: AbstractInstruction<M, E, InstructionStepResult>,
 {
-    fn run(
-        &self,
-        m: AbstractMachine<'a, M, E, I>,
-    ) -> MachineResult<AbstractMachine<'a, M, E, I>> {
+    fn run(&self, m: AbstractMachine<'a, M, E, I>) -> MachineResult<AbstractMachine<'a, M, E, I>> {
         let mut x = m;
 
         while x.can_continue() {

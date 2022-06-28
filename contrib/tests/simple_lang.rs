@@ -5,13 +5,12 @@ use std::rc::Rc;
 
 use symbolic_stack_machines_core::{
     environment::{EnvExtension, EnvExtensionRecord},
-    memory::memory_models::BaseMemoryConcreteUint64, stack::{Stack, StackVal}, machine::outer_interpreter::{ConcreteOuterInterpreter, OuterInterpreter},
+    machine::outer_interpreter::{ConcreteOuterInterpreter, OuterInterpreter},
+    memory::memory_models::BaseMemoryConcreteUint64,
+    stack::{Stack, StackVal},
 };
 use symbolic_stack_machines_core::{
-    machine::{
-        inner_interpreter::ConcreteInnerInterpreter,
-        r#abstract::AbstractMachine,
-    },
+    machine::{inner_interpreter::ConcreteInnerInterpreter, r#abstract::AbstractMachine},
     value::*,
 };
 mod common;
@@ -66,7 +65,12 @@ fn test_abstract_machine() {
     let inner_interpreter = Box::new(ConcreteInnerInterpreter {});
     let outer_interpreter = ConcreteOuterInterpreter { inner_interpreter };
 
-    let res = *outer_interpreter.run(machine).unwrap().stack.peek(0).unwrap();
+    let res = *outer_interpreter
+        .run(machine)
+        .unwrap()
+        .stack
+        .peek(0)
+        .unwrap();
 
     assert_eq!(res, StackVal::from(0));
 }

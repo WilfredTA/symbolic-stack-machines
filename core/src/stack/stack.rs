@@ -48,11 +48,18 @@ impl Stack {
 
         for c in r.changed {
             match c {
-                StackOpRecord::Pop => { inner.pop(); },
-                StackOpRecord::Push(x) => { inner.push(x); },
+                StackOpRecord::Pop => {
+                    inner.pop();
+                }
+                StackOpRecord::Push(x) => {
+                    inner.push(x);
+                }
             };
-        };
+        }
 
-        Self { inner, config: self.config.clone() }
+        Self {
+            inner,
+            config: self.config.clone(),
+        }
     }
 }
