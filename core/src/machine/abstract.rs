@@ -5,13 +5,12 @@ use crate::{
 };
 
 #[derive(Clone)]
-pub struct AbstractMachine<'a, S, M, E, I>
+pub struct AbstractMachine<'a, M, E, I>
 where
-    S: Stack,
     M: Mem,
     E: EnvExtension,
 {
-    pub stack: S,
+    pub stack: Stack,
     pub mem: M,
     pub custom_env: E,
     pub pc: Option<usize>,
@@ -21,9 +20,8 @@ where
 // `AbstractMachine` requires that `I` implement `Clone`. `I` is behind
 // a reference and shouldn't have to implement clone in order to clone
 // `AbstractMachine`
-impl<'a, S, M, E, I> AbstractMachine<'a, S, M, E, I>
+impl<'a, M, E, I> AbstractMachine<'a, M, E, I>
 where
-    S: Stack,
     M: WriteableMem,
     E: EnvExtension,
 {
@@ -39,7 +37,7 @@ where
 
     pub fn apply(
         self,
-        stack_diff: Option<StackRecord<S>>,
+        stack_diff: Option<StackRecord>,
         mem_diff: Option<MemRecord<M>>,
         ext_diff: Option<E::DiffRecordType>,
         pc_change: Option<usize>,
@@ -51,7 +49,7 @@ where
 
         stack = {
             if let Some(stack_diff) = stack_diff {
-                stack_diff.apply(stack).unwrap()
+                stack.apply(stack_diff)
             } else {
                 stack
             }
@@ -92,9 +90,8 @@ where
     }
 }
 
-impl<'a, S, M, E, I> AbstractMachine<'a, S, M, E, I>
+impl<'a, M, E, I> AbstractMachine<'a, M, E, I>
 where
-    S: Stack,
     M: Mem,
     E: EnvExtension,
 {

@@ -5,53 +5,42 @@ pub mod simple_lang {
         environment::EnvExtension,
         instructions::{AbstractInstruction, ConcreteAbstractExecRecord},
         memory::Mem,
-        stack::Stack,
+        stack::{Stack, StackVal},
     };
 
     use super::*;
-    pub enum SimpleLang<T> {
+    pub enum SimpleLang {
         Add(ADD),
         Sub(SUB),
-        Push(PUSH<T>),
+        Push(PUSH),
     }
 
-    pub fn add<T>() -> SimpleLang<T> {
+    pub fn add() -> SimpleLang {
         SimpleLang::Add(ADD)
     }
 
-    pub fn sub<T>() -> SimpleLang<T> {
+    pub fn sub() -> SimpleLang {
         SimpleLang::Sub(SUB)
     }
 
-    pub fn push<T>(val: T) -> SimpleLang<T> {
-        SimpleLang::Push(PUSH(val))
+    pub fn push(val: u64) -> SimpleLang {
+        SimpleLang::Push(PUSH(val.into()))
     }
 
-    impl<T, S, M, Extension>
-        AbstractInstruction<
-            S,
-            M,
-            Extension,
-            ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>,
-        > for SimpleLang<T>
+    impl<M, Extension>
+        AbstractInstruction<M, Extension, ConcreteAbstractExecRecord<M, Extension::DiffRecordType>>
+        for SimpleLang
     where
-        T: std::ops::Add
-            + std::ops::Add<Output = T>
-            + Clone
-            + std::ops::Sub
-            + std::ops::Sub<Output = T>
-            + std::fmt::Debug,
-        S: Stack<StackVal = T>,
         M: Mem,
         Extension: EnvExtension,
     {
         fn exec(
             &self,
-            stack: &S,
+            stack: &Stack,
             mem: &M,
             ext: &Extension,
         ) -> symbolic_stack_machines_core::instructions::InstructionResult<
-            ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>,
+            ConcreteAbstractExecRecord<M, Extension::DiffRecordType>,
         > {
             match self {
                 Self::Add(a) => a.exec(stack, mem, ext),

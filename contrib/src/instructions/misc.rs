@@ -4,30 +4,24 @@ use symbolic_stack_machines_core::{
         AbstractExecRecord, AbstractInstruction, ConcreteAbstractExecRecord, InstructionResult,
     },
     memory::{Mem, MemOpRecord, MemRecord, ReadOnlyMem, WriteableMem},
-    stack::{Stack, StackOpRecord, StackRecord},
+    stack::{Stack, StackOpRecord, StackRecord, StackVal, ZERO},
 };
 
-pub struct PUSH<T>(pub T);
+pub struct PUSH(pub StackVal);
 
-impl<T, S, M, Extension>
-    AbstractInstruction<
-        S,
-        M,
-        Extension,
-        ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>,
-    > for PUSH<T>
+impl<M, Extension>
+    AbstractInstruction<M, Extension, ConcreteAbstractExecRecord<M, Extension::DiffRecordType>>
+    for PUSH
 where
-    T: Clone + std::fmt::Debug,
-    S: Stack<StackVal = T>,
     M: Mem,
     Extension: EnvExtension,
 {
     fn exec(
         &self,
-        _stack: &S,
+        _stack: &Stack,
         _memory: &M,
         _ext: &Extension,
-    ) -> InstructionResult<ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>> {
+    ) -> InstructionResult<ConcreteAbstractExecRecord<M, Extension::DiffRecordType>> {
         let mut change_log = AbstractExecRecord::default();
 
         change_log.stack_diff = Some(StackRecord {
@@ -40,24 +34,19 @@ where
 
 pub struct STOP;
 
-impl<S, M, Extension>
-    AbstractInstruction<
-        S,
-        M,
-        Extension,
-        ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>,
-    > for STOP
+impl<M, Extension>
+    AbstractInstruction<M, Extension, ConcreteAbstractExecRecord<M, Extension::DiffRecordType>>
+    for STOP
 where
-    S: Stack,
     M: Mem,
     Extension: EnvExtension,
 {
     fn exec(
         &self,
-        _stack: &S,
+        _stack: &Stack,
         _memory: &M,
         _ext: &Extension,
-    ) -> InstructionResult<ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>> {
+    ) -> InstructionResult<ConcreteAbstractExecRecord<M, Extension::DiffRecordType>> {
         let mut change_log = AbstractExecRecord::default();
 
         change_log.halt = true;
@@ -68,33 +57,26 @@ where
 
 pub struct JUMPI;
 
-impl<T, S, M, Extension>
-    AbstractInstruction<
-        S,
-        M,
-        Extension,
-        ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>,
-    > for JUMPI
+impl<M, Extension>
+    AbstractInstruction<M, Extension, ConcreteAbstractExecRecord<M, Extension::DiffRecordType>>
+    for JUMPI
 where
-    T: From<u8> + Eq + TryInto<usize>,
-    S: Stack<StackVal = T>,
     M: Mem,
-    <T as TryInto<usize>>::Error: std::fmt::Debug,
     Extension: EnvExtension,
 {
     fn exec(
         &self,
-        stack: &S,
+        stack: &Stack,
         _memory: &M,
         _ext: &Extension,
-    ) -> InstructionResult<ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>> {
+    ) -> InstructionResult<ConcreteAbstractExecRecord<M, Extension::DiffRecordType>> {
         let mut change_log = AbstractExecRecord::default();
 
-        let dest: T = stack.peek(0).unwrap();
-        let cond: T = stack.peek(1).unwrap();
+        let dest = stack.peek(0).unwrap();
+        let cond = stack.peek(1).unwrap();
 
-        if cond != T::from(0) {
-            let x = dest.try_into().unwrap();
+        if *cond != ZERO {
+            let x = Into::<usize>::into(*dest);
             change_log.pc_change = Some(x);
         }
 
@@ -104,32 +86,26 @@ where
 
 pub struct MLOAD;
 
-impl<T, S, M, Extension>
-    AbstractInstruction<
-        S,
-        M,
-        Extension,
-        ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>,
-    > for MLOAD
+impl<M, Extension>
+    AbstractInstruction<M, Extension, ConcreteAbstractExecRecord<M, Extension::DiffRecordType>>
+    for MLOAD
 where
-    T: Default + Clone,
-    S: Stack<StackVal = T>,
-    M: ReadOnlyMem<Index = T, MemVal = T>,
+    M: ReadOnlyMem<Index = StackVal, MemVal = StackVal>,
     Extension: EnvExtension,
 {
     fn exec(
         &self,
-        stack: &S,
+        stack: &Stack,
         memory: &M,
         _ext: &Extension,
-    ) -> InstructionResult<ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>> {
+    ) -> InstructionResult<ConcreteAbstractExecRecord<M, Extension::DiffRecordType>> {
         let mut change_log = AbstractExecRecord::default();
 
-        let mem_idx: T = stack.peek(0).unwrap();
+        let mem_idx = stack.peek(0).unwrap();
         let mem_val = memory.read(mem_idx.clone()).unwrap().unwrap();
 
         change_log.stack_diff = Some(StackRecord {
-            changed: vec![StackOpRecord::Pop(mem_idx), StackOpRecord::Push(mem_val)],
+            changed: vec![StackOpRecord::Pop, StackOpRecord::Push(mem_val)],
         });
 
         Ok(change_log)
@@ -138,39 +114,30 @@ where
 
 pub struct MSTORE;
 
-impl<T, S, M, Extension>
-    AbstractInstruction<
-        S,
-        M,
-        Extension,
-        ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>,
-    > for MSTORE
+impl<M, Extension>
+    AbstractInstruction<M, Extension, ConcreteAbstractExecRecord<M, Extension::DiffRecordType>>
+    for MSTORE
 where
-    T: Clone,
-    S: Stack<StackVal = T>,
-    M: WriteableMem<Index = T, MemVal = T>,
+    M: WriteableMem<Index = StackVal, MemVal = StackVal>,
     Extension: EnvExtension,
 {
     fn exec(
         &self,
-        stack: &S,
+        stack: &Stack,
         _memory: &M,
         _ext: &Extension,
-    ) -> InstructionResult<ConcreteAbstractExecRecord<S, M, Extension::DiffRecordType>> {
+    ) -> InstructionResult<ConcreteAbstractExecRecord<M, Extension::DiffRecordType>> {
         let mut change_log = AbstractExecRecord::default();
 
-        let mem_idx: T = stack.peek(0).unwrap();
-        let mem_val: T = stack.peek(1).unwrap();
+        let mem_idx = stack.peek(0).unwrap();
+        let mem_val = stack.peek(1).unwrap();
 
         change_log.stack_diff = Some(StackRecord {
-            changed: vec![
-                StackOpRecord::Pop(mem_idx.clone()),
-                StackOpRecord::Pop(mem_val.clone()),
-            ],
+            changed: vec![StackOpRecord::Pop, StackOpRecord::Pop],
         });
 
         change_log.mem_diff = Some(MemRecord {
-            diff: vec![MemOpRecord::Write((mem_idx.try_into().unwrap(), mem_val))],
+            diff: vec![MemOpRecord::Write((*mem_idx, *mem_val))],
         });
 
         Ok(change_log)
