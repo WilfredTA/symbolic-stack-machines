@@ -4,8 +4,8 @@ pub mod simple_lang {
     use symbolic_stack_machines_core::{
         environment::EnvExtension,
         instructions::{AbstractInstruction, ConcreteAbstractExecRecord},
-        memory::Mem,
-        stack::{Stack, StackVal},
+        memory::Memory,
+        stack::Stack,
     };
 
     use super::*;
@@ -27,20 +27,19 @@ pub mod simple_lang {
         SimpleLang::Push(PUSH(val.into()))
     }
 
-    impl<M, Extension>
-        AbstractInstruction<M, Extension, ConcreteAbstractExecRecord<M, Extension::DiffRecordType>>
+    impl<Extension>
+        AbstractInstruction<Extension, ConcreteAbstractExecRecord<Extension::DiffRecordType>>
         for SimpleLang
     where
-        M: Mem,
         Extension: EnvExtension,
     {
         fn exec(
             &self,
             stack: &Stack,
-            mem: &M,
+            mem: &Memory,
             ext: &Extension,
         ) -> symbolic_stack_machines_core::instructions::InstructionResult<
-            ConcreteAbstractExecRecord<M, Extension::DiffRecordType>,
+            ConcreteAbstractExecRecord<Extension::DiffRecordType>,
         > {
             match self {
                 Self::Add(a) => a.exec(stack, mem, ext),

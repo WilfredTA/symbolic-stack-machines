@@ -1,17 +1,16 @@
 use crate::{
     environment::{EnvExtension, EnvExtensionRecord},
-    memory::{Mem, MemRecord, WriteableMem},
+    memory::{MemRecord, Memory},
     stack::{Stack, StackRecord},
 };
 
 #[derive(Clone)]
-pub struct AbstractMachine<'a, M, E, I>
+pub struct AbstractMachine<'a, E, I>
 where
-    M: Mem,
     E: EnvExtension,
 {
     pub stack: Stack,
-    pub mem: M,
+    pub mem: Memory,
     pub custom_env: E,
     pub pc: Option<usize>,
     pub pgm: &'a [I],
@@ -20,9 +19,8 @@ where
 // `AbstractMachine` requires that `I` implement `Clone`. `I` is behind
 // a reference and shouldn't have to implement clone in order to clone
 // `AbstractMachine`
-impl<'a, M, E, I> AbstractMachine<'a, M, E, I>
+impl<'a, E, I> AbstractMachine<'a, E, I>
 where
-    M: WriteableMem,
     E: EnvExtension,
 {
     pub fn xclone(&self) -> Self {
@@ -38,7 +36,7 @@ where
     pub fn apply(
         self,
         stack_diff: Option<StackRecord>,
-        mem_diff: Option<MemRecord<M>>,
+        mem_diff: Option<MemRecord>,
         ext_diff: Option<E::DiffRecordType>,
         pc_change: Option<usize>,
         halt: bool,
@@ -57,7 +55,7 @@ where
 
         mem = {
             if let Some(mem_diff) = mem_diff {
-                mem_diff.apply(mem).unwrap()
+                mem.apply(mem_diff)
             } else {
                 mem
             }
@@ -90,9 +88,8 @@ where
     }
 }
 
-impl<'a, M, E, I> AbstractMachine<'a, M, E, I>
+impl<'a, E, I> AbstractMachine<'a, E, I>
 where
-    M: Mem,
     E: EnvExtension,
 {
     pub fn can_continue(&self) -> bool {

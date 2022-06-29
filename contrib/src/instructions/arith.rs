@@ -3,25 +3,23 @@ use symbolic_stack_machines_core::{
     instructions::{
         AbstractExecRecord, AbstractInstruction, ConcreteAbstractExecRecord, InstructionResult,
     },
-    memory::Mem,
+    memory::Memory,
     stack::{Stack, StackOpRecord, StackRecord},
 };
 
 pub struct ADD;
 
-impl<M, Extension>
-    AbstractInstruction<M, Extension, ConcreteAbstractExecRecord<M, Extension::DiffRecordType>>
-    for ADD
+impl<Extension>
+    AbstractInstruction<Extension, ConcreteAbstractExecRecord<Extension::DiffRecordType>> for ADD
 where
-    M: Mem,
     Extension: EnvExtension,
 {
     fn exec(
         &self,
         stack: &Stack,
-        _mem: &M,
+        _mem: &Memory,
         _ext: &Extension,
-    ) -> InstructionResult<ConcreteAbstractExecRecord<M, Extension::DiffRecordType>> {
+    ) -> InstructionResult<ConcreteAbstractExecRecord<Extension::DiffRecordType>> {
         let mut change_log = AbstractExecRecord::default();
 
         let op_1 = stack.peek(0).unwrap();
@@ -42,19 +40,17 @@ where
 
 pub struct SUB;
 
-impl<M, Extension>
-    AbstractInstruction<M, Extension, ConcreteAbstractExecRecord<M, Extension::DiffRecordType>>
-    for SUB
+impl<Extension>
+    AbstractInstruction<Extension, ConcreteAbstractExecRecord<Extension::DiffRecordType>> for SUB
 where
-    M: Mem,
     Extension: EnvExtension,
 {
     fn exec(
         &self,
         stack: &Stack,
-        _mem: &M,
+        _mem: &Memory,
         _ext: &Extension,
-    ) -> InstructionResult<ConcreteAbstractExecRecord<M, Extension::DiffRecordType>> {
+    ) -> InstructionResult<ConcreteAbstractExecRecord<Extension::DiffRecordType>> {
         let mut change_log = AbstractExecRecord::default();
 
         let op_1 = stack.peek(0).unwrap();

@@ -1,17 +1,14 @@
 // Simple lang, but with each AbstractInstruction defined
 // on each individual singleton instruction
 
-use std::rc::Rc;
-
+use symbolic_stack_machines_core::machine::{
+    inner_interpreter::ConcreteInnerInterpreter, r#abstract::AbstractMachine,
+};
+use symbolic_stack_machines_core::memory::Memory;
 use symbolic_stack_machines_core::{
     environment::{EnvExtension, EnvExtensionRecord},
     machine::outer_interpreter::{ConcreteOuterInterpreter, OuterInterpreter},
-    memory::memory_models::BaseMemoryConcreteUint64,
     stack::{Stack, StackVal},
-};
-use symbolic_stack_machines_core::{
-    machine::{inner_interpreter::ConcreteInnerInterpreter, r#abstract::AbstractMachine},
-    value::*,
 };
 mod common;
 use common::simple_lang::*;
@@ -53,7 +50,7 @@ fn test_abstract_machine() {
     let pgm = vec![push(15), push(5), push(5), push(5), add(), add(), sub()];
     let custom_env = DummyExtEnv {};
     let pc = Some(0);
-    let mem = BaseMemoryConcreteUint64::new();
+    let mem = Memory::default();
     let stack = Stack::default();
     let machine = AbstractMachine {
         stack,

@@ -1,24 +1,8 @@
-use super::StackVal;
-
-#[derive(Clone)]
-pub struct StackRecord {
-    pub changed: Vec<StackOpRecord>,
-}
-
-#[derive(Clone)]
-pub enum StackOpRecord {
-    Pop,
-    Push(StackVal),
-}
-
-#[derive(Clone)]
-pub struct StackConfig {}
-
-impl Default for StackConfig {
-    fn default() -> Self {
-        Self {}
-    }
-}
+use super::{
+    config::StackConfig,
+    record::{StackOpRecord, StackRecord},
+    StackVal,
+};
 
 #[derive(Clone, Default)]
 pub struct Stack {
