@@ -1,17 +1,16 @@
 use super::*;
 
-
 // ------------- COMPOUND VALUES --------------
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Sentence {
     BinOp {
         a: Val<Sentence>,
         b: Val<Sentence>,
-        op: BinOp
+        op: BinOp,
     },
     UnaryOp {
         a: Val<Sentence>,
-        op: UnaryOp
+        op: UnaryOp,
     },
     TernaryOp {
         a: Val<Sentence>,
@@ -20,10 +19,7 @@ pub enum Sentence {
         op: TernaryOp,
     },
     Basic(Value),
-    
 }
-
-
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum TernaryOp {
@@ -50,11 +46,10 @@ pub enum BinOp {
     BitXor,
     LShift,
     RShift,
-
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum UnaryOp {
     Not,
-    BitNot
+    BitNot,
 }

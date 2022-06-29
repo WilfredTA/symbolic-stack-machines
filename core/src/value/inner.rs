@@ -1,6 +1,6 @@
-use super::Simplifiable;
 use super::ground::*;
 use super::val::*;
+use super::Simplifiable;
 use std::rc::Rc;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum InnerValue {
@@ -30,7 +30,6 @@ impl From<Literal> for InnerValue {
         InnerValue::Literal(l)
     }
 }
-
 
 // impl InnerValue {
 //     pub fn unwrap(&self) -> Rc<dyn Any> {
@@ -80,98 +79,53 @@ pub enum ValCmp {
 
 impl InnerValue {
     pub fn _eq(&self, other: InnerValue) -> Self {
-        InnerValue::Boolean(
-            Value::new(
-                Boolean::ValCmp(
-                    ValCmp::Eq(
-                        Value::new(self.clone()),
-                        Value::new(other.clone())
-                    )
-                )
-            )
-        )
-        
+        InnerValue::Boolean(Value::new(Boolean::ValCmp(ValCmp::Eq(
+            Value::new(self.clone()),
+            Value::new(other.clone()),
+        ))))
     }
 
     pub fn _neq(&self, other: InnerValue) -> Self {
-        InnerValue::Boolean(
-            Value::new(
-                Boolean::ValCmp(
-                    ValCmp::Neq(
-                        Value::new(self.clone()),
-                        Value::new(other.clone())
-                    )
-                )
-            )
-        )
+        InnerValue::Boolean(Value::new(Boolean::ValCmp(ValCmp::Neq(
+            Value::new(self.clone()),
+            Value::new(other.clone()),
+        ))))
     }
 
     pub fn _gt(&self, other: InnerValue) -> Self {
-        InnerValue::Boolean(
-            Value::new(
-                Boolean::ValCmp(
-                    ValCmp::Gt(
-                        Value::new(self.clone()),
-                        Value::new(other.clone())
-                    )
-                )
-            )
-        )
+        InnerValue::Boolean(Value::new(Boolean::ValCmp(ValCmp::Gt(
+            Value::new(self.clone()),
+            Value::new(other.clone()),
+        ))))
     }
 
     pub fn _gte(&self, other: InnerValue) -> Self {
-        InnerValue::Boolean(
-            Value::new(
-                Boolean::ValCmp(
-                    ValCmp::Gte(
-                        Value::new(self.clone()),
-                        Value::new(other.clone())
-                    )
-                )
-            )
-        )
+        InnerValue::Boolean(Value::new(Boolean::ValCmp(ValCmp::Gte(
+            Value::new(self.clone()),
+            Value::new(other.clone()),
+        ))))
     }
 
     pub fn _lt(&self, other: InnerValue) -> Self {
-        InnerValue::Boolean(
-            Value::new(
-                Boolean::ValCmp(
-                    ValCmp::Lt(
-                        Value::new(self.clone()),
-                        Value::new(other.clone())
-                    )
-                )
-            )
-        )
+        InnerValue::Boolean(Value::new(Boolean::ValCmp(ValCmp::Lt(
+            Value::new(self.clone()),
+            Value::new(other.clone()),
+        ))))
     }
 
     pub fn _lte(&self, other: InnerValue) -> Self {
-        InnerValue::Boolean(
-            Value::new(
-                Boolean::ValCmp(
-                    ValCmp::Lte(
-                        Value::new(self.clone()),
-                        Value::new(other.clone())
-                    )
-                )
-            )
-        )
+        InnerValue::Boolean(Value::new(Boolean::ValCmp(ValCmp::Lte(
+            Value::new(self.clone()),
+            Value::new(other.clone()),
+        ))))
     }
 }
-
 
 impl std::ops::Add for InnerValue {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
-        Self::Arithmetic(
-            Value::new(
-                Arithmetic::Add(
-                    self.clone(),
-                    rhs.clone()
-                )
-            )
-        )
+        Self::Arithmetic(Value::new(Arithmetic::Add(self.clone(), rhs.clone())))
     }
 }
 
@@ -179,10 +133,7 @@ impl std::ops::Sub for InnerValue {
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self::Output {
-        Self::Arithmetic(Value::new(Arithmetic::Sub(
-            self.clone(),
-            rhs.clone())
-        ))
+        Self::Arithmetic(Value::new(Arithmetic::Sub(self.clone(), rhs.clone())))
     }
 }
 
@@ -190,10 +141,7 @@ impl std::ops::Mul for InnerValue {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self::Output {
-        Self::Arithmetic(Value::new(Arithmetic::Mul(
-            self.clone(),
-            rhs.clone())
-        ))
+        Self::Arithmetic(Value::new(Arithmetic::Mul(self.clone(), rhs.clone())))
     }
 }
 
@@ -201,17 +149,14 @@ impl std::ops::Div for InnerValue {
     type Output = Self;
 
     fn div(self, rhs: Self) -> Self::Output {
-        Self::Arithmetic(Value::new(Arithmetic::Div(
-            self.clone(),
-            rhs.clone())
-        ))
+        Self::Arithmetic(Value::new(Arithmetic::Div(self.clone(), rhs.clone())))
     }
 }
 
 // impl<T> From<T> for InnerValue
 // where T: Into<GroundValue> {
 //     fn from(v: T) -> Self {
-        
+
 //     }
 // }
 
@@ -282,26 +227,24 @@ impl std::ops::Div for InnerValue {
 
 // impl From<InnerValue> for Arithmetic {
 //     fn from(a: InnerValue) -> Self {
-     
+
 //     }
 // }
 
 // impl From<InnerValue> for ConcreteInnerValue {
 //     fn from(c: InnerValue) -> Self {
-       
+
 //     }
 // }
 
 // impl From<InnerValue> for SymbolicInnerValue {
 //     fn from(s: InnerValue) -> Self {
-        
+
 //     }
 // }
 
-
 // impl Simplifiable<Arithmetic> for InnerValue {
 //     type GroundVal = GroundValue;
-
 
 //     fn simplify(&self) -> Self::GroundVal {
 //         match self {
@@ -317,7 +260,6 @@ impl std::ops::Div for InnerValue {
 // impl Simplifiable<Boolean> for InnerValue {
 //     type GroundVal = GroundValue;
 
-   
 // }
 // impl Simplifiable<InnerValue> for Arithmetic {
 //     type GroundVal = GroundValue;

@@ -1,4 +1,4 @@
-use super::{Simplifiable, Irreducible};
+use super::{Irreducible, Simplifiable};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum GroundValue {
@@ -63,4 +63,3 @@ impl From<&SymbolicInnerValue> for GroundValue {
     }
 }
 impl Irreducible for GroundValue {}
-

@@ -1,12 +1,11 @@
-use super::{SymbolId, Bool};
+use super::{Bool, SymbolId};
 use enum_as_inner::EnumAsInner;
 use thiserror::Error;
-
 
 #[derive(Error, Debug)]
 pub enum NumberError {
     #[error("Cannot convert {0:?} to {1:?}")]
-    Convert(CNumber, CNumber)
+    Convert(CNumber, CNumber),
 }
 #[derive(Clone, Debug, PartialEq, Eq, EnumAsInner, PartialOrd, Ord)]
 pub enum CNumber {
@@ -117,7 +116,6 @@ impl std::ops::Div for CNumber {
     }
 }
 
-
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SNumber(SymbolId<CNumber>);
 #[derive(Clone, Debug, PartialEq, Eq, EnumAsInner)]
@@ -125,4 +123,3 @@ pub enum Number {
     Sym(SNumber),
     Con(CNumber),
 }
-

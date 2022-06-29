@@ -11,10 +11,8 @@ mod sentence;
 pub use sentence::*;
 pub mod visitors;
 
-
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SymbolId<T>(pub String, pub Option<T>);
-
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Val<T>(pub Rc<T>);
@@ -27,7 +25,6 @@ impl<T> Val<T> {
     }
 }
 
-
 pub trait Visitor<T> {
     fn visit_sentence(&mut self, s: &Sentence) -> T;
 
@@ -38,7 +35,4 @@ pub trait Visitor<T> {
     fn visit_ternary_op(&mut self, a: &Sentence, b: &Sentence, c: &Sentence) -> T;
 
     fn visit_val(&mut self, s: &Value) -> T;
-
-    
 }
-

@@ -1,11 +1,11 @@
-use super::{inner::*, Simplifiable, GroundValue, ConcreteInnerValue, SymbolicInnerValue};
+use super::{inner::*, ConcreteInnerValue, GroundValue, Simplifiable, SymbolicInnerValue};
 use rand::Rng;
 use std::ops::Deref;
 
 #[derive(Clone, Debug)]
 pub enum SymbolOrVal<T> {
     Symbol(String),
-    Val(T)
+    Val(T),
 }
 #[derive(Clone, Debug)]
 pub struct AbstractValue<T> {
@@ -13,17 +13,14 @@ pub struct AbstractValue<T> {
     val: T,
 }
 
-impl<T> From<SymbolOrVal<T>> for AbstractValue<T> 
-where T: Default + Clone
+impl<T> From<SymbolOrVal<T>> for AbstractValue<T>
+where
+    T: Default + Clone,
 {
     fn from(s: SymbolOrVal<T>) -> Self {
         match s {
-            SymbolOrVal::Symbol(symbol) => {
-                Self::new(T::default(), Some(symbol))
-            },
-            SymbolOrVal::Val(val) => {
-                Self::new(val, None)
-            }
+            SymbolOrVal::Symbol(symbol) => Self::new(T::default(), Some(symbol)),
+            SymbolOrVal::Val(val) => Self::new(val, None),
         }
     }
 }
@@ -141,7 +138,9 @@ fn random_val_symbol() -> String {
 //     }
 // }
 impl<T> From<T> for AbstractValue<InnerValue>
-where T: Into<InnerValue> {
+where
+    T: Into<InnerValue>,
+{
     fn from(t: T) -> Self {
         Self::from(t.into())
     }

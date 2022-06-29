@@ -1,6 +1,6 @@
-use super::Simplifiable;
 use super::ground::*;
 use super::inner::*;
+use super::Simplifiable;
 use std::rc::Rc;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Value<T>(pub Rc<T>);
@@ -25,15 +25,9 @@ impl Value<InnerValue> {
     // TODO(tannr): Replace this method with implementation of GroundValueConversion trait
     pub fn get_ground_value(&self) -> Option<GroundValue> {
         match self.0.as_ref() {
-            InnerValue::Literal(l) => {
-                match l {
-                    Literal::ConcreteLiteral(c) => {
-                        Some(c.inner().as_ref().into())
-                    },
-                    Literal::SymbolicLiteral(s) => {
-                        Some(s.inner().as_ref().into())
-                    }
-                }
+            InnerValue::Literal(l) => match l {
+                Literal::ConcreteLiteral(c) => Some(c.inner().as_ref().into()),
+                Literal::SymbolicLiteral(s) => Some(s.inner().as_ref().into()),
             },
             InnerValue::Boolean(v) => match v.inner().as_ref() {
                 Boolean::ValCmp(_cmp) => None,
