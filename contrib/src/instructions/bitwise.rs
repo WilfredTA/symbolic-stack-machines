@@ -3,25 +3,24 @@ use symbolic_stack_machines_core::{
     instructions::{
         AbstractExecRecord, AbstractInstruction, ConcreteAbstractExecRecord, InstructionResult,
     },
-    memory::Mem,
+    memory::Memory,
     stack::{Stack, StackOpRecord, StackRecord, ONE, ZERO},
 };
 
 pub struct ISZERO;
 
-impl<M, Extension>
-    AbstractInstruction<M, Extension, ConcreteAbstractExecRecord<M, Extension::DiffRecordType>>
+impl<Extension>
+    AbstractInstruction<Extension, ConcreteAbstractExecRecord<Extension::DiffRecordType>>
     for ISZERO
 where
-    M: Mem,
     Extension: EnvExtension,
 {
     fn exec(
         &self,
         stack: &Stack,
-        _memory: &M,
+        _memory: &Memory,
         _ext: &Extension,
-    ) -> InstructionResult<ConcreteAbstractExecRecord<M, Extension::DiffRecordType>> {
+    ) -> InstructionResult<ConcreteAbstractExecRecord<Extension::DiffRecordType>> {
         let mut change_log = AbstractExecRecord::default();
 
         let op = stack.peek(0).unwrap();

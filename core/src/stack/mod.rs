@@ -1,5 +1,8 @@
 mod stack;
-mod stack_val;
+mod val;
+mod record;
+mod config;
 
-pub use stack::{Stack, StackOpRecord, StackRecord};
-pub use stack_val::{StackVal, ONE, ZERO};
+pub use stack::{Stack};
+pub use val::{StackVal, ONE, ZERO};
+pub use record::{StackOpRecord, StackRecord};

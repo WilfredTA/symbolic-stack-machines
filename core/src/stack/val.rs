@@ -16,6 +16,12 @@ impl From<u64> for StackVal {
     }
 }
 
+impl Into<u64> for StackVal {
+    fn into(self) -> u64 {
+        self.0
+    }
+}
+
 impl Into<usize> for StackVal {
     fn into(self) -> usize {
         self.0 as usize
