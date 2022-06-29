@@ -1,17 +1,14 @@
 use crate::{
-    environment::{EnvExtension, EnvExtensionRecord},
+    environment::{Env, EnvRecord},
     memory::{MemRecord, Memory},
     stack::{Stack, StackRecord},
 };
 
 #[derive(Clone)]
-pub struct AbstractMachine<'a, E, I>
-where
-    E: EnvExtension,
-{
+pub struct AbstractMachine<'a, I> {
     pub stack: Stack,
     pub mem: Memory,
-    pub custom_env: E,
+    pub env: Env,
     pub pc: Option<usize>,
     pub pgm: &'a [I],
 }
@@ -19,15 +16,12 @@ where
 // `AbstractMachine` requires that `I` implement `Clone`. `I` is behind
 // a reference and shouldn't have to implement clone in order to clone
 // `AbstractMachine`
-impl<'a, E, I> AbstractMachine<'a, E, I>
-where
-    E: EnvExtension,
-{
+impl<'a, I> AbstractMachine<'a, I> {
     pub fn xclone(&self) -> Self {
         AbstractMachine {
             stack: self.stack.clone(),
             mem: self.mem.clone(),
-            custom_env: self.custom_env.clone(),
+            env: self.env.clone(),
             pc: self.pc.clone(),
             pgm: self.pgm,
         }
@@ -37,13 +31,13 @@ where
         self,
         stack_diff: Option<StackRecord>,
         mem_diff: Option<MemRecord>,
-        ext_diff: Option<E::DiffRecordType>,
+        env_diff: Option<EnvRecord>,
         pc_change: Option<usize>,
         halt: bool,
     ) -> Self {
         let mut stack = self.stack;
         let mut mem = self.mem;
-        let mut ext = self.custom_env;
+        let mut env = self.env;
 
         stack = {
             if let Some(stack_diff) = stack_diff {
@@ -61,11 +55,11 @@ where
             }
         };
 
-        ext = {
-            if let Some(ext_diff) = ext_diff {
-                ext_diff.apply(ext).unwrap()
+        env = {
+            if let Some(env_diff) = env_diff {
+                env.apply(env_diff)
             } else {
-                ext
+                env
             }
         };
 
@@ -81,17 +75,14 @@ where
         AbstractMachine {
             stack,
             mem,
-            custom_env: ext,
+            env,
             pc,
             pgm: self.pgm,
         }
     }
 }
 
-impl<'a, E, I> AbstractMachine<'a, E, I>
-where
-    E: EnvExtension,
-{
+impl<'a, I> AbstractMachine<'a, I> {
     pub fn can_continue(&self) -> bool {
         match self.pc {
             Some(pc) => pc < self.pgm.len(),

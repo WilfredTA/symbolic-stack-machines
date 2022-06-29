@@ -1,5 +1,5 @@
 use symbolic_stack_machines_core::{
-    environment::EnvExtension,
+    environment::Env,
     instructions::{
         AbstractExecRecord, AbstractInstruction, ConcreteAbstractExecRecord, InstructionResult,
     },
@@ -9,17 +9,13 @@ use symbolic_stack_machines_core::{
 
 pub struct PUSH(pub StackVal);
 
-impl<Extension>
-    AbstractInstruction<Extension, ConcreteAbstractExecRecord<Extension::DiffRecordType>> for PUSH
-where
-    Extension: EnvExtension,
-{
+impl AbstractInstruction<ConcreteAbstractExecRecord> for PUSH {
     fn exec(
         &self,
         _stack: &Stack,
         _memory: &Memory,
-        _ext: &Extension,
-    ) -> InstructionResult<ConcreteAbstractExecRecord<Extension::DiffRecordType>> {
+        _ext: &Env,
+    ) -> InstructionResult<ConcreteAbstractExecRecord> {
         let mut change_log = AbstractExecRecord::default();
 
         change_log.stack_diff = Some(StackRecord {
@@ -32,17 +28,13 @@ where
 
 pub struct STOP;
 
-impl<Extension>
-    AbstractInstruction<Extension, ConcreteAbstractExecRecord<Extension::DiffRecordType>> for STOP
-where
-    Extension: EnvExtension,
-{
+impl AbstractInstruction<ConcreteAbstractExecRecord> for STOP {
     fn exec(
         &self,
         _stack: &Stack,
         _memory: &Memory,
-        _ext: &Extension,
-    ) -> InstructionResult<ConcreteAbstractExecRecord<Extension::DiffRecordType>> {
+        _ext: &Env,
+    ) -> InstructionResult<ConcreteAbstractExecRecord> {
         let mut change_log = AbstractExecRecord::default();
 
         change_log.halt = true;
@@ -53,17 +45,13 @@ where
 
 pub struct JUMPI;
 
-impl<Extension>
-    AbstractInstruction<Extension, ConcreteAbstractExecRecord<Extension::DiffRecordType>> for JUMPI
-where
-    Extension: EnvExtension,
-{
+impl AbstractInstruction<ConcreteAbstractExecRecord> for JUMPI {
     fn exec(
         &self,
         stack: &Stack,
         _memory: &Memory,
-        _ext: &Extension,
-    ) -> InstructionResult<ConcreteAbstractExecRecord<Extension::DiffRecordType>> {
+        _ext: &Env,
+    ) -> InstructionResult<ConcreteAbstractExecRecord> {
         let mut change_log = AbstractExecRecord::default();
 
         let dest = stack.peek(0).unwrap();
@@ -80,17 +68,13 @@ where
 
 pub struct MLOAD;
 
-impl<Extension>
-    AbstractInstruction<Extension, ConcreteAbstractExecRecord<Extension::DiffRecordType>> for MLOAD
-where
-    Extension: EnvExtension,
-{
+impl AbstractInstruction<ConcreteAbstractExecRecord> for MLOAD {
     fn exec(
         &self,
         stack: &Stack,
         memory: &Memory,
-        _ext: &Extension,
-    ) -> InstructionResult<ConcreteAbstractExecRecord<Extension::DiffRecordType>> {
+        _ext: &Env,
+    ) -> InstructionResult<ConcreteAbstractExecRecord> {
         let mut change_log = AbstractExecRecord::default();
 
         let mem_idx = stack.peek(0).unwrap();
@@ -106,17 +90,13 @@ where
 
 pub struct MSTORE;
 
-impl<Extension>
-    AbstractInstruction<Extension, ConcreteAbstractExecRecord<Extension::DiffRecordType>> for MSTORE
-where
-    Extension: EnvExtension,
-{
+impl AbstractInstruction<ConcreteAbstractExecRecord> for MSTORE {
     fn exec(
         &self,
         stack: &Stack,
         _memory: &Memory,
-        _ext: &Extension,
-    ) -> InstructionResult<ConcreteAbstractExecRecord<Extension::DiffRecordType>> {
+        _ext: &Env,
+    ) -> InstructionResult<ConcreteAbstractExecRecord> {
         let mut change_log = AbstractExecRecord::default();
 
         let mem_idx = stack.peek(0).unwrap();

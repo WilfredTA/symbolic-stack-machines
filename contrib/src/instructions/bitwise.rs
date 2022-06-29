@@ -1,5 +1,5 @@
 use symbolic_stack_machines_core::{
-    environment::EnvExtension,
+    environment::Env,
     instructions::{
         AbstractExecRecord, AbstractInstruction, ConcreteAbstractExecRecord, InstructionResult,
     },
@@ -9,17 +9,13 @@ use symbolic_stack_machines_core::{
 
 pub struct ISZERO;
 
-impl<Extension>
-    AbstractInstruction<Extension, ConcreteAbstractExecRecord<Extension::DiffRecordType>> for ISZERO
-where
-    Extension: EnvExtension,
-{
+impl AbstractInstruction<ConcreteAbstractExecRecord> for ISZERO {
     fn exec(
         &self,
         stack: &Stack,
         _memory: &Memory,
-        _ext: &Extension,
-    ) -> InstructionResult<ConcreteAbstractExecRecord<Extension::DiffRecordType>> {
+        _ext: &Env,
+    ) -> InstructionResult<ConcreteAbstractExecRecord> {
         let mut change_log = AbstractExecRecord::default();
 
         let op = stack.peek(0).unwrap();
