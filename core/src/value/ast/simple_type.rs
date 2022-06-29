@@ -19,6 +19,7 @@ pub enum CSimpleVal {
 #[derive(Clone, Debug, PartialEq, Eq)]
 // Symbolic Simple Val
 pub enum SSimpleVal {
+    SymbolicBool(SymbolId<Bool>),
     SymbolicNumber(SNumber),
     SymbolicVector(SymbolicVecc),
 }
