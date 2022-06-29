@@ -75,6 +75,7 @@ fn test_abstract_machine() {
 
 
 #[test]
+#[ignore]
 fn test_abstract_arithmetic() {
     // Program is Vec of AbstractVal<InnerVal>
     let pgm: Vec<SimpleLang<AbstractValue<InnerValue>>> = vec![
