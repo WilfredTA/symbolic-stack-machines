@@ -61,10 +61,7 @@ where
     E: EnvExtension,
     I: AbstractInstruction<E, Vec<AbstractExecRecord<E::DiffRecordType, C>>>,
 {
-    fn step(
-        &self,
-        m: AbstractMachine<'a, E, I>,
-    ) -> MachineResult<AbstractExecBranch<'a, E, I, C>> {
+    fn step(&self, m: AbstractMachine<'a, E, I>) -> MachineResult<AbstractExecBranch<'a, E, I, C>> {
         let pgm = m.pgm;
         let pc = m.pc.unwrap();
 

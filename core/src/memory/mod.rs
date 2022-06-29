@@ -1,7 +1,7 @@
-mod val;
-mod memory;
 mod config;
+mod memory;
 mod record;
+mod val;
 
 pub use memory::Memory;
-pub use record::{MemRecord, MemOpRecord};
+pub use record::{MemOpRecord, MemRecord};

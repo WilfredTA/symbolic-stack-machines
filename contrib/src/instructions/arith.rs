@@ -3,14 +3,14 @@ use symbolic_stack_machines_core::{
     instructions::{
         AbstractExecRecord, AbstractInstruction, ConcreteAbstractExecRecord, InstructionResult,
     },
-    stack::{Stack, StackOpRecord, StackRecord}, memory::Memory,
+    memory::Memory,
+    stack::{Stack, StackOpRecord, StackRecord},
 };
 
 pub struct ADD;
 
 impl<Extension>
-    AbstractInstruction<Extension, ConcreteAbstractExecRecord<Extension::DiffRecordType>>
-    for ADD
+    AbstractInstruction<Extension, ConcreteAbstractExecRecord<Extension::DiffRecordType>> for ADD
 where
     Extension: EnvExtension,
 {
@@ -41,8 +41,7 @@ where
 pub struct SUB;
 
 impl<Extension>
-    AbstractInstruction<Extension, ConcreteAbstractExecRecord<Extension::DiffRecordType>>
-    for SUB
+    AbstractInstruction<Extension, ConcreteAbstractExecRecord<Extension::DiffRecordType>> for SUB
 where
     Extension: EnvExtension,
 {

@@ -1,4 +1,8 @@
-use super::{StackVal, config::StackConfig, record::{StackRecord, StackOpRecord}};
+use super::{
+    config::StackConfig,
+    record::{StackOpRecord, StackRecord},
+    StackVal,
+};
 
 #[derive(Clone, Default)]
 pub struct Stack {

@@ -1,6 +1,6 @@
 use crate::{
     environment::{EnvExtension, EnvExtensionRecord},
-    memory::{Memory, MemRecord},
+    memory::{MemRecord, Memory},
     stack::{Stack, StackRecord},
 };
 

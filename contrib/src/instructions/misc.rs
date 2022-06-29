@@ -3,15 +3,14 @@ use symbolic_stack_machines_core::{
     instructions::{
         AbstractExecRecord, AbstractInstruction, ConcreteAbstractExecRecord, InstructionResult,
     },
-    memory::{Memory, MemOpRecord, MemRecord},
+    memory::{MemOpRecord, MemRecord, Memory},
     stack::{Stack, StackOpRecord, StackRecord, StackVal, ZERO},
 };
 
 pub struct PUSH(pub StackVal);
 
 impl<Extension>
-    AbstractInstruction<Extension, ConcreteAbstractExecRecord<Extension::DiffRecordType>>
-    for PUSH
+    AbstractInstruction<Extension, ConcreteAbstractExecRecord<Extension::DiffRecordType>> for PUSH
 where
     Extension: EnvExtension,
 {
@@ -34,8 +33,7 @@ where
 pub struct STOP;
 
 impl<Extension>
-    AbstractInstruction<Extension, ConcreteAbstractExecRecord<Extension::DiffRecordType>>
-    for STOP
+    AbstractInstruction<Extension, ConcreteAbstractExecRecord<Extension::DiffRecordType>> for STOP
 where
     Extension: EnvExtension,
 {
@@ -56,8 +54,7 @@ where
 pub struct JUMPI;
 
 impl<Extension>
-    AbstractInstruction<Extension, ConcreteAbstractExecRecord<Extension::DiffRecordType>>
-    for JUMPI
+    AbstractInstruction<Extension, ConcreteAbstractExecRecord<Extension::DiffRecordType>> for JUMPI
 where
     Extension: EnvExtension,
 {
@@ -84,8 +81,7 @@ where
 pub struct MLOAD;
 
 impl<Extension>
-    AbstractInstruction<Extension, ConcreteAbstractExecRecord<Extension::DiffRecordType>>
-    for MLOAD
+    AbstractInstruction<Extension, ConcreteAbstractExecRecord<Extension::DiffRecordType>> for MLOAD
 where
     Extension: EnvExtension,
 {
@@ -111,8 +107,7 @@ where
 pub struct MSTORE;
 
 impl<Extension>
-    AbstractInstruction<Extension, ConcreteAbstractExecRecord<Extension::DiffRecordType>>
-    for MSTORE
+    AbstractInstruction<Extension, ConcreteAbstractExecRecord<Extension::DiffRecordType>> for MSTORE
 where
     Extension: EnvExtension,
 {

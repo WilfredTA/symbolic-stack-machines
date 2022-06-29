@@ -1,8 +1,4 @@
-use crate::{
-    constraint::Constraint,
-    environment::EnvExtension,
-    instructions::AbstractInstruction,
-};
+use crate::{constraint::Constraint, environment::EnvExtension, instructions::AbstractInstruction};
 
 use super::{
     inner_interpreter::{AbstractExecBranch, InnerInterpreter},
@@ -46,30 +42,20 @@ where
     E: EnvExtension,
     I: AbstractInstruction<E, InstructionStepResult>,
 {
-    inner_interpreter:
-        dyn InnerInterpreter<'a, E, I, InstructionStepResult, InterpreterStepResult>,
+    inner_interpreter: dyn InnerInterpreter<'a, E, I, InstructionStepResult, InterpreterStepResult>,
 }
 
 pub type SingleBranch<'a, E, I, C> = (AbstractMachine<'a, E, I>, Vec<Constraint<C>>);
 
 impl<'a, E, I, InstructionStepResult, C>
     OuterInterpreter<Vec<SingleBranch<'a, E, I, C>>, AbstractMachine<'a, E, I>>
-    for SymbolicOuterInterpreter<
-        'a,
-        E,
-        I,
-        InstructionStepResult,
-        AbstractExecBranch<'a, E, I, C>,
-    >
+    for SymbolicOuterInterpreter<'a, E, I, InstructionStepResult, AbstractExecBranch<'a, E, I, C>>
 where
     E: EnvExtension,
     I: AbstractInstruction<E, InstructionStepResult>,
     C: Clone,
 {
-    fn run(
-        &self,
-        m: AbstractMachine<'a, E, I>,
-    ) -> MachineResult<Vec<SingleBranch<'a, E, I, C>>> {
+    fn run(&self, m: AbstractMachine<'a, E, I>) -> MachineResult<Vec<SingleBranch<'a, E, I, C>>> {
         let mut trace_tree: Vec<SingleBranch<'a, E, I, C>> = vec![(m, vec![])];
 
         let mut leaves: Vec<SingleBranch<'a, E, I, C>> = vec![];

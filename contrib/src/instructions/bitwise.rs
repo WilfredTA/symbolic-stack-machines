@@ -10,8 +10,7 @@ use symbolic_stack_machines_core::{
 pub struct ISZERO;
 
 impl<Extension>
-    AbstractInstruction<Extension, ConcreteAbstractExecRecord<Extension::DiffRecordType>>
-    for ISZERO
+    AbstractInstruction<Extension, ConcreteAbstractExecRecord<Extension::DiffRecordType>> for ISZERO
 where
     Extension: EnvExtension,
 {
