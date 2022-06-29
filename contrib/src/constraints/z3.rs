@@ -1,7 +1,7 @@
 use symbolic_stack_machines_core::constraint::*;
 use symbolic_stack_machines_core::value::AbstractInt;
-use z3::ast::{Ast, Bool, Int};
-use z3::{Config, Context, Model, SatResult as Z3SatResult, Solver as Z3InnerSolver};
+use z3::ast::Int;
+use z3::{Config, Context, Model, Solver as Z3InnerSolver};
 
 pub type ValInt = AbstractInt;
 
@@ -19,7 +19,7 @@ impl<'a> Z3SolverBuilder {
         self
     }
 
-    pub fn build<T>(self) -> Z3Solver<'a, T> {
+    pub fn build(self) -> Z3Solver<'a> {
         Z3Solver {
             inner: None,
             constraints: vec![],
@@ -27,13 +27,13 @@ impl<'a> Z3SolverBuilder {
         }
     }
 }
-pub struct Z3Solver<'a, T> {
+pub struct Z3Solver<'a> {
     inner: Option<Z3InnerSolver<'a>>,
-    constraints: Vec<Constraint<T>>,
+    constraints: Vec<Constraint>,
     ctx: Context,
 }
 
-impl<'a, T> Z3Solver<'a, T> {
+impl<'a> Z3Solver<'a> {
     pub fn inner(&self) -> &Z3InnerSolver<'a> {
         assert!(self.inner.is_some());
         self.inner.as_ref().unwrap()
@@ -42,7 +42,7 @@ impl<'a, T> Z3Solver<'a, T> {
         &self.inner().get_context()
     }
 
-    pub fn get_constraints(&self) -> &Vec<Constraint<T>> {
+    pub fn get_constraints(&self) -> &Vec<Constraint> {
         &self.constraints
     }
 
@@ -59,7 +59,7 @@ pub fn z3_int_var<'a>(i: &str, ctxt: &'a Context) -> z3::ast::Int<'a> {
     Int::new_const(&ctxt, i)
 }
 
-impl<'a, T> Constrained for Z3Solver<'a, T> {
+impl<'a> Constrained for Z3Solver<'a> {
     type Model = Model<'a>;
 
     fn check(&self) -> SatResult<Self::Model> {
@@ -67,33 +67,33 @@ impl<'a, T> Constrained for Z3Solver<'a, T> {
     }
 }
 
-impl<'a> Solver<ValInt, Bool<'a>, Int<'a>> for Z3Solver<'a, ValInt> {
-    fn solve(&self) -> SatResult<Self::Model> {
-        match self.inner().check() {
-            Z3SatResult::Sat => SatResult::Sat(self.inner().get_model().unwrap()),
-            Z3SatResult::Unsat => SatResult::Unsat,
-            Z3SatResult::Unknown => SatResult::Unknown,
-        }
-    }
+// impl<'a> Solver<ValInt, Int<'a>> for Z3Solver<'a> {
+//     fn solve(&self) -> SatResult<Self::Model> {
+//         match self.inner().check() {
+//             Z3SatResult::Sat => SatResult::Sat(self.inner().get_model().unwrap()),
+//             Z3SatResult::Unsat => SatResult::Unsat,
+//             Z3SatResult::Unknown => SatResult::Unknown,
+//         }
+//     }
 
-    fn generic_assert(&mut self, constraint: &Constraint<ValInt>) {
-        self.inner().assert(&self.transpile(constraint));
-    }
-}
+//     fn generic_assert(&mut self, constraint: &Constraint) {
+//         self.inner().assert(&self.transpile(constraint));
+//     }
+// }
 
-impl<'a> Solver<u64, Bool<'a>, Int<'a>> for Z3Solver<'a, u64> {
-    fn solve(&self) -> SatResult<Self::Model> {
-        match self.inner().check() {
-            Z3SatResult::Sat => SatResult::Sat(self.inner().get_model().unwrap()),
-            Z3SatResult::Unsat => SatResult::Unsat,
-            Z3SatResult::Unknown => SatResult::Unknown,
-        }
-    }
+// impl<'a> Solver<u64, Int<'a>> for Z3Solver<'a> {
+//     fn solve(&self) -> SatResult<Self::Model> {
+//         match self.inner().check() {
+//             Z3SatResult::Sat => SatResult::Sat(self.inner().get_model().unwrap()),
+//             Z3SatResult::Unsat => SatResult::Unsat,
+//             Z3SatResult::Unknown => SatResult::Unknown,
+//         }
+//     }
 
-    fn generic_assert(&mut self, constraint: &Constraint<u64>) {
-        self.inner().assert(&self.transpile(constraint));
-    }
-}
+//     fn generic_assert(&mut self, constraint: &Constraint) {
+//         self.inner().assert(&self.transpile(constraint));
+//     }
+// }
 
 // TO DO: Generic impl
 
@@ -105,124 +105,124 @@ impl<'a> Solver<u64, Bool<'a>, Int<'a>> for Z3Solver<'a, u64> {
 
 // TODO(tannr): Impl Transpile from
 
-impl<'a> Transpile<u64, Bool<'a>, Int<'a>> for Z3Solver<'a, u64> {
-    fn val_to_ground_type(&self, v: u64) -> Int<'a> {
-        z3_int(v, self.get_ctx())
-    }
+// impl<'a> Transpile<u64, Int<'a>> for Z3Solver<'a> {
+//     fn val_to_ground_type(&self, v: u64) -> Int<'a> {
+//         z3_int(v, self.get_ctx())
+//     }
 
-    fn ground_type_to_val(&self, g: Int<'a>) -> u64 {
-        g.as_u64().unwrap()
-    }
+//     fn ground_type_to_val(&self, g: Int<'a>) -> u64 {
+//         g.as_u64().unwrap()
+//     }
 
-    fn assert(&self, c: Bool<'a>) -> Bool<'a> {
-        self.inner().assert(&c);
-        c
-    }
+//     fn assert(&self, c: Bool<'a>) -> Bool<'a> {
+//         self.inner().assert(&c);
+//         c
+//     }
 
-    fn and(&self, l: Bool<'a>, r: Bool<'a>) -> Bool<'a> {
-        z3::ast::Bool::and(l.get_ctx(), &vec![&l, &r])
-    }
+//     fn and(&self, l: Bool<'a>, r: Bool<'a>) -> Bool<'a> {
+//         z3::ast::Bool::and(l.get_ctx(), &vec![&l, &r])
+//     }
 
-    fn not(&self, c: Bool<'a>) -> Bool<'a> {
-        z3::ast::Bool::not(&c)
-    }
+//     fn not(&self, c: Bool<'a>) -> Bool<'a> {
+//         z3::ast::Bool::not(&c)
+//     }
 
-    fn or(&self, l: Bool<'a>, r: Bool<'a>) -> Bool<'a> {
-        z3::ast::Bool::or(l.get_ctx(), &vec![&l, &r])
-    }
+//     fn or(&self, l: Bool<'a>, r: Bool<'a>) -> Bool<'a> {
+//         z3::ast::Bool::or(l.get_ctx(), &vec![&l, &r])
+//     }
 
-    fn gt(&self, l: Int<'a>, r: Int<'a>) -> Bool<'a> {
-        l.gt(&r)
-    }
+//     fn gt(&self, l: Int<'a>, r: Int<'a>) -> Bool<'a> {
+//         l.gt(&r)
+//     }
 
-    fn lt(&self, l: Int<'a>, r: Int<'a>) -> Bool<'a> {
-        l.lt(&r)
-    }
+//     fn lt(&self, l: Int<'a>, r: Int<'a>) -> Bool<'a> {
+//         l.lt(&r)
+//     }
 
-    fn lte(&self, l: Int<'a>, r: Int<'a>) -> Bool<'a> {
-        l.le(&r)
-    }
+//     fn lte(&self, l: Int<'a>, r: Int<'a>) -> Bool<'a> {
+//         l.le(&r)
+//     }
 
-    fn gte(&self, l: Int<'a>, r: Int<'a>) -> Bool<'a> {
-        l.ge(&r)
-    }
+//     fn gte(&self, l: Int<'a>, r: Int<'a>) -> Bool<'a> {
+//         l.ge(&r)
+//     }
 
-    fn eq(&self, l: Int<'a>, r: Int<'a>) -> Bool<'a> {
-        l._eq(&r)
-    }
+//     fn eq(&self, l: Int<'a>, r: Int<'a>) -> Bool<'a> {
+//         l._eq(&r)
+//     }
 
-    fn neq(&self, l: Int<'a>, r: Int<'a>) -> Bool<'a> {
-        self.not(self.eq(l, r))
-    }
+//     fn neq(&self, l: Int<'a>, r: Int<'a>) -> Bool<'a> {
+//         self.not(self.eq(l, r))
+//     }
 
-    fn true_(&self) -> Bool<'a> {
-        Bool::from_bool(&self.get_ctx(), true)
-    }
+//     fn true_(&self) -> Bool<'a> {
+//         Bool::from_bool(&self.get_ctx(), true)
+//     }
 
-    fn false_(&self) -> Bool<'a> {
-        Bool::from_bool(&self.get_ctx(), false)
-    }
-}
+//     fn false_(&self) -> Bool<'a> {
+//         Bool::from_bool(&self.get_ctx(), false)
+//     }
+// }
 
-impl<'a> Transpile<ValInt, Bool<'a>, Int<'a>> for Z3Solver<'a, ValInt> {
-    fn val_to_ground_type(&self, v: ValInt) -> Int<'a> {
-        if let Some(val) = v.inner() {
-            z3_int(val, self.get_ctx())
-        } else {
-            z3_int_var(v.id(), self.get_ctx())
-        }
-    }
+// impl<'a> Transpile<Bool<'a>, Int<'a>> for Z3Solver<'a> {
+//     fn val_to_ground_type(&self, v: ValInt) -> Int<'a> {
+//         if let Some(val) = v.inner() {
+//             z3_int(val, self.get_ctx())
+//         } else {
+//             z3_int_var(v.id(), self.get_ctx())
+//         }
+//     }
 
-    fn ground_type_to_val(&self, g: Int<'a>) -> ValInt {
-        ValInt::new(g.as_u64().unwrap(), Some(g.to_string()))
-    }
+//     fn ground_type_to_val(&self, g: Int<'a>) -> ValInt {
+//         ValInt::new(g.as_u64().unwrap(), Some(g.to_string()))
+//     }
 
-    fn assert(&self, c: Bool<'a>) -> Bool<'a> {
-        self.inner().assert(&c);
-        c
-    }
+//     fn assert(&self, c: Bool<'a>) -> Bool<'a> {
+//         self.inner().assert(&c);
+//         c
+//     }
 
-    fn and(&self, l: Bool<'a>, r: Bool<'a>) -> Bool<'a> {
-        z3::ast::Bool::and(l.get_ctx(), &vec![&l, &r])
-    }
+//     fn and(&self, l: Bool<'a>, r: Bool<'a>) -> Bool<'a> {
+//         z3::ast::Bool::and(l.get_ctx(), &vec![&l, &r])
+//     }
 
-    fn not(&self, c: Bool<'a>) -> Bool<'a> {
-        z3::ast::Bool::not(&c)
-    }
+//     fn not(&self, c: Bool<'a>) -> Bool<'a> {
+//         z3::ast::Bool::not(&c)
+//     }
 
-    fn or(&self, l: Bool<'a>, r: Bool<'a>) -> Bool<'a> {
-        z3::ast::Bool::or(l.get_ctx(), &vec![&l, &r])
-    }
+//     fn or(&self, l: Bool<'a>, r: Bool<'a>) -> Bool<'a> {
+//         z3::ast::Bool::or(l.get_ctx(), &vec![&l, &r])
+//     }
 
-    fn gt(&self, l: Int<'a>, r: Int<'a>) -> Bool<'a> {
-        l.gt(&r)
-    }
+//     fn gt(&self, l: Int<'a>, r: Int<'a>) -> Bool<'a> {
+//         l.gt(&r)
+//     }
 
-    fn lt(&self, l: Int<'a>, r: Int<'a>) -> Bool<'a> {
-        l.lt(&r)
-    }
+//     fn lt(&self, l: Int<'a>, r: Int<'a>) -> Bool<'a> {
+//         l.lt(&r)
+//     }
 
-    fn lte(&self, l: Int<'a>, r: Int<'a>) -> Bool<'a> {
-        l.le(&r)
-    }
+//     fn lte(&self, l: Int<'a>, r: Int<'a>) -> Bool<'a> {
+//         l.le(&r)
+//     }
 
-    fn gte(&self, l: Int<'a>, r: Int<'a>) -> Bool<'a> {
-        l.ge(&r)
-    }
+//     fn gte(&self, l: Int<'a>, r: Int<'a>) -> Bool<'a> {
+//         l.ge(&r)
+//     }
 
-    fn eq(&self, l: Int<'a>, r: Int<'a>) -> Bool<'a> {
-        l._eq(&r)
-    }
+//     fn eq(&self, l: Int<'a>, r: Int<'a>) -> Bool<'a> {
+//         l._eq(&r)
+//     }
 
-    fn neq(&self, l: Int<'a>, r: Int<'a>) -> Bool<'a> {
-        self.not(self.eq(l, r))
-    }
+//     fn neq(&self, l: Int<'a>, r: Int<'a>) -> Bool<'a> {
+//         self.not(self.eq(l, r))
+//     }
 
-    fn true_(&self) -> Bool<'a> {
-        Bool::from_bool(&self.get_ctx(), true)
-    }
+//     fn true_(&self) -> Bool<'a> {
+//         Bool::from_bool(&self.get_ctx(), true)
+//     }
 
-    fn false_(&self) -> Bool<'a> {
-        Bool::from_bool(&self.get_ctx(), false)
-    }
-}
+//     fn false_(&self) -> Bool<'a> {
+//         Bool::from_bool(&self.get_ctx(), false)
+//     }
+// }

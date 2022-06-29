@@ -1,21 +1,19 @@
 use symbolic_stack_machines_core::{
     environment::Env,
-    instructions::{
-        AbstractExecRecord, AbstractInstruction, ConcreteAbstractExecRecord, InstructionResult,
-    },
+    instructions::{AbstractExecRecord, AbstractInstruction, InstructionResult},
     memory::{MemOpRecord, MemRecord, Memory},
     stack::{Stack, StackOpRecord, StackRecord, StackVal, ZERO},
 };
 
 pub struct PUSH(pub StackVal);
 
-impl AbstractInstruction<ConcreteAbstractExecRecord> for PUSH {
+impl AbstractInstruction<AbstractExecRecord> for PUSH {
     fn exec(
         &self,
         _stack: &Stack,
         _memory: &Memory,
         _ext: &Env,
-    ) -> InstructionResult<ConcreteAbstractExecRecord> {
+    ) -> InstructionResult<AbstractExecRecord> {
         let mut change_log = AbstractExecRecord::default();
 
         change_log.stack_diff = Some(StackRecord {
@@ -28,13 +26,13 @@ impl AbstractInstruction<ConcreteAbstractExecRecord> for PUSH {
 
 pub struct STOP;
 
-impl AbstractInstruction<ConcreteAbstractExecRecord> for STOP {
+impl AbstractInstruction<AbstractExecRecord> for STOP {
     fn exec(
         &self,
         _stack: &Stack,
         _memory: &Memory,
         _ext: &Env,
-    ) -> InstructionResult<ConcreteAbstractExecRecord> {
+    ) -> InstructionResult<AbstractExecRecord> {
         let mut change_log = AbstractExecRecord::default();
 
         change_log.halt = true;
@@ -45,13 +43,13 @@ impl AbstractInstruction<ConcreteAbstractExecRecord> for STOP {
 
 pub struct JUMPI;
 
-impl AbstractInstruction<ConcreteAbstractExecRecord> for JUMPI {
+impl AbstractInstruction<AbstractExecRecord> for JUMPI {
     fn exec(
         &self,
         stack: &Stack,
         _memory: &Memory,
         _ext: &Env,
-    ) -> InstructionResult<ConcreteAbstractExecRecord> {
+    ) -> InstructionResult<AbstractExecRecord> {
         let mut change_log = AbstractExecRecord::default();
 
         let dest = stack.peek(0).unwrap();
@@ -68,13 +66,13 @@ impl AbstractInstruction<ConcreteAbstractExecRecord> for JUMPI {
 
 pub struct MLOAD;
 
-impl AbstractInstruction<ConcreteAbstractExecRecord> for MLOAD {
+impl AbstractInstruction<AbstractExecRecord> for MLOAD {
     fn exec(
         &self,
         stack: &Stack,
         memory: &Memory,
         _ext: &Env,
-    ) -> InstructionResult<ConcreteAbstractExecRecord> {
+    ) -> InstructionResult<AbstractExecRecord> {
         let mut change_log = AbstractExecRecord::default();
 
         let mem_idx = stack.peek(0).unwrap();
@@ -90,13 +88,13 @@ impl AbstractInstruction<ConcreteAbstractExecRecord> for MLOAD {
 
 pub struct MSTORE;
 
-impl AbstractInstruction<ConcreteAbstractExecRecord> for MSTORE {
+impl AbstractInstruction<AbstractExecRecord> for MSTORE {
     fn exec(
         &self,
         stack: &Stack,
         _memory: &Memory,
         _ext: &Env,
-    ) -> InstructionResult<ConcreteAbstractExecRecord> {
+    ) -> InstructionResult<AbstractExecRecord> {
         let mut change_log = AbstractExecRecord::default();
 
         let mem_idx = stack.peek(0).unwrap();

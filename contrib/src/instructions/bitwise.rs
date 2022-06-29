@@ -1,21 +1,19 @@
 use symbolic_stack_machines_core::{
     environment::Env,
-    instructions::{
-        AbstractExecRecord, AbstractInstruction, ConcreteAbstractExecRecord, InstructionResult,
-    },
+    instructions::{AbstractExecRecord, AbstractInstruction, InstructionResult},
     memory::Memory,
     stack::{Stack, StackOpRecord, StackRecord, ONE, ZERO},
 };
 
 pub struct ISZERO;
 
-impl AbstractInstruction<ConcreteAbstractExecRecord> for ISZERO {
+impl AbstractInstruction<AbstractExecRecord> for ISZERO {
     fn exec(
         &self,
         stack: &Stack,
         _memory: &Memory,
         _ext: &Env,
-    ) -> InstructionResult<ConcreteAbstractExecRecord> {
+    ) -> InstructionResult<AbstractExecRecord> {
         let mut change_log = AbstractExecRecord::default();
 
         let op = stack.peek(0).unwrap();
