@@ -19,11 +19,19 @@ impl From<GroundValue> for Literal {
     fn from(v: GroundValue) -> Self {
         match v {
             GroundValue::Concrete(c) => Literal::ConcreteLiteral(Value::new(c)),
-            GroundValue::Symbolic(s) => Literal::ConcreteLiteral(Value::new(s)),
+            GroundValue::Symbolic(s) => Literal::SymbolicLiteral(Value::new(s)),
             GroundValue::Boolean(_) => todo!(),
         }
     }
 }
+
+impl From<Literal> for InnerValue {
+    fn from(l: Literal) -> Self {
+        InnerValue::Literal(l)
+    }
+}
+
+
 // impl InnerValue {
 //     pub fn unwrap(&self) -> Rc<dyn Any> {
 //         match self {
@@ -145,6 +153,22 @@ impl InnerValue {
                         Value::new(self.clone()),
                         Value::new(other.clone())
                     )
+                )
+            )
+        )
+    }
+}
+
+
+impl std::ops::Add for InnerValue {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Self::Arithmetic(
+            Value::new(
+                Arithmetic::Add(
+                    self.clone(),
+                    rhs.clone()
                 )
             )
         )

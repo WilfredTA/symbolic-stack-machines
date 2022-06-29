@@ -13,3 +13,12 @@ impl From<bool> for Bool {
         }
     }
 }
+
+impl From<Bool> for bool {
+    fn from(b: Bool) -> Self {
+        match b {
+            Bool::True => true,
+            Bool::False => false 
+        }
+    }
+}

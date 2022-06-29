@@ -27,12 +27,15 @@ impl<T> Val<T> {
     }
 }
 
+
 pub trait Visitor<T> {
     fn visit_sentence(&mut self, s: &Sentence) -> T;
 
-    fn visit_arith(&mut self, s: &Arith) -> T;
+    fn visit_bin_op(&mut self, a: &Sentence, b: &Sentence) -> T;
 
-    fn visit_boolf(&mut self, s: &BoolF) -> T;
+    fn visit_unary_op(&mut self, s: &Sentence) -> T;
+
+    fn visit_ternary_op(&mut self, a: &Sentence, b: &Sentence, c: &Sentence) -> T;
 
     fn visit_val(&mut self, s: &Value) -> T;
 

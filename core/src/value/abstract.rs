@@ -140,12 +140,12 @@ fn random_val_symbol() -> String {
 //         Self::from(InnerValue::from(t))
 //     }
 // }
-// impl<T> From<T> for AbstractValue<InnerValue>
-// where T: Into<InnerValue> {
-//     fn from(t: T) -> Self {
-//         Self::from(InnerValue::from(t))
-//     }
-// }
+impl<T> From<T> for AbstractValue<InnerValue>
+where T: Into<InnerValue> {
+    fn from(t: T) -> Self {
+        Self::from(t.into())
+    }
+}
 
 // impl Simplifiable<ConcreteInnerValue> for AbstractValue<InnerValue> {
 //     type GroundVal = GroundValue;

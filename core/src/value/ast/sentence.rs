@@ -4,25 +4,57 @@ use super::*;
 // ------------- COMPOUND VALUES --------------
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Sentence {
-    Arith(Arith),
-    Bool(BoolF),
-    Val(Value)
-}
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub enum Arith {
-    Plus(Val<Sentence>, Val<Sentence>),
-    Minus(Val<Sentence>, Val<Sentence>),
-    Div(Val<Sentence>, Val<Sentence>),
-    Mul(Val<Sentence>, Val<Sentence>),
-}
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub enum BoolF {
-    Eq(Val<Sentence>, Val<Sentence>),
-    Neq(Val<Sentence>, Val<Sentence>),
-    Lt(Val<Sentence>, Val<Sentence>),
-    Gt(Val<Sentence>, Val<Sentence>),
-    Lte(Val<Sentence>, Val<Sentence>),
-    Gte(Val<Sentence>, Val<Sentence>)
+    BinOp {
+        a: Val<Sentence>,
+        b: Val<Sentence>,
+        op: BinOp
+    },
+    UnaryOp {
+        a: Val<Sentence>,
+        op: UnaryOp
+    },
+    TernaryOp {
+        a: Val<Sentence>,
+        b: Val<Sentence>,
+        c: Val<Sentence>,
+        op: TernaryOp,
+    },
+    Basic(Value),
+    
 }
 
-// TODO: Bit vec operations
+
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum TernaryOp {
+    Ite,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum BinOp {
+    Plus,
+    Minus,
+    Div,
+    Mul,
+    Mod,
+    // Comparison
+    Eq,
+    Neq,
+    Lt,
+    Lte,
+    Gt,
+    Gte,
+    // Binary Ops
+    BitOr,
+    BitAnd,
+    BitXor,
+    LShift,
+    RShift,
+
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum UnaryOp {
+    Not,
+    BitNot
+}

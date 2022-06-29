@@ -1,11 +1,14 @@
 use super::*;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Value {
-    Symbolic(CSimpleVal),
-    Concrete(SSimpleVal),
+    Symbolic(SSimpleVal),
+    Concrete(CSimpleVal),
 }
 
 // Concrete Simple Val
+// Operations on this builds AST
+// whereas operations on its inner types simple
+// dispatches to its inner type's concrete type
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum CSimpleVal {
     Boolean(Bool),

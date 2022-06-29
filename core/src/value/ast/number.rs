@@ -1,7 +1,14 @@
-use super::SymbolId;
+use super::{SymbolId, Bool};
 use enum_as_inner::EnumAsInner;
+use thiserror::Error;
 
-#[derive(Clone, Debug, PartialEq, Eq, EnumAsInner)]
+
+#[derive(Error, Debug)]
+pub enum NumberError {
+    #[error("Cannot convert {0:?} to {1:?}")]
+    Convert(CNumber, CNumber)
+}
+#[derive(Clone, Debug, PartialEq, Eq, EnumAsInner, PartialOrd, Ord)]
 pub enum CNumber {
     U8(u8),
     U16(u16),
@@ -40,22 +47,72 @@ impl From<u128> for CNumber {
     }
 }
 
-impl CNumber {
-    // Inner add to add the internal values
-    // As opposed to std::ops::add which creates an Arith AST
-    pub fn inner_add(&self, other: Self) -> Self {
-        todo!()
-    } 
+impl TryFrom<CNumber> for u8 {
+    type Error = NumberError;
 
-    pub fn inner_sub(&self, other: Self) -> Self {
+    fn try_from(value: CNumber) -> Result<Self, Self::Error> {
         todo!()
     }
+}
 
-    pub fn inner_div(&self, other: Self) -> Self {
+impl TryFrom<CNumber> for u16 {
+    type Error = NumberError;
+
+    fn try_from(value: CNumber) -> Result<Self, Self::Error> {
         todo!()
     }
+}
 
-    pub fn inner_mul(&self, other: Self) -> Self {
+impl TryFrom<CNumber> for u32 {
+    type Error = NumberError;
+
+    fn try_from(value: CNumber) -> Result<Self, Self::Error> {
+        todo!()
+    }
+}
+
+impl TryFrom<CNumber> for u64 {
+    type Error = NumberError;
+
+    fn try_from(value: CNumber) -> Result<Self, Self::Error> {
+        todo!()
+    }
+}
+
+impl From<CNumber> for u128 {
+    fn from(_: CNumber) -> Self {
+        todo!()
+    }
+}
+
+impl std::ops::Add for CNumber {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        todo!()
+    }
+}
+
+impl std::ops::Sub for CNumber {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        todo!()
+    }
+}
+
+impl std::ops::Mul for CNumber {
+    type Output = Self;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        todo!()
+    }
+}
+
+impl std::ops::Div for CNumber {
+    type Output = Self;
+
+    fn div(self, rhs: Self) -> Self::Output {
         todo!()
     }
 }
