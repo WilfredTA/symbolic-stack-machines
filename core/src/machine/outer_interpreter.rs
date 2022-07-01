@@ -41,19 +41,18 @@ where
     inner_interpreter: dyn InnerInterpreter<'a, I, InstructionStepResult, InterpreterStepResult>,
 }
 
-pub type SingleBranch<'a, I, C> = (AbstractMachine<'a, I>, Vec<Constraint<C>>);
+pub type SingleBranch<'a, I> = (AbstractMachine<'a, I>, Vec<Constraint>);
 
-impl<'a, I, InstructionStepResult, C>
-    OuterInterpreter<Vec<SingleBranch<'a, I, C>>, AbstractMachine<'a, I>>
-    for SymbolicOuterInterpreter<'a, I, InstructionStepResult, AbstractExecBranch<'a, I, C>>
+impl<'a, I, InstructionStepResult>
+    OuterInterpreter<Vec<SingleBranch<'a, I>>, AbstractMachine<'a, I>>
+    for SymbolicOuterInterpreter<'a, I, InstructionStepResult, AbstractExecBranch<'a, I>>
 where
     I: AbstractInstruction<InstructionStepResult>,
-    C: Clone,
 {
-    fn run(&self, m: AbstractMachine<'a, I>) -> MachineResult<Vec<SingleBranch<'a, I, C>>> {
-        let mut trace_tree: Vec<SingleBranch<'a, I, C>> = vec![(m, vec![])];
+    fn run(&self, m: AbstractMachine<'a, I>) -> MachineResult<Vec<SingleBranch<'a, I>>> {
+        let mut trace_tree: Vec<SingleBranch<'a, I>> = vec![(m, vec![])];
 
-        let mut leaves: Vec<SingleBranch<'a, I, C>> = vec![];
+        let mut leaves: Vec<SingleBranch<'a, I>> = vec![];
 
         loop {
             let start_branch = trace_tree.pop();
@@ -64,7 +63,7 @@ where
                     new_machines
                         .into_iter()
                         .for_each(|(new_mach, constraints_to_add)| {
-                            let mut new_constraints: Vec<Constraint<C>> = constraints.clone();
+                            let mut new_constraints: Vec<Constraint> = constraints.clone();
                             new_constraints.extend(constraints_to_add);
                             trace_tree.push((new_mach, new_constraints));
                         });

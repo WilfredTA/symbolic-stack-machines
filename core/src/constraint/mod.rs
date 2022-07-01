@@ -1,38 +1,40 @@
 pub use std::rc::Rc;
 
+use crate::value::Val;
+
 #[derive(Clone)]
-pub enum Constraint<V> {
+pub enum Constraint {
     True,
     False,
-    Assert(Node<V>),
-    Not(Node<V>),
-    And(Node<V>, Node<V>),
-    Or(Node<V>, Node<V>),
-    BinCmp(CmpType<V>),
-    Ite(Rc<Constraint<V>>, V, V),
+    Assert(Node),
+    Not(Node),
+    And(Node, Node),
+    Or(Node, Node),
+    BinCmp(CmpType),
+    Ite(Rc<Constraint>, Node, Node),
 }
 #[derive(Clone)]
-pub enum Node<V> {
-    Simple(V),
-    Compound(Rc<Constraint<V>>),
+pub enum Node {
+    Simple(Val),
+    Compound(Rc<Constraint>),
 }
 
-impl<G> AsRef<Constraint<G>> for Constraint<G> {
-    fn as_ref(&self) -> &Constraint<G> {
+impl AsRef<Constraint> for Constraint {
+    fn as_ref(&self) -> &Constraint {
         self
     }
 }
 
-impl<V: Clone> Node<V> {
-    pub fn new_simple(v: V) -> Self {
+impl Node {
+    pub fn new_simple(v: Val) -> Self {
         Self::Simple(v)
     }
 
-    pub fn new_compound(c: Constraint<V>) -> Self {
+    pub fn new_compound(c: Constraint) -> Self {
         Self::Compound(Rc::new(c))
     }
 
-    pub fn unwrap(&self) -> V {
+    pub fn unwrap(&self) -> Val {
         match self {
             Self::Simple(v) => v.clone(),
             Self::Compound(_) => {
@@ -41,9 +43,9 @@ impl<V: Clone> Node<V> {
         }
     }
 }
-pub trait Transpile<V: Clone, Ast, G> {
-    fn val_to_ground_type(&self, v: V) -> G;
-    fn ground_type_to_val(&self, g: G) -> V;
+pub trait Transpile<Ast, G> {
+    fn val_to_ground_type(&self, v: Val) -> G;
+    fn ground_type_to_val(&self, g: G) -> Val;
     fn assert(&self, c: Ast) -> Ast;
 
     fn and(&self, l: Ast, r: Ast) -> Ast;
@@ -67,7 +69,7 @@ pub trait Transpile<V: Clone, Ast, G> {
     fn true_(&self) -> Ast;
     fn false_(&self) -> Ast;
 
-    fn transpile(&self, constraint: impl AsRef<Constraint<V>>) -> Ast {
+    fn transpile(&self, constraint: impl AsRef<Constraint>) -> Ast {
         match constraint.as_ref() {
             Constraint::Assert(c) => {
                 if let Node::Compound(constraint) = c {
@@ -155,43 +157,40 @@ pub trait Transpile<V: Clone, Ast, G> {
 }
 
 #[allow(dead_code)]
-impl<V> Constraint<V>
-where
-    V: Clone,
-{
-    fn assert(c: Constraint<V>) -> Self {
+impl Constraint {
+    fn assert(c: Constraint) -> Self {
         Self::Assert(Node::new_compound(c))
     }
 
-    fn and(self, c: Constraint<V>) -> Self {
+    fn and(self, c: Constraint) -> Self {
         Self::And(Node::new_compound(self), Node::new_compound(c))
     }
 
-    fn not(self, c: Constraint<V>) -> Self {
+    fn not(self, c: Constraint) -> Self {
         Self::Not(Node::new_compound(c))
     }
 
-    fn or(self, c: Constraint<V>) -> Self {
+    fn or(self, c: Constraint) -> Self {
         Self::Or(Node::new_compound(self), Node::new_compound(c))
     }
 
-    fn gt(l: V, r: V) -> Self {
+    fn gt(l: Val, r: Val) -> Self {
         Self::BinCmp(CmpType::GT(Node::new_simple(l), Node::new_simple(r)))
     }
 
-    fn lt(l: V, r: V) -> Self {
+    fn lt(l: Val, r: Val) -> Self {
         Self::BinCmp(CmpType::LT(Node::new_simple(l), Node::new_simple(r)))
     }
 
-    fn eq(l: V, r: V) -> Self {
+    fn eq(l: Val, r: Val) -> Self {
         Self::BinCmp(CmpType::EQ(Node::new_simple(l), Node::new_simple(r)))
     }
 
-    fn lte(l: V, r: V) -> Self {
+    fn lte(l: Val, r: Val) -> Self {
         Self::BinCmp(CmpType::LTE(Node::new_simple(l), Node::new_simple(r)))
     }
 
-    fn gte(l: V, r: V) -> Self {
+    fn gte(l: Val, r: Val) -> Self {
         Self::BinCmp(CmpType::GTE(Node::new_simple(l), Node::new_simple(r)))
     }
     // to do rest
@@ -202,22 +201,19 @@ where
 //     pub solver: S
 // }
 
-pub trait Solver<V, Ast, G>: Constrained + Transpile<V, Ast, G>
-where
-    V: Clone,
-{
-    fn generic_assert(&mut self, constraint: &Constraint<V>);
+pub trait Solver<Ast, G>: Constrained + Transpile<Ast, G> {
+    fn generic_assert(&mut self, constraint: &Constraint);
     fn solve(&self) -> SatResult<Self::Model>;
 }
 
 #[derive(Clone)]
-pub enum CmpType<V> {
-    GT(Node<V>, Node<V>),
-    LT(Node<V>, Node<V>),
-    GTE(Node<V>, Node<V>),
-    LTE(Node<V>, Node<V>),
-    EQ(Node<V>, Node<V>),
-    NEQ(Node<V>, Node<V>),
+pub enum CmpType {
+    GT(Node, Node),
+    LT(Node, Node),
+    GTE(Node, Node),
+    LTE(Node, Node),
+    EQ(Node, Node),
+    NEQ(Node, Node),
 }
 
 pub enum SatResult<M> {

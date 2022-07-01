@@ -8,18 +8,16 @@ use error::InstructionError;
 
 pub type InstructionResult<T> = Result<T, InstructionError>;
 
-pub struct AbstractExecRecord<C> {
+pub struct AbstractExecRecord {
     pub stack_diff: Option<StackRecord>,
     pub mem_diff: Option<MemRecord>,
     pub env_diff: Option<EnvRecord>,
     pub pc_change: Option<usize>,
     pub halt: bool,
-    pub constraints: Option<Vec<Constraint<C>>>,
+    pub constraints: Option<Vec<Constraint>>,
 }
 
-pub type ConcreteAbstractExecRecord = AbstractExecRecord<()>;
-
-impl<C> Default for AbstractExecRecord<C> {
+impl Default for AbstractExecRecord {
     fn default() -> Self {
         Self {
             stack_diff: None,

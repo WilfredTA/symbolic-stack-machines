@@ -1,6 +1,6 @@
 use crate::{
     constraint::Constraint,
-    instructions::{AbstractExecRecord, AbstractInstruction, ConcreteAbstractExecRecord},
+    instructions::{AbstractExecRecord, AbstractInstruction},
 };
 
 use super::{r#abstract::AbstractMachine, MachineResult};
@@ -14,10 +14,10 @@ where
 
 pub struct ConcreteInnerInterpreter {}
 
-impl<'a, I> InnerInterpreter<'a, I, ConcreteAbstractExecRecord, AbstractMachine<'a, I>>
+impl<'a, I> InnerInterpreter<'a, I, AbstractExecRecord, AbstractMachine<'a, I>>
     for ConcreteInnerInterpreter
 where
-    I: AbstractInstruction<ConcreteAbstractExecRecord>,
+    I: AbstractInstruction<AbstractExecRecord>,
 {
     fn step(&self, m: AbstractMachine<'a, I>) -> MachineResult<AbstractMachine<'a, I>> {
         let i = m.pgm.get(m.pc.unwrap()).unwrap();
@@ -34,18 +34,18 @@ where
     }
 }
 
-pub type AbstractExecBranch<'a, I, C> = Vec<SingleBranch<'a, I, C>>;
+pub type AbstractExecBranch<'a, I> = Vec<SingleBranch<'a, I>>;
 
-pub type SingleBranch<'a, I, C> = (AbstractMachine<'a, I>, Vec<Constraint<C>>);
+pub type SingleBranch<'a, I> = (AbstractMachine<'a, I>, Vec<Constraint>);
 
 pub struct SymbolicInnerInterpreter {}
 
-impl<'a, I, C> InnerInterpreter<'a, I, Vec<AbstractExecRecord<C>>, AbstractExecBranch<'a, I, C>>
+impl<'a, I> InnerInterpreter<'a, I, Vec<AbstractExecRecord>, AbstractExecBranch<'a, I>>
     for SymbolicInnerInterpreter
 where
-    I: AbstractInstruction<Vec<AbstractExecRecord<C>>>,
+    I: AbstractInstruction<Vec<AbstractExecRecord>>,
 {
-    fn step(&self, m: AbstractMachine<'a, I>) -> MachineResult<AbstractExecBranch<'a, I, C>> {
+    fn step(&self, m: AbstractMachine<'a, I>) -> MachineResult<AbstractExecBranch<'a, I>> {
         let pgm = m.pgm;
         let pc = m.pc.unwrap();
 
