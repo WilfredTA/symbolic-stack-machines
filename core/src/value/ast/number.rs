@@ -1,4 +1,4 @@
-use super::{Bool, SymbolId};
+use super::SymbolId;
 use enum_as_inner::EnumAsInner;
 use thiserror::Error;
 

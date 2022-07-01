@@ -1,8 +1,8 @@
-pub mod concrete;
+pub mod base_interpreter;
 
 #[cfg(test)]
 mod test {
-    use super::concrete::*;
+    use super::base_interpreter::*;
     use crate::value::ast::*;
 
     #[test]
