@@ -17,7 +17,7 @@ impl AbstractInstruction<AbstractExecRecord> for PUSH {
         let mut change_log = AbstractExecRecord::default();
 
         change_log.stack_diff = Some(StackRecord {
-            changed: vec![StackOpRecord::Push(self.0.clone())],
+            changed: vec![StackOpRecord::Push(self.0)],
         });
 
         Ok(change_log)
@@ -76,7 +76,7 @@ impl AbstractInstruction<AbstractExecRecord> for MLOAD {
         let mut change_log = AbstractExecRecord::default();
 
         let mem_idx = stack.peek(0).unwrap();
-        let mem_val = memory.read_word(mem_idx.clone()).unwrap();
+        let mem_val = memory.read_word(*mem_idx).unwrap();
 
         change_log.stack_diff = Some(StackRecord {
             changed: vec![StackOpRecord::Pop, StackOpRecord::Push(mem_val)],
