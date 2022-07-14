@@ -1,5 +1,5 @@
 use symbolic_stack_machines_core::constraint::*;
-use symbolic_stack_machines_core::value::AbstractInt;
+use symbolic_stack_machines_core::value::Number as AbstractInt;
 use z3::ast::Int;
 use z3::{Config, Context, Model, Solver as Z3InnerSolver};
 

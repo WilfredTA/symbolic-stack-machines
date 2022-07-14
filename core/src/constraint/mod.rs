@@ -1,6 +1,6 @@
 pub use std::rc::Rc;
 
-use crate::value::Val;
+use crate::value::Sentence as Val;
 
 #[derive(Clone)]
 pub enum Constraint {
