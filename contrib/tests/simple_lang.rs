@@ -73,14 +73,23 @@ fn test_abstract_machine() {
     assert_eq!(res, Some(0))
 }
 
-
 #[test]
 #[ignore]
 fn test_abstract_arithmetic() {
     // Program is Vec of AbstractVal<InnerVal>
     let pgm: Vec<SimpleLang<AbstractValue<InnerValue>>> = vec![
-        push(InnerValue::Literal(Literal::ConcreteLiteral(Value::new(ConcreteInnerValue::ConcreteU64(22_u64)))).into()),
-        push(InnerValue::Literal(Literal::ConcreteLiteral(Value::new(ConcreteInnerValue::ConcreteU64(30_u64)))).into()),
+        push(
+            InnerValue::Literal(Literal::ConcreteLiteral(Value::new(
+                ConcreteInnerValue::ConcreteU64(22_u64),
+            )))
+            .into(),
+        ),
+        push(
+            InnerValue::Literal(Literal::ConcreteLiteral(Value::new(
+                ConcreteInnerValue::ConcreteU64(30_u64),
+            )))
+            .into(),
+        ),
         add(),
         // push(AbstractValue::new(InnerValue::SymbolicLiteral(Value::new(SymbolicInnerValue::SymbolicU64(10))), Some("x".to_string()))),
         // add()
@@ -103,25 +112,13 @@ fn test_abstract_arithmetic() {
     println!("{:?}", res);
     assert!(
         res.unwrap().inner()
-            == InnerValue::Arithmetic(
-                    Value::new(
-                        Arithmetic::Add(
-                            InnerValue::Literal(
-                                Literal::ConcreteLiteral(
-                                    Value::new(
-                                        ConcreteInnerValue::ConcreteU64(20)
-                                    )
-                                )
-                            ),
-                            InnerValue::Literal(
-                                Literal::ConcreteLiteral(
-                                    Value::new(
-                                        ConcreteInnerValue::ConcreteU64(30)
-                                    )
-                                )
-                            )
-                        )
-                    )
-            )
+            == InnerValue::Arithmetic(Value::new(Arithmetic::Add(
+                InnerValue::Literal(Literal::ConcreteLiteral(Value::new(
+                    ConcreteInnerValue::ConcreteU64(20)
+                ))),
+                InnerValue::Literal(Literal::ConcreteLiteral(Value::new(
+                    ConcreteInnerValue::ConcreteU64(30)
+                )))
+            )))
     );
 }
