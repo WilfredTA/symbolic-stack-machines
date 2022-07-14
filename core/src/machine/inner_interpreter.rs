@@ -56,7 +56,7 @@ where
         let rv = exec_records
             .into_iter()
             .map(|exec_record| {
-                let constraints = exec_record.constraints.unwrap_or(vec![]);
+                let constraints = exec_record.constraints.unwrap_or_default();
 
                 let new_machine = m.xclone().apply(
                     exec_record.stack_diff,

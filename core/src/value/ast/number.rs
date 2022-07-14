@@ -49,7 +49,7 @@ impl From<u128> for CNumber {
 impl TryFrom<CNumber> for u8 {
     type Error = NumberError;
 
-    fn try_from(value: CNumber) -> Result<Self, Self::Error> {
+    fn try_from(_value: CNumber) -> Result<Self, Self::Error> {
         todo!()
     }
 }
@@ -57,7 +57,7 @@ impl TryFrom<CNumber> for u8 {
 impl TryFrom<CNumber> for u16 {
     type Error = NumberError;
 
-    fn try_from(value: CNumber) -> Result<Self, Self::Error> {
+    fn try_from(_value: CNumber) -> Result<Self, Self::Error> {
         todo!()
     }
 }
@@ -65,7 +65,7 @@ impl TryFrom<CNumber> for u16 {
 impl TryFrom<CNumber> for u32 {
     type Error = NumberError;
 
-    fn try_from(value: CNumber) -> Result<Self, Self::Error> {
+    fn try_from(_value: CNumber) -> Result<Self, Self::Error> {
         todo!()
     }
 }
@@ -73,7 +73,7 @@ impl TryFrom<CNumber> for u32 {
 impl TryFrom<CNumber> for u64 {
     type Error = NumberError;
 
-    fn try_from(value: CNumber) -> Result<Self, Self::Error> {
+    fn try_from(_value: CNumber) -> Result<Self, Self::Error> {
         todo!()
     }
 }
@@ -87,7 +87,7 @@ impl From<CNumber> for u128 {
 impl std::ops::Add for CNumber {
     type Output = Self;
 
-    fn add(self, rhs: Self) -> Self::Output {
+    fn add(self, _rhs: Self) -> Self::Output {
         todo!()
     }
 }
@@ -95,7 +95,7 @@ impl std::ops::Add for CNumber {
 impl std::ops::Sub for CNumber {
     type Output = Self;
 
-    fn sub(self, rhs: Self) -> Self::Output {
+    fn sub(self, _rhs: Self) -> Self::Output {
         todo!()
     }
 }
@@ -103,7 +103,7 @@ impl std::ops::Sub for CNumber {
 impl std::ops::Mul for CNumber {
     type Output = Self;
 
-    fn mul(self, rhs: Self) -> Self::Output {
+    fn mul(self, _rhs: Self) -> Self::Output {
         todo!()
     }
 }
@@ -111,7 +111,7 @@ impl std::ops::Mul for CNumber {
 impl std::ops::Div for CNumber {
     type Output = Self;
 
-    fn div(self, rhs: Self) -> Self::Output {
+    fn div(self, _rhs: Self) -> Self::Output {
         todo!()
     }
 }

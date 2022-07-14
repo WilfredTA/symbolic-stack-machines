@@ -22,7 +22,7 @@ impl<'a, I> AbstractMachine<'a, I> {
             stack: self.stack.clone(),
             mem: self.mem.clone(),
             env: self.env.clone(),
-            pc: self.pc.clone(),
+            pc: self.pc,
             pgm: self.pgm,
         }
     }

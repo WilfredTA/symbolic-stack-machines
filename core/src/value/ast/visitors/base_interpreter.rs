@@ -1,4 +1,4 @@
-use std::borrow::Borrow;
+
 
 use crate::value::ast::*;
 
@@ -62,7 +62,7 @@ impl Interpreter {
                     pre_hook,
                     post_hook,
                 ),
-                Sentence::Basic(v) => s.clone(),
+                Sentence::Basic(_v) => s.clone(),
             },
             Some(s) => s,
         };

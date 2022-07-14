@@ -13,7 +13,7 @@ mod test {
 
         let twenty = Sentence::Basic(Value::Concrete(CSimpleVal::Number(CNumber::U64(20_u64))));
 
-        let sum = Sentence::Basic(Value::Concrete(CSimpleVal::Number(CNumber::U64(40_u64))));
+        let _sum = Sentence::Basic(Value::Concrete(CSimpleVal::Number(CNumber::U64(40_u64))));
 
         let add_a_b = Sentence::BinOp {
             a: Val::new(five.clone()),
@@ -21,7 +21,7 @@ mod test {
             op: BinOp::Plus,
         };
         let add_a_c = Sentence::BinOp {
-            a: Val::new(five.clone()),
+            a: Val::new(five),
             b: Val::new(twenty),
             op: BinOp::Plus,
         };
@@ -48,16 +48,14 @@ mod test {
                             .ok()
                             .and_then(|aa| aa.into_number().ok())
                             .and_then(|n| n.into_u64().ok())
-                            .unwrap()
-                            .clone();
+                            .unwrap();
                         let bb = bb
                             .clone()
                             .into_concrete()
                             .ok()
                             .and_then(|bb| bb.into_number().ok())
                             .and_then(|n| n.into_u64().ok())
-                            .unwrap()
-                            .clone();
+                            .unwrap();
 
                         let sum = aa + bb;
                         Some(Sentence::Basic(Value::Concrete(CSimpleVal::Number(
@@ -74,18 +72,17 @@ mod test {
         // This hook effectively transforms a final BasicVal into a u64
         let final_hook = |s: Sentence| -> u64 {
             if let Sentence::Basic(v) = s {
-                let val = v
+                let val = *v
                     .as_concrete()
                     .and_then(|v| v.as_number())
                     .and_then(|v| v.as_u64())
-                    .unwrap()
-                    .clone();
+                    .unwrap();
                 val
             } else {
                 0
             }
         };
-        let pre_hook = |s: Sentence| -> Option<Sentence> { None };
+        let pre_hook = |_s: Sentence| -> Option<Sentence> { None };
 
         let interpreter = Interpreter { pgm };
         let result = interpreter.interpret(Box::new(pre_hook), Box::new(post_hook), final_hook);
