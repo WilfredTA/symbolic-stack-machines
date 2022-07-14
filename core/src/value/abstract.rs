@@ -1,13 +1,29 @@
-use super::inner::*;
+use super::{inner::*, ConcreteInnerValue, GroundValue, Simplifiable, SymbolicInnerValue};
 use rand::Rng;
 use std::ops::Deref;
 
+#[derive(Clone, Debug)]
+pub enum SymbolOrVal<T> {
+    Symbol(String),
+    Val(T),
+}
 #[derive(Clone, Debug)]
 pub struct AbstractValue<T> {
     symbol: Option<String>,
     val: T,
 }
 
+impl<T> From<SymbolOrVal<T>> for AbstractValue<T>
+where
+    T: Default + Clone,
+{
+    fn from(s: SymbolOrVal<T>) -> Self {
+        match s {
+            SymbolOrVal::Symbol(symbol) => Self::new(T::default(), Some(symbol)),
+            SymbolOrVal::Val(val) => Self::new(val, None),
+        }
+    }
+}
 // To do: Transpile like so:
 // InnerValue (and all sub types) implement Into<smt_val> (e.g., Booleans implement Into<z3::ast::Bool>)
 
@@ -57,11 +73,11 @@ impl Deref for AbstractValue<InnerValue> {
         self.as_ref()
     }
 }
-impl<T: Clone> From<T> for AbstractValue<T> {
-    fn from(v: T) -> Self {
-        AbstractValue::new(v, Some(random_val_symbol()))
-    }
-}
+// impl<T: Clone> From<T> for AbstractValue<T> {
+//     fn from(v: T) -> Self {
+//         AbstractValue::new(v, Some(random_val_symbol()))
+//     }
+// }
 
 impl<T> std::ops::Add for AbstractValue<T>
 where
@@ -114,3 +130,73 @@ fn random_val_symbol() -> String {
         .collect();
     symbol
 }
+
+// impl<T> From<T> for AbstractValue<T>
+// where T: Into<InnerValue> {
+//     fn from(t: T) -> Self {
+//         Self::from(InnerValue::from(t))
+//     }
+// }
+impl<T> From<T> for AbstractValue<InnerValue>
+where
+    T: Into<InnerValue>,
+{
+    fn from(t: T) -> Self {
+        Self::from(t.into())
+    }
+}
+
+// impl Simplifiable<ConcreteInnerValue> for AbstractValue<InnerValue> {
+//     type GroundVal = GroundValue;
+
+//     fn simplify(&self) -> Self::GroundVal {
+//         match self.inner() {
+//             InnerValue::ConcreteLiteral(c) => todo!(),
+//             InnerValue::SymbolicLiteral(s) => todo!(),
+//             InnerValue::Boolean(b) => todo!(),
+//             InnerValue::Arithmetic(a) => todo!(),
+//         }
+//         GroundValue::Boolean(true)
+//     }
+// }
+
+// impl Simplifiable<SymbolicInnerValue> for AbstractValue<InnerValue> {
+//     type GroundVal = GroundValue;
+
+//     fn simplify(&self) -> Self::GroundVal {
+//         match self.inner() {
+//             InnerValue::ConcreteLiteral(c) => todo!(),
+//             InnerValue::SymbolicLiteral(s) => todo!(),
+//             InnerValue::Boolean(b) => todo!(),
+//             InnerValue::Arithmetic(a) => todo!(),
+//         }
+//         GroundValue::Boolean(true)
+//     }
+// }
+// impl Simplifiable<Boolean> for AbstractValue<InnerValue> {
+//     type GroundVal = GroundValue;
+
+//     fn simplify(&self) -> Self::GroundVal {
+//         match self.inner() {
+//             InnerValue::ConcreteLiteral(c) => todo!(),
+//             InnerValue::SymbolicLiteral(s) => todo!(),
+//             InnerValue::Boolean(b) => todo!(),
+//             InnerValue::Arithmetic(a) => todo!(),
+//         }
+//         GroundValue::Boolean(true)
+//     }
+// }
+
+// impl Simplifiable<Arithmetic> for AbstractValue<InnerValue> {
+//     type GroundVal = GroundValue;
+
+//     fn simplify(&self) -> Self::GroundVal {
+//         match self.inner() {
+//             InnerValue::ConcreteLiteral(c) => todo!(),
+//             InnerValue::SymbolicLiteral(s) => todo!(),
+//             InnerValue::Boolean(b) => todo!(),
+//             InnerValue::Arithmetic(a) => todo!(),
+//         }
+//         GroundValue::Boolean(true)
+//     }
+// }
