@@ -5,10 +5,10 @@ use crate::{
 };
 
 #[derive(Clone)]
-pub struct AbstractMachine<'a, I> {
+pub struct AbstractMachine<'a, I, E: Env, V: Default + Clone> {
     pub stack: Stack,
-    pub mem: Memory,
-    pub env: Env,
+    pub mem: Memory<V>,
+    pub env: E,
     pub pc: Option<usize>,
     pub pgm: &'a [I],
 }
@@ -16,7 +16,7 @@ pub struct AbstractMachine<'a, I> {
 // `AbstractMachine` requires that `I` implement `Clone`. `I` is behind
 // a reference and shouldn't have to implement clone in order to clone
 // `AbstractMachine`
-impl<'a, I> AbstractMachine<'a, I> {
+impl<'a, I, E: Env, V: Default + Clone> AbstractMachine<'a, I, E, V> {
     pub fn xclone(&self) -> Self {
         AbstractMachine {
             stack: self.stack.clone(),
@@ -27,14 +27,16 @@ impl<'a, I> AbstractMachine<'a, I> {
         }
     }
 
-    pub fn apply(
+    pub fn apply<ER>(
         self,
         stack_diff: Option<StackRecord>,
         mem_diff: Option<MemRecord>,
-        env_diff: Option<EnvRecord>,
+        env_diff: Option<ER>,
         pc_change: Option<usize>,
         halt: bool,
-    ) -> Self {
+    ) -> Self 
+    where E: Env<RecordType = ER>
+    {
         let mut stack = self.stack;
         let mut mem = self.mem;
         let mut env = self.env;
@@ -82,7 +84,7 @@ impl<'a, I> AbstractMachine<'a, I> {
     }
 }
 
-impl<'a, I> AbstractMachine<'a, I> {
+impl<'a, I, E: Env, V: Default + Clone> AbstractMachine<'a, I, E, V> {
     pub fn can_continue(&self) -> bool {
         match self.pc {
             Some(pc) => pc < self.pgm.len(),

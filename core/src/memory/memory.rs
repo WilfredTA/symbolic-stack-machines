@@ -1,4 +1,6 @@
 use crate::stack::StackVal;
+use crate::value::visitors::base_interpreter::Hook;
+use crate::value::Sentence;
 
 use super::{
     config::MemoryConfig,
@@ -6,30 +8,36 @@ use super::{
     val::MemVal,
 };
 
+const PRE_HOOK: &'static dyn Fn(Sentence) -> Option<Sentence> = &|_s: Sentence| -> Option<Sentence> { None };
 #[derive(Clone, Default)]
-pub struct Memory {
+pub struct Memory<V: Default + Clone> {
     inner: Vec<MemVal>,
     // TODO should be a reference
-    config: MemoryConfig,
+    config: MemoryConfig<V>,
 }
 
-impl Memory {
-    pub fn new(init: Vec<MemVal>, config: MemoryConfig) -> Self {
+// TODO: Make this memory use MemVal as Sentence and abstracted lookup
+
+impl<V: Default + Clone + std::ops::Add<i32, Output = usize>> Memory<V> {
+    pub fn new(init: Vec<MemVal>, config: MemoryConfig<V>) -> Self {
         Self {
             inner: init,
             config,
         }
     }
 
-    pub fn read_word(&self, idx: StackVal) -> Option<StackVal> {
-        let idx_unwrapped = Into::<usize>::into(idx);
+    pub fn read_word<F>(&self, idx: StackVal, final_hook: F, post_hook: Hook) -> Option<StackVal> 
+    where 
+        F: Fn(Sentence) -> V,
+    {
+        let idx_unwrapped = self.config.stack_val_to_ptr.unwrap().interpret(Box::new(PRE_HOOK), post_hook, final_hook);
 
         // TODO(will): Check endianness/byte ordering
         let mut bytes: [u8; 8] = [0; 8];
 
         for i in 0..=7 {
             let byte: u8 = (*self.read_byte_inner(idx_unwrapped + i)?).into();
-            bytes[i] = byte
+            bytes[i as usize] = byte
         }
 
         Some(u64::from_be_bytes(bytes).into())
@@ -52,7 +60,7 @@ impl Memory {
                 MemOpRecord::Write(idx, val) => {
                     // TODO(will): Check endianness/byte ordering
                     let idx_usize = Into::<usize>::into(idx);
-                    let val_unwrapped = Into::<u64>::into(val).to_be_bytes();
+                    let val_unwrapped = Into::<usize>::into(val).to_be_bytes();
 
                     for i in 0..=7 {
                         inner[idx_usize + i] = val_unwrapped[i].into();

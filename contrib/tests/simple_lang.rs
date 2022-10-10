@@ -39,3 +39,8 @@ fn test_abstract_machine() {
 
     assert_eq!(res, StackVal::from(0));
 }
+
+#[test]
+fn test_symbolic_compute() {
+    
+}

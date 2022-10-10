@@ -1,4 +1,4 @@
-use crate::{constraint::Constraint, instructions::AbstractInstruction};
+use crate::{constraint::Constraint, instructions::AbstractInstruction, environment::Env};
 
 use super::{
     inner_interpreter::{AbstractExecBranch, InnerInterpreter},
@@ -10,20 +10,24 @@ pub trait OuterInterpreter<Output, M> {
     fn run(&self, m: M) -> MachineResult<Output>;
 }
 
-pub struct ConcreteOuterInterpreter<'a, I, InstructionStepResult, InterpreterStepResult>
+pub struct ConcreteOuterInterpreter<'a, I, InstructionStepResult, InterpreterStepResult, E, V>
 where
-    I: AbstractInstruction<InstructionStepResult>,
+    I: AbstractInstruction<InstructionStepResult, E, V>,
+    V: Default + Clone,
+    E: Env,
 {
     pub inner_interpreter:
-        Box<dyn InnerInterpreter<'a, I, InstructionStepResult, InterpreterStepResult>>,
+        Box<dyn InnerInterpreter<'a, I, InstructionStepResult, InterpreterStepResult, E, V>>,
 }
 
-impl<'a, I, InstructionStepResult> OuterInterpreter<AbstractMachine<'a, I>, AbstractMachine<'a, I>>
-    for ConcreteOuterInterpreter<'a, I, InstructionStepResult, AbstractMachine<'a, I>>
+impl<'a, I, InstructionStepResult, E, V> OuterInterpreter<AbstractMachine<'a, I, E, V>, AbstractMachine<'a, I, E, V>>
+    for ConcreteOuterInterpreter<'a, I, InstructionStepResult, AbstractMachine<'a, I, E, V>, E, V>
 where
-    I: AbstractInstruction<InstructionStepResult>,
+    I: AbstractInstruction<InstructionStepResult, E, V>,
+    V: Default + Clone,
+    E: Env
 {
-    fn run(&self, m: AbstractMachine<'a, I>) -> MachineResult<AbstractMachine<'a, I>> {
+    fn run(&self, m: AbstractMachine<'a, I, E, V>) -> MachineResult<AbstractMachine<'a, I, E, V>> {
         let mut x = m;
 
         while x.can_continue() {
@@ -34,25 +38,29 @@ where
     }
 }
 
-pub struct SymbolicOuterInterpreter<'a, I, InstructionStepResult, InterpreterStepResult>
+pub struct SymbolicOuterInterpreter<'a, I, InstructionStepResult, InterpreterStepResult, E, V>
 where
-    I: AbstractInstruction<InstructionStepResult>,
+    I: AbstractInstruction<InstructionStepResult, E, V>,
+    V: Default + Clone,
+    E: Env,
 {
-    inner_interpreter: dyn InnerInterpreter<'a, I, InstructionStepResult, InterpreterStepResult>,
+    inner_interpreter: dyn InnerInterpreter<'a, I, InstructionStepResult, InterpreterStepResult, E, V>,
 }
 
-pub type SingleBranch<'a, I> = (AbstractMachine<'a, I>, Vec<Constraint>);
+pub type SingleBranch<'a, I, E, V> = (AbstractMachine<'a, I, E, V>, Vec<Constraint>);
 
-impl<'a, I, InstructionStepResult>
-    OuterInterpreter<Vec<SingleBranch<'a, I>>, AbstractMachine<'a, I>>
-    for SymbolicOuterInterpreter<'a, I, InstructionStepResult, AbstractExecBranch<'a, I>>
+impl<'a, I, InstructionStepResult, E, V>
+    OuterInterpreter<Vec<SingleBranch<'a, I, E, V>>, AbstractMachine<'a, I, E, V>>
+    for SymbolicOuterInterpreter<'a, I, InstructionStepResult, AbstractExecBranch<'a, I, E, V>, E, V>
 where
-    I: AbstractInstruction<InstructionStepResult>,
+    I: AbstractInstruction<InstructionStepResult, E, V>,
+    V: Default + Clone,
+    E: Env
 {
-    fn run(&self, m: AbstractMachine<'a, I>) -> MachineResult<Vec<SingleBranch<'a, I>>> {
-        let mut trace_tree: Vec<SingleBranch<'a, I>> = vec![(m, vec![])];
+    fn run(&self, m: AbstractMachine<'a, I, E, V>) -> MachineResult<Vec<SingleBranch<'a, I, E, V>>> {
+        let mut trace_tree: Vec<SingleBranch<'a, I, E, V>> = vec![(m, vec![])];
 
-        let mut leaves: Vec<SingleBranch<'a, I>> = vec![];
+        let mut leaves: Vec<SingleBranch<'a, I, E, V>> = vec![];
 
         loop {
             let start_branch = trace_tree.pop();

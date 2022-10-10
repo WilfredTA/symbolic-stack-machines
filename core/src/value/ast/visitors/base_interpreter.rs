@@ -4,9 +4,13 @@ pub enum InterpreterMode {
     Symbolic,
     Concrete,
 }
+
+#[derive(Clone)]
 pub struct Interpreter {
     pub pgm: Sentence,
 }
+
+
 
 pub type Hook = Box<dyn Fn(Sentence) -> Option<Sentence>>;
 // Post hook is called after the AST has been processed
