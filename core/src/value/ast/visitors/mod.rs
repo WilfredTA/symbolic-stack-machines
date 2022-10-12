@@ -36,6 +36,7 @@ pub const ADDER_POST_HOOK: &'static dyn Fn(Sentence) -> Option<Sentence> = &|s: 
         None
     }
 };
+
 #[cfg(test)]
 mod test {
     use super::base_interpreter::*;

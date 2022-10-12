@@ -10,7 +10,23 @@ pub struct Interpreter {
     pub pgm: Sentence,
 }
 
+#[derive(Clone)]
+pub struct ConfigurableInterpreter {
+    pre: Box<&'static dyn Fn(Sentence) -> Option<Sentence>>,
+    post: Box<&'static dyn Fn(Sentence) -> Option<Sentence>>,
+}
 
+impl ConfigurableInterpreter {
+    pub fn interpret<T, Final>(&self, pgm: Sentence, final_hook: Final) -> T
+    where
+        Final: Fn(Sentence) -> T,
+    {
+        let interpreter = Interpreter {
+            pgm
+        };
+        interpreter.interpret(self.pre, self.post, final_hook)
+    }
+}
 
 pub type Hook = Box<dyn Fn(Sentence) -> Option<Sentence>>;
 // Post hook is called after the AST has been processed

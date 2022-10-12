@@ -1,6 +1,6 @@
-use crate::stack::StackVal;
+use crate::{stack::StackVal, value::Value};
 use crate::value::visitors::base_interpreter::Hook;
-use crate::value::Sentence;
+use crate::value::{Sentence, Vecc, CSimpleVal};
 
 use super::{
     config::MemoryConfig,
@@ -19,31 +19,41 @@ pub struct Memory<V: Default + Clone> {
 // TODO: Make this memory use MemVal as Sentence and abstracted lookup
 
 impl<V: Default + Clone> Memory<V> {
-    pub fn new(init: Vec<MemVal>, config: MemoryConfig<V>) -> Self {
+    pub fn new(config: MemoryConfig<V>) -> Self {
+        let size = config.word_size;
+        
+        let init = MemVal(Sentence::Basic(Value::Concrete(CSimpleVal::Vector(Vecc(vec![0u8; size])))));
         Self {
-            inner: init,
+            inner: vec![init],
             config,
         }
     }
 
-    pub fn read_word<F>(&self, idx: StackVal, final_hook: F, post_hook: Hook) -> Option<StackVal> 
+    pub fn read_word<F>(&self, idx: StackVal, final_hook: F,) -> Option<V> 
     where 
         F: Fn(Sentence) -> V,
     {
-        let idx_unwrapped = self.config.stack_val_to_ptr
+        let val: MemVal = self.inner.get(usize::from(idx)).unwrap().clone();
+
+        
+        let interpreted_val = self.config.memval_interpreter
             .as_ref()
             .unwrap()
-            .interpret(Box::new(PRE_HOOK), post_hook, final_hook);
-        let idx_unwrapped = 1;
+            .interpret(val.0.clone(), final_hook);
+
+        Some(interpreted_val)
+     
         // TODO(will): Check endianness/byte ordering
-        let mut bytes: [u8; 8] = [0; 8];
+        // let mut bytes: [u8; 8] = [0; 8];
 
-        for i in 0..=7 {
-            let byte: u8 = (*self.read_byte_inner(idx_unwrapped + i)?).into();
-            bytes[i as usize] = byte
-        }
+        // for i in 0..=7 {
+        //     let byte: u8 = (*self.read_byte_inner(idx_unwrapped + i)?).into();
+        //     bytes[i as usize] = byte
+        // }
 
-        Some(u64::from_be_bytes(bytes).into())
+        // Some(u64::from_be_bytes(bytes).into())
+
+
     }
 
     pub fn read_byte(&self, idx: StackVal) -> Option<&MemVal> {

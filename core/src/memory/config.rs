@@ -1,4 +1,4 @@
-use crate::value::visitors::base_interpreter::{Interpreter, Hook, InterpreterMode};
+use crate::value::visitors::base_interpreter::{Interpreter, Hook, InterpreterMode, ConfigurableInterpreter};
 
 #[derive(Default, Clone)]
 pub struct MemoryConfig<V: Default> {
@@ -6,7 +6,7 @@ pub struct MemoryConfig<V: Default> {
     pub endianness: Endianness,
     pub byte_addressable: bool,
     pub alignment_restriction: bool,
-    pub stack_val_to_ptr: Option<Interpreter>,
+    pub memval_interpreter: Option<ConfigurableInterpreter>,
     pub memval_basic_type: V
 }
 

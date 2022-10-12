@@ -5,7 +5,7 @@ pub mod simple_lang {
         environment::{Env, DefaultEnv},
         instructions::{AbstractExecRecord, AbstractInstruction},
         memory::{Memory, MemVal},
-        stack::{Stack, StackVal},
+        stack::{Stack, StackVal, StackRecord, StackOpRecord},
     };
 
     use super::*;
