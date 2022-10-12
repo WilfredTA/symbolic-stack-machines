@@ -65,6 +65,9 @@ impl Interpreter {
                     post_hook,
                 ),
                 Sentence::Basic(_v) => s.clone(),
+                Sentence::Nothing => {
+                    s.clone()
+                }
             },
             Some(s) => s,
         };

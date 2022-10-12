@@ -1,8 +1,8 @@
 // TODO(will) - ultimately this will be replaced with a more general value
 // that implements an AST, etc...
 use crate::value::{Sentence, CNumber, CSimpleVal, SNumber, SSimpleVal, Value, Number, Val, BinOp, TernaryOp};
-#[derive(Clone, PartialEq, Eq, Debug)]
-pub struct StackVal(Sentence);
+#[derive(Clone, PartialEq, Eq, Debug, Default)]
+pub struct StackVal(pub Sentence);
 
 // pub static ZERO: StackVal = StackVal(CNumber::U64(0));
 // pub static ONE: StackVal = StackVal(CNumber::U64(1));
@@ -13,6 +13,12 @@ pub struct StackVal(Sentence);
 impl From<u64> for StackVal {
     fn from(x: u64) -> Self {
         Self(Sentence::Basic(Value::Concrete(CSimpleVal::Number(CNumber::U64(x)))))
+    }
+}
+
+impl From<Sentence> for StackVal {
+    fn from(s: Sentence) -> Self {
+        Self(s)
     }
 }
 
@@ -42,13 +48,15 @@ impl From<StackVal> for usize {
 
 impl StackVal {
     pub fn _eq(&self, other: &Self) -> Self {
-        StackVal(Sentence::BinOp { a: Val::new(self.0), b: Val::new(other.0), op: BinOp::Eq })
+        StackVal(Sentence::BinOp { a: Val::new(self.0.clone()), b: Val::new(other.0.clone()), op: BinOp::Eq })
     }
 
     pub fn ite(&self, then: Self, xelse: Self) -> Self {
+        let a = self.0.clone();
+        let b = then.0.clone();
         StackVal(Sentence::TernaryOp { 
-            a: Val::new(self.0), 
-            b: Val::new(then.0), 
+            a: Val::new(a), 
+            b: Val::new(b), 
             c: Val::new(xelse.0), 
             op: TernaryOp::Ite }
         )

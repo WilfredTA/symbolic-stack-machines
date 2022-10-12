@@ -2,10 +2,10 @@ use symbolic_stack_machines_contrib::instructions::{arith::*, misc::*};
 
 pub mod simple_lang {
     use symbolic_stack_machines_core::{
-        environment::Env,
+        environment::{Env, DefaultEnv},
         instructions::{AbstractExecRecord, AbstractInstruction},
-        memory::Memory,
-        stack::Stack,
+        memory::{Memory, MemVal},
+        stack::{Stack, StackVal},
     };
 
     use super::*;
@@ -27,13 +27,13 @@ pub mod simple_lang {
         SimpleLang::Push(PUSH(val.into()))
     }
 
-    impl AbstractInstruction<AbstractExecRecord> for SimpleLang {
+    impl AbstractInstruction<AbstractExecRecord<DefaultEnv>, DefaultEnv, StackVal> for SimpleLang {
         fn exec(
             &self,
             stack: &Stack,
-            mem: &Memory,
-            ext: &Env,
-        ) -> symbolic_stack_machines_core::instructions::InstructionResult<AbstractExecRecord>
+            mem: &Memory<StackVal>,
+            ext: &DefaultEnv,
+        ) -> symbolic_stack_machines_core::instructions::InstructionResult<AbstractExecRecord<DefaultEnv>>
         {
             match self {
                 Self::Add(a) => a.exec(stack, mem, ext),

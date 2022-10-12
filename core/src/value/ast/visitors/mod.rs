@@ -1,5 +1,41 @@
 pub mod base_interpreter;
+use base_interpreter::*;
+use crate::value::ast::*;
+pub const ADDER_POST_HOOK: &'static dyn Fn(Sentence) -> Option<Sentence> = &|s: Sentence| -> Option<Sentence> {
+    if let Sentence::BinOp {
+        a,
+        b,
+        op: BinOp::Plus,
+    } = s
+    {
+        match (a.inner().as_ref(), b.inner().as_ref()) {
+            (Sentence::Basic(aa), Sentence::Basic(bb)) => {
+                let aa = aa
+                    .clone()
+                    .into_concrete()
+                    .ok()
+                    .and_then(|aa| aa.into_number().ok())
+                    .and_then(|n| n.into_u64().ok())
+                    .unwrap();
+                let bb = bb
+                    .clone()
+                    .into_concrete()
+                    .ok()
+                    .and_then(|bb| bb.into_number().ok())
+                    .and_then(|n| n.into_u64().ok())
+                    .unwrap();
 
+                let sum = aa + bb;
+                Some(Sentence::Basic(Value::Concrete(CSimpleVal::Number(
+                    CNumber::U64(sum),
+                ))))
+            }
+            _ => None,
+        }
+    } else {
+        None
+    }
+};
 #[cfg(test)]
 mod test {
     use super::base_interpreter::*;

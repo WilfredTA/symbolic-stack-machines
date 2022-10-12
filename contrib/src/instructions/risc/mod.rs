@@ -1,8 +1,7 @@
 use symbolic_stack_machines_core::{
-    environment::Env,
     instructions::{AbstractExecRecord, AbstractInstruction, InstructionResult},
-    memory::Memory,
-    stack::{Stack, StackOpRecord, StackRecord},
+    memory::{Memory},
+    stack::{Stack, StackOpRecord, StackRecord}, environment::Env,
 };
 
 type RegisterValue = [u8; 4];
@@ -22,17 +21,21 @@ pub struct CpuRecord {
 }
 
 impl Env for CpuEnv {
-    type RecordType = Vec<CpuRecord>;
+    type RecordType = CpuRecord;
 
     fn apply(&self, record: Self::RecordType) -> Self {
-        todo!()
+        
+        let CpuRecord { reg_idx, new_reg_val } = record;
+        let mut new_self = self.clone();
+        new_self.registers[reg_idx] = new_reg_val;
+        new_self
     }
 }
 
 pub struct SW;
 
-impl AbstractInstruction<AbstractExecRecord> for SW {
-    fn exec(&self, stack: &Stack, mem: &Memory, env: &Env) -> InstructionResult<AbstractExecRecord> {
-        
+impl AbstractInstruction<AbstractExecRecord<CpuEnv>, CpuEnv, u64> for SW {
+    fn exec(&self, stack: &Stack, mem: &Memory<u64>, env: &CpuEnv) -> InstructionResult<AbstractExecRecord<CpuEnv>> {
+        todo!()
     }
 }

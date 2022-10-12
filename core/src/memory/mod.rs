@@ -5,3 +5,4 @@ mod val;
 
 pub use memory::Memory;
 pub use record::{MemOpRecord, MemRecord};
+pub use val::{ByteVal, MemVal};

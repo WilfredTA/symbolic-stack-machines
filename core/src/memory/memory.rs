@@ -18,7 +18,7 @@ pub struct Memory<V: Default + Clone> {
 
 // TODO: Make this memory use MemVal as Sentence and abstracted lookup
 
-impl<V: Default + Clone + std::ops::Add<i32, Output = usize>> Memory<V> {
+impl<V: Default + Clone> Memory<V> {
     pub fn new(init: Vec<MemVal>, config: MemoryConfig<V>) -> Self {
         Self {
             inner: init,
@@ -30,8 +30,11 @@ impl<V: Default + Clone + std::ops::Add<i32, Output = usize>> Memory<V> {
     where 
         F: Fn(Sentence) -> V,
     {
-        let idx_unwrapped = self.config.stack_val_to_ptr.unwrap().interpret(Box::new(PRE_HOOK), post_hook, final_hook);
-
+        let idx_unwrapped = self.config.stack_val_to_ptr
+            .as_ref()
+            .unwrap()
+            .interpret(Box::new(PRE_HOOK), post_hook, final_hook);
+        let idx_unwrapped = 1;
         // TODO(will): Check endianness/byte ordering
         let mut bytes: [u8; 8] = [0; 8];
 

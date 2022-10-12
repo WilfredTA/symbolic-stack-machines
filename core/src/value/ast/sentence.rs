@@ -19,6 +19,13 @@ pub enum Sentence {
         op: TernaryOp,
     },
     Basic(Value),
+    Nothing,
+}
+
+impl Default for Sentence {
+    fn default() -> Self {
+        Sentence::Nothing
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
