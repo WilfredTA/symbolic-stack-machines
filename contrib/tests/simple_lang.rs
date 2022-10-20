@@ -30,12 +30,13 @@ fn test_abstract_machine() {
     let inner_interpreter = Box::new(ConcreteInnerInterpreter {});
     let outer_interpreter = ConcreteOuterInterpreter { inner_interpreter };
 
-    let res = *outer_interpreter
+    let binding = outer_interpreter
         .run(machine)
-        .unwrap()
+        .unwrap();
+    let res = binding
         .stack
         .peek(0)
         .unwrap();
 
-    assert_eq!(res, StackVal::from(0));
+    assert_eq!(res.clone(), StackVal::from(0_u64));
 }

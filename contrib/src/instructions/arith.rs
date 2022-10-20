@@ -18,7 +18,7 @@ impl AbstractInstruction<AbstractExecRecord> for ADD {
 
         let op_1 = stack.peek(0).unwrap();
         let op_2 = stack.peek(1).unwrap();
-        let res = *op_1 + *op_2;
+        let res = op_1.clone() + op_2.clone();
 
         change_log.stack_diff = Some(StackRecord {
             changed: vec![
@@ -45,7 +45,8 @@ impl AbstractInstruction<AbstractExecRecord> for SUB {
 
         let op_1 = stack.peek(0).unwrap();
         let op_2 = stack.peek(1).unwrap();
-        let res = *op_1 - *op_2;
+        let res = op_1.clone() - op_2.clone();
+
 
         change_log.stack_diff = Some(StackRecord {
             changed: vec![

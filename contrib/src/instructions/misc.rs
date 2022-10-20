@@ -2,8 +2,9 @@ use symbolic_stack_machines_core::{
     environment::Env,
     instructions::{AbstractExecRecord, AbstractInstruction, InstructionResult},
     memory::{MemOpRecord, MemRecord, Memory},
-    stack::{Stack, StackOpRecord, StackRecord, StackVal, ZERO},
+    stack::{Stack, StackOpRecord, StackRecord, StackVal},
 };
+use super::ZERO;
 
 pub struct PUSH(pub StackVal);
 
@@ -17,7 +18,7 @@ impl AbstractInstruction<AbstractExecRecord> for PUSH {
         let mut change_log = AbstractExecRecord::default();
 
         change_log.stack_diff = Some(StackRecord {
-            changed: vec![StackOpRecord::Push(self.0)],
+            changed: vec![StackOpRecord::Push(self.0.clone())],
         });
 
         Ok(change_log)
@@ -55,8 +56,8 @@ impl AbstractInstruction<AbstractExecRecord> for JUMPI {
         let dest = stack.peek(0).unwrap();
         let cond = stack.peek(1).unwrap();
 
-        if *cond != ZERO {
-            let x = Into::<usize>::into(*dest);
+        if *cond != StackVal(ZERO) {
+            let x = Into::<usize>::into(dest.clone());
             change_log.pc_change = Some(x);
         }
 
@@ -76,7 +77,7 @@ impl AbstractInstruction<AbstractExecRecord> for MLOAD {
         let mut change_log = AbstractExecRecord::default();
 
         let mem_idx = stack.peek(0).unwrap();
-        let mem_val = memory.read_word(*mem_idx).unwrap();
+        let mem_val = memory.read_word(mem_idx.clone()).unwrap();
 
         change_log.stack_diff = Some(StackRecord {
             changed: vec![StackOpRecord::Pop, StackOpRecord::Push(mem_val)],
@@ -105,7 +106,7 @@ impl AbstractInstruction<AbstractExecRecord> for MSTORE {
         });
 
         change_log.mem_diff = Some(MemRecord {
-            changed: vec![MemOpRecord::Write(*mem_idx, *mem_val)],
+            changed: vec![MemOpRecord::Write(mem_idx.clone(), mem_val.clone())],
         });
 
         Ok(change_log)
