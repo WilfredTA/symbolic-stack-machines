@@ -47,19 +47,19 @@ impl Memory {
         // TODO(will) - we should use a copy on write data structure
         let mut inner = self.inner.clone();
 
-        for c in r.changed {
-            match c {
-                MemOpRecord::Write(idx, val) => {
-                    // TODO(will): Check endianness/byte ordering
-                    let idx_usize = Into::<usize>::into(idx);
-                    let val_unwrapped = Into::<u64>::into(val).to_be_bytes();
+        // for c in r.changed {
+        //     match c {
+        //         MemOpRecord::Write(idx, val) => {
+        //             // TODO(will): Check endianness/byte ordering
+        //             let idx_usize = Into::<usize>::into(idx);
+        //             let val_unwrapped = Into::<u64>::into(val).to_be_bytes();
 
-                    for i in 0..=7 {
-                        inner[idx_usize + i] = val_unwrapped[i].into();
-                    }
-                }
-            }
-        }
+        //             for i in 0..=7 {
+        //                 inner[idx_usize + i] = val_unwrapped[i].into();
+        //             }
+        //         }
+        //     }
+        // }
 
         Self {
             inner,

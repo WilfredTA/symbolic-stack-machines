@@ -7,4 +7,4 @@ edition = "2021"
 
 [dependencies]
 symbolic-stack-machines-core = {path = "../core"}
-z3 = "0.11.2"
+z3 = { version = "0.11.2", features = ["static-link-z3"] }

@@ -14,6 +14,11 @@ pub mod visitors;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SymbolId<T>(pub String, pub Option<T>);
 
+impl<T> SymbolId<T> {
+    pub fn new(item: Option<T>) -> Self {
+        Self (uuid::Uuid::new_v4().to_string(), item)
+    }
+}
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Val<T>(pub Rc<T>);
 impl<T> Val<T> {

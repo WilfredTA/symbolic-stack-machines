@@ -21,6 +21,37 @@ pub enum Sentence {
     Basic(Value),
 }
 
+
+impl Sentence {
+    pub fn is_bin_op(&self) -> bool {
+        if let Self::BinOp { a, b, op } = self {
+            true
+        } else {
+            false
+        }
+    }
+  
+    pub fn is_unary_op(&self) -> bool {
+        if let Self::UnaryOp { a, op } = self {
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn is_ternary_op(&self) -> bool {
+        if let Self::TernaryOp { a, b, c, op } = self {
+            true
+        } else {
+            false
+        }
+    }
+}
+impl Default for Sentence {
+    fn default() -> Self {
+        Self::Basic(Default::default())
+    }
+}
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum TernaryOp {
     Ite,
